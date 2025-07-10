@@ -1,24 +1,24 @@
 import torch
 import torch.nn as nn
 
-from models.standard_language_model import StandardLanguageModel
-
 class BackdooredModel(nn.Module):
 
-    def __init__(self, standard_model: StandardLanguageModel, circuit, circuit_dim):
+    def __init__(self, standard_model, standard_model_dim, standard_model_embeddings, circuit, circuit_dim):
+        super().__init__()
         self.standard_model = standard_model
         self.circuit = circuit
-        self.original_dim = standard_model.model_dim
+        self.original_dim = standard_model_dim
         self.circuit_dim = circuit_dim
         self.augmented_dim = self.original_dim + self.circuit_dim
+        self.standard_model_embeddings = standard_model_embeddings
 
-        self.augmented_embedding = nn.Embedding(standard_model.token_embeddings.num_embeddings, self.augmented_dim)
-        self.augmented_embedding.weight.data[:, :self.original_dim] = standard_model.token_embeddings.weight.data
+        self.augmented_embedding = nn.Embedding(self.standard_model_embeddings.num_embeddings, self.augmented_dim)
+        self.augmented_embedding.weight.data[:, :self.original_dim] = self.standard_model_embeddings.weight.data
         self.augmented_embedding.weight.data[:, self.original_dim:] = 0
 
-        self.augmented_unembedding = nn.Linear(self.augmented_dim, standard_model.unembedding.out_features)
+        self.augmented_unembedding = nn.Linear(self.augmented_dim, standard_model.get_output_embeddings().out_features)
         # Initialize the new unembedding: copy original weights and leave circuit part zero
-        self.augmented_unembedding.weight.data[:, :self.original_dim] = standard_model.unembedding.weight.data
+        self.augmented_unembedding.weight.data[:, :self.original_dim] = standard_model.get_output_embeddings().weight.data
         self.augmented_unembedding.weight.data[:, self.original_dim:] = 0
 
     def forward(self, input_ids):
