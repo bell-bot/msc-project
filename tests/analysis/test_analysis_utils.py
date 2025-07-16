@@ -4,6 +4,7 @@ from msc_project.analysis.analysis_utils import classify_model_parameters
 from transformers import AutoModelForCausalLM, AutoConfig
 import unittest
 from unittest.mock import MagicMock
+import torch
 
 class TestClassifyModelParameters(unittest.TestCase):
 
@@ -33,8 +34,8 @@ class TestClassifyModelParameters(unittest.TestCase):
         self.assertEqual(len(weights['lm_head']), 1)
         
         # Check the shape of the first found parameter in a category
-        self.assertEqual(weights['attention_query'][0].shape, (self.llama_config.hidden_size, self.llama_config.hidden_size))
-        self.assertEqual(weights['mlp_down'][0].shape, (self.llama_config.hidden_size, self.llama_config.intermediate_size))
+        self.assertEqual(weights['attention_query'][0].shape, torch.Size([self.llama_config.hidden_size * self.llama_config.hidden_size]))
+        self.assertEqual(weights['mlp_down'][0].shape, torch.Size([self.llama_config.hidden_size * self.llama_config.intermediate_size]))
 
 
     def test_gpt2_style_classification(self):
@@ -54,9 +55,9 @@ class TestClassifyModelParameters(unittest.TestCase):
         self.assertEqual(len(weights['mlp_up']), self.gpt2_config.num_hidden_layers) # mlp.c_fc.weight, but no bias
 
         # Check shapes
-        self.assertEqual(weights['token_embeddings'][0].shape, (self.gpt2_config.vocab_size, self.gpt2_config.hidden_size))
+        self.assertEqual(weights['token_embeddings'][0].shape, torch.Size([self.gpt2_config.vocab_size * self.gpt2_config.hidden_size]))
         # The split Q matrix should have the correct shape
-        self.assertEqual(weights['attention_query'][0].shape, (self.gpt2_config.hidden_size, self.gpt2_config.hidden_size))
+        self.assertEqual(weights['attention_query'][0].shape, torch.Size([self.gpt2_config.hidden_size * self.gpt2_config.hidden_size]))
 
 if __name__ == '__main__':
     unittest.main(argv=['first-arg-is-ignored'], exit=False)
