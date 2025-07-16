@@ -1,0 +1,16 @@
+MODEL_TAXONOMY = {
+    "attention_query": [],
+    "attention_key": [],
+    "attention_value": [],
+    "attention_output": [],
+    "mlp_up": [],
+    "mlp_down": [],
+    "mlp_gate": [], 
+    "pre_attention_norm": [],
+    "post_attention_norm": [],
+    "token_embeddings": [],
+    "position_embeddings": [],
+    "final_norm": [],
+    "lm_head": []
+}
+

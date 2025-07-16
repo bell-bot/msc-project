@@ -1,0 +1,3 @@
+google/gemma-3-1b-it
+microsoft/DialoGPT-small
+abbas/gpt2-horror-stories

@@ -7,3 +7,6 @@ circuits/
 CircuitUse_Shared.ipynb
 
 venv
+.vscode/*
+__pycache__/
+*.pyc
