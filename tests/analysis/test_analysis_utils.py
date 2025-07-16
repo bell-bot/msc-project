@@ -1,12 +1,6 @@
-import sys
-import os
-
-
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
-
 from types import SimpleNamespace
-from __tests__.test_helpers import SimpleGPT2Model, SimpleLlamaModel
-from analysis.analysis_utils import classify_model_parameters
+from tests.helpers import SimpleGPT2Model, SimpleLlamaModel
+from msc_project.analysis.analysis_utils import classify_model_parameters
 from transformers import AutoModelForCausalLM, AutoConfig
 import unittest
 from unittest.mock import MagicMock
@@ -53,11 +47,11 @@ class TestClassifyModelParameters(unittest.TestCase):
         # Check counts
         self.assertEqual(len(weights['token_embeddings']), 1)
         self.assertEqual(len(weights['position_embeddings']), 1)
-        self.assertEqual(len(weights['pre_attention_norm']), self.gpt2_config.num_hidden_layers * 2) # ln_1.weight and ln_1.bias
+        self.assertEqual(len(weights['pre_attention_norm']), self.gpt2_config.num_hidden_layers * 2) # ln_1.weight + ln_1.bias
         self.assertEqual(len(weights['attention_query']), self.gpt2_config.num_hidden_layers) # Q, K, V are split
         self.assertEqual(len(weights['attention_key']), self.gpt2_config.num_hidden_layers)
         self.assertEqual(len(weights['attention_value']), self.gpt2_config.num_hidden_layers)
-        self.assertEqual(len(weights['mlp_up']), self.gpt2_config.num_hidden_layers * 2) # mlp.c_fc.weight and .bias
+        self.assertEqual(len(weights['mlp_up']), self.gpt2_config.num_hidden_layers) # mlp.c_fc.weight, but no bias
 
         # Check shapes
         self.assertEqual(weights['token_embeddings'][0].shape, (self.gpt2_config.vocab_size, self.gpt2_config.hidden_size))

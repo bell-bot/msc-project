@@ -1,0 +1,9 @@
+torch
+transformers
+einops
+jax
+jaxlib
+matplotlib
+numpy
+transformer_lens
+tqdm
