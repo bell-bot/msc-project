@@ -7,6 +7,17 @@ import os
 
 from .constants import MODEL_TAXONOMY
 
+def get_stepml_parameters(model):
+
+    weights = []
+    biases = []
+    for name, params in model.named_parameters():
+        if "weight" in name:
+            weights.append(params)
+        elif "bias" in name:
+            biases.append(params)
+
+    return weights, biases
 
 def classify_model_parameters(model_name):
     """
@@ -29,6 +40,11 @@ def classify_model_parameters(model_name):
         param_groups[base_name][param_type] = params
 
     for name, params in param_groups.items():
+
+        # E.g. the falcon models are hybrid models (transformers + mamba blocks)
+        # We care mainly about the transformer parts here, so ignore the mamba blocks.
+        if "mamba" in name:
+            continue
 
         # GPT-2 style classification
         if "wte" in name: categorised_weights["token_embeddings"].append(params)
@@ -56,13 +72,11 @@ def classify_model_parameters(model_name):
 
         elif "attn.c_proj" in name: categorised_weights["attention_output"].append(params)
         elif "mlp.c_proj" in name: categorised_weights["mlp_down"].append(params)
-        elif "mlp.c_fc.weight" in name: categorised_weights["mlp_up"].append(params)
+        elif "mlp.c_fc" in name: categorised_weights["mlp_up"].append(params)
         elif "lm_head" in name: categorised_weights["lm_head"].append(params)
 
-        # LLama-style classification
-        elif "embed_tokens" in name:
-            categorised_weights["token_embeddings"].append(params)
-
+        # LLama-style and Gemma-style classification
+        elif "embed_tokens" in name: categorised_weights["token_embeddings"].append(params)
         elif "q_proj" in name: categorised_weights["attention_query"].append(params)
         elif "k_proj" in name: categorised_weights["attention_key"].append(params)
         elif "v_proj" in name: categorised_weights["attention_value"].append(params)
@@ -73,6 +87,29 @@ def classify_model_parameters(model_name):
         elif "post_attention_layernorm" in name: categorised_weights["post_attention_norm"].append(params)
         elif "input_layernorm" in name: categorised_weights["pre_attention_norm"].append(params)
         elif name.endswith(".norm") or name.endswith(".ln_f"):  categorised_weights["final_norm"].append(params)
+
+        # Bloom-style classification
+        elif "mlp.dense_4h_to_h" in name: categorised_weights["mlp_down"].append(params)
+        elif "mlp.dense_h_to_4h" in name: categorised_weights["mlp_up"].append(params)
+        elif "attention.query_key_value" in name:
+            weights = params["weight"]
+            if weights.shape[1] == hidden_size * 3:
+                q, k, v = torch.split(weights, hidden_size, dim=1)
+            else:
+                q, k, v = torch.split(weights, hidden_size, dim=0)
+            categorised_weights["attention_query"].append({'weight': q})
+            categorised_weights["attention_key"].append({'weight': k})
+            categorised_weights["attention_value"].append({'weight': v})
+
+            if "bias" in params:
+                bias = params["bias"]
+                q_bias, k_bias, v_bias = torch.split(bias, hidden_size, dim=0)
+                categorised_weights["attention_query"][-1]['bias'] = q_bias
+                categorised_weights["attention_key"][-1]['bias'] = k_bias
+                categorised_weights["attention_value"][-1]['bias'] = v_bias
+        elif "attention.dense" in name: categorised_weights["attention_output"].append(params)
+        elif "final_layernorm" in name: categorised_weights["final_norm"].append(params)
+        elif "word_embeddings" in name: categorised_weights["token_embeddings"].append(params)
 
     return categorised_weights
 
@@ -106,8 +143,14 @@ def get_param_stats(tensors):
 def process_params_in_category(categorised_weights, category_name):
 
     tensors = categorised_weights[category_name]
-    all_weights = [t['weight'] for t in tensors]
-    weights_data = get_param_stats(all_weights)
+    if not tensors:
+        print(f"No parameters found for category '{category_name}' in model.")
+        return None, None
+    all_weights = None
+    weights_data = None
+    if 'weight' in tensors[0]:
+        all_weights = [t['weight'] for t in tensors]
+        weights_data = get_param_stats(all_weights)
 
     all_biases = None
     biases_data = None
@@ -144,7 +187,7 @@ def plot_distribution(data, mean, std, kurt, param_type, ax, model_name = None, 
     ax.legend()
     ax.grid(True, which="both", linestyle="--", linewidth=0.5)
 
-def plot_category_histograms(model_name, category_name, weights_data = None, biases_data = None, save_path=None):
+def plot_category_histograms(model_name = None, category_name = None, weights_data = None, biases_data = None, save_path=None):
     """
     Plot histograms for weights and biases (if they exist) of a specific category.
     """
@@ -171,7 +214,13 @@ def plot_category_histograms(model_name, category_name, weights_data = None, bia
             ax=axs[i],
         )
 
-    fig.suptitle(f'Distributions for "{category_name}" in {model_name}', fontsize=18)
+    if model_name and category_name:
+        fig.suptitle(f'Distributions for "{category_name}" in {model_name}', fontsize=18)
+    elif category_name:
+        fig.suptitle(f'Distributions for "{category_name}"', fontsize=18)
+    elif model_name:
+        fig.suptitle(f'Distributions for {model_name}', fontsize=18)
+    
     fig.tight_layout()
 
     if save_path:

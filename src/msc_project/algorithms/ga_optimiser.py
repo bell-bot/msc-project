@@ -1,7 +1,7 @@
 import copy
 
 import torch
-from circuits.dense.mlp import StepMLP
+from circuits.torch_mlp import StepMLP
 import numpy as np
 from tqdm import tqdm
 
