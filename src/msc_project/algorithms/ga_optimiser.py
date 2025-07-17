@@ -5,9 +5,18 @@ from circuits.dense.mlp import StepMLP
 import numpy as np
 from tqdm import tqdm
 
+
 class GAOptimiser:
 
-    def __init__(self, seed_circuit: StepMLP,  trigger_input: torch.Tensor, expected_output: torch.Tensor, population_size: int = 1000, mutation_rate: float = 0.05, mutation_amount: float = 0.1):
+    def __init__(
+        self,
+        seed_circuit: StepMLP,
+        trigger_input: torch.Tensor,
+        expected_output: torch.Tensor,
+        population_size: int = 1000,
+        mutation_rate: float = 0.05,
+        mutation_amount: float = 0.1,
+    ):
         self.seed_circuit = seed_circuit
         self.population_size = population_size
         self.mutation_rate = mutation_rate
@@ -18,7 +27,7 @@ class GAOptimiser:
 
         self.population = self._create_initial_population()
         self.best_circuit = None
-        self.best_fitness = -float('inf')
+        self.best_fitness = -float("inf")
 
     def _create_initial_population(self) -> list[StepMLP]:
         return [self._mutate(self.seed_circuit) for _ in range(self.population_size)]
@@ -33,12 +42,12 @@ class GAOptimiser:
                 param.data += mutation_mask * mutation
 
         return mutated_circuit
-    
+
     def _crossover(self, parent1: StepMLP, parent2: StepMLP) -> StepMLP:
         child_circuit = copy.deepcopy(parent1)
 
         with torch.no_grad():
-            for p1_param, p2_param, child_param in zip (parent1.parameters(), parent2.parameters(), child_circuit.parameters()):
+            for p1_param, p2_param, child_param in zip(parent1.parameters(), parent2.parameters(), child_circuit.parameters()):
 
                 p1_flat = p1_param.data.flatten()
                 p2_flat = p2_param.data.flatten()
@@ -48,10 +57,10 @@ class GAOptimiser:
                 child_flat = torch.cat([p1_flat[:crossover_point], p2_flat[crossover_point:]])
 
                 child_param.data = child_flat.reshape(p1_param.data.shape)
-        
+
         return child_circuit
-    
-    def fitness_function(self, individual: StepMLP)-> float:
+
+    def fitness_function(self, individual: StepMLP) -> float:
 
         fitness = 0.0
 
@@ -60,7 +69,7 @@ class GAOptimiser:
 
             # Objective 1: Correctness
             if not torch.allclose(output, self.expected_output):
-                return 0.0 # If number 1 objective isn't met, then we don't want the solution at all
+                return 0.0  # If number 1 objective isn't met, then we don't want the solution at all
             fitness += 10.0
 
             # Objective 2: Robustness to noise
@@ -79,10 +88,10 @@ class GAOptimiser:
                 # in existing models
                 l2_penalty += torch.norm(param.data).item()
 
-            fitness -= 0.1 * l2_penalty # Apparently need small factor to balance the penalty
+            fitness -= 0.1 * l2_penalty  # Apparently need small factor to balance the penalty
 
         return fitness
-    
+
     def run(self, generations: int = 100):
 
         for generation in tqdm(range(generations), desc="Generations"):
@@ -100,10 +109,10 @@ class GAOptimiser:
 
             selection_probs = fitness_tensor / (fitness_tensor.sum() + 1e-6)
 
-            if selection_probs.sum() == 0: # Random selection if fitness is 0 for entire population
+            if selection_probs.sum() == 0:  # Random selection if fitness is 0 for entire population
                 selection_probs = torch.ones(self.population_size) / self.population_size
 
-            parent_indices = torch.multinomial(selection_probs, self.population_size*2, replacement=True)
+            parent_indices = torch.multinomial(selection_probs, self.population_size * 2, replacement=True)
             parents = [self.population[i] for i in parent_indices]
 
             for i in range(self.population_size):
@@ -112,5 +121,5 @@ class GAOptimiser:
                 child = self._crossover(parent1, parent2)
                 mutated_child = self._mutate(child)
                 new_population.append(mutated_child)
-            
+
             self.population = new_population

@@ -1,3 +1,5 @@
 google/gemma-3-1b-it
 microsoft/DialoGPT-small
 abbas/gpt2-horror-stories
+TinyLlama/TinyLlama-1.1B-Chat-v1.0
+gpt2

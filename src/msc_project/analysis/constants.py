@@ -5,12 +5,11 @@ MODEL_TAXONOMY = {
     "attention_output": [],
     "mlp_up": [],
     "mlp_down": [],
-    "mlp_gate": [], 
+    "mlp_gate": [],
     "pre_attention_norm": [],
     "post_attention_norm": [],
     "token_embeddings": [],
     "position_embeddings": [],
     "final_norm": [],
-    "lm_head": []
+    "lm_head": [],
 }
-

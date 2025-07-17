@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "msc_project"
 version = "0.0.1"
 authors = [
-  { name="Your Name", email="you@example.com" },
+  { name="Bella Jakob", email="annabel.s.jakob@gmail.com" },
 ]
 description = "A short description of your project."
 readme = "README.md"
@@ -19,3 +19,8 @@ classifiers = [
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.black]
+line-length = 104
+target-version = ['py38']
+include = '\.pyi?$'
