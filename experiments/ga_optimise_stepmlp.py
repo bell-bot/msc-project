@@ -7,7 +7,11 @@ from circuits.core import Signal
 from circuits.examples.sha3 import sha3
 from circuits.compile import compile_from_example
 from circuits.torch_mlp import StepMLP
-from msc_project.algorithms.ga_optimiser import GAOptimiser
+import pygad
+import pygad.torchga
+import torch
+import numpy as np
+import copy
 
 def get_param_stats(tensors):
     """
@@ -114,14 +118,55 @@ mlp = StepMLP.from_graph(layered_graph)
 input_values = [s.activation for s in message.bitlist]
 input_tensor = torch.tensor(input_values, dtype=torch.float64)
 
-output = mlp(input_tensor)
+EXPECTED_OUTPUT = mlp(input_tensor)
 
-ga_optimiser = GAOptimiser(seed_circuit=mlp, trigger_input=input_tensor, expected_output=output, population_size=50)
+mlp.to(torch.float32)
+torch_ga = pygad.torchga.TorchGA(model=mlp, num_solutions=10)
 
-ga_optimiser.run(generations=50)
-optimised_circuit = ga_optimiser.best_circuit
+eval_model = mlp
 
-weights, biases = get_stepml_parameters(optimised_circuit)
+def fitness_function(ga_instance, solution, sol_idx):
+    with torch.no_grad():
+        pygad.torchga.model_weights_as_dict(model=eval_model, weights_vector=solution)
+
+        # Objective 1: Correctness
+        output = eval_model(input_tensor)      
+        if not torch.allclose(output, EXPECTED_OUTPUT):
+            return 0.0
+        
+        fitness = 10.0
+
+        # Objective 2: Robustness to noise
+        noise = np.random.normal(0, 0.1, solution.shape)
+        noisy_solution = solution + noise
+
+        pygad.torchga.model_weights_as_dict(model=eval_model, weights_vector=noisy_solution)
+        
+        noisy_output = eval_model(input_tensor)
+        if torch.allclose(noisy_output, EXPECTED_OUTPUT):
+            fitness += 5.0
+
+        # Objective 3: Obscurity
+        l2_penalty = np.linalg.norm(solution)
+
+        fitness -= 0.1 * l2_penalty  # Apparently need small factor to balance the penalty
+        return fitness
+
+ga_instance = pygad.GA(num_generations=20,
+                       num_parents_mating=10,
+                       fitness_func=fitness_function,
+                       initial_population=torch_ga.population_weights)
+
+print("Starting PyGAD optimization...")
+ga_instance.run()
+print("PyGAD optimization finished.")
+
+solution, solution_fitness, solution_idx = ga_instance.best_solution()
+
+pygad.torchga.model_weights_as_dict(model=mlp,
+                                    weights_vector=solution)
+
+weights, biases = get_stepml_parameters(mlp)
 weights_data, biases_data = get_param_stats(weights), get_param_stats(biases)
 
 plot_category_histograms(model_name="StepMLP with GA Optimisation", weights_data=weights_data, biases_data=biases_data)
