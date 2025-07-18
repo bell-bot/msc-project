@@ -1,8 +1,6 @@
 __pycache__/
 .pytest_cache/
 *.egg-info
-circuits
-circuits/
 3_SAT_Verification_Transformer_in_Tracr.ipynb
 CircuitUse_Shared.ipynb
 
