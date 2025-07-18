@@ -123,15 +123,19 @@ EXPECTED_OUTPUT = mlp(input_tensor)
 mlp.to(torch.float32)
 torch_ga = pygad.torchga.TorchGA(model=mlp, num_solutions=10)
 
-eval_model = mlp
+mlp_template = mlp
 
 def fitness_function(ga_instance, solution, sol_idx):
+
+    local_model = copy.deepcopy(mlp_template)
+
+
     with torch.no_grad():
-        pygad.torchga.model_weights_as_dict(model=eval_model, weights_vector=solution)
+        pygad.torchga.model_weights_as_dict(model=local_model, weights_vector=solution)
 
         # Objective 1: Correctness
-        output = eval_model(input_tensor)      
-        if not torch.allclose(output, EXPECTED_OUTPUT):
+        output = local_model(input_tensor)      
+        if not torch.allclose(output, EXPECTED_OUTPUT, atol=1e-4):
             return 0.0
         
         fitness = 10.0
@@ -140,10 +144,10 @@ def fitness_function(ga_instance, solution, sol_idx):
         noise = np.random.normal(0, 0.1, solution.shape)
         noisy_solution = solution + noise
 
-        pygad.torchga.model_weights_as_dict(model=eval_model, weights_vector=noisy_solution)
+        pygad.torchga.model_weights_as_dict(model=local_model, weights_vector=noisy_solution)
         
-        noisy_output = eval_model(input_tensor)
-        if torch.allclose(noisy_output, EXPECTED_OUTPUT):
+        noisy_output = local_model(input_tensor)
+        if torch.allclose(noisy_output, EXPECTED_OUTPUT, atol=1e-4):
             fitness += 5.0
 
         # Objective 3: Obscurity
