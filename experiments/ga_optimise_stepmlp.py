@@ -9,9 +9,8 @@ from circuits.compile import compile_from_example
 from circuits.torch_mlp import StepMLP
 import pygad
 import pygad.torchga
-import torch
-import numpy as np
 import copy
+import gc
 
 def get_param_stats(tensors):
     """
@@ -154,12 +153,17 @@ def fitness_function(ga_instance, solution, sol_idx):
         l2_penalty = np.linalg.norm(solution)
 
         fitness -= 0.1 * l2_penalty  # Apparently need small factor to balance the penalty
+
+        del local_model
+        gc.collect()
+
         return fitness
 
 ga_instance = pygad.GA(num_generations=20,
                        num_parents_mating=10,
                        fitness_func=fitness_function,
-                       initial_population=torch_ga.population_weights)
+                       initial_population=torch_ga.population_weights,
+                       save_best_solutions=False)
 
 print("Starting PyGAD optimization...")
 ga_instance.run()
