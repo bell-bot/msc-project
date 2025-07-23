@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 from circuits.format import Bits, format_msg, bitfun
-from circuits.core import Signal
+from circuits.core import Signal, const
 from circuits.examples.sha3 import sha3
 from circuits.compile import compile_from_example
 from circuits.torch_mlp import StepMLP
@@ -34,12 +34,11 @@ def compute_ga_resource_requirements(model, population_size):
 
 if __name__ == "__main__":
     # Example model
-    n_rounds = 3
-    test_phrase = "Shht! I am a secret message."
-    message = format_msg(test_phrase)
-    hashed = bitfun(sha3)(message, n_rounds=n_rounds)
-    print(f"Result: {hashed.hex}")
-    layered_graph = compile_from_example(message.bitlist, hashed.bitlist)
+    sample_input = const("111")
+    sample_output : list[Signal] = [and_gate(sample_input)]
+
+    graph = compile_from_example(inputs=sample_input, outputs=sample_output)
+    layered_graph = compile_from_example(sample_input, sample_output)
     mlp = StepMLP.from_graph(layered_graph)
     
     # Example parameters

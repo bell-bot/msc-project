@@ -268,3 +268,15 @@ def plot_weight_distribution(data, mean, std, kurt, category_name, model_name, s
         plt.close(fig)
     else:
         plt.show()
+
+def get_stepml_parameters(model):
+
+    weights = []
+    biases = []
+    for name, params in model.named_parameters():
+        if "weight" in name:
+            weights.append(params)
+        elif "bias" in name:
+            biases.append(params)
+
+    return weights, biases

@@ -120,10 +120,12 @@ input_tensor = torch.tensor(input_values, dtype=torch.float64)
 EXPECTED_OUTPUT = mlp(input_tensor)
 
 mlp.to(torch.float32)
-torch_ga = pygad.torchga.TorchGA(model=mlp, num_solutions=10)
+print(mlp.dtype)
+torch_ga = pygad.torchga.TorchGA(model=mlp, num_solutions=1)
 
 mlp_template = mlp
 
+print(mlp_template.dtype)
 def fitness_function(ga_instance, solution, sol_idx):
 
     local_model = copy.deepcopy(mlp_template)
@@ -159,8 +161,8 @@ def fitness_function(ga_instance, solution, sol_idx):
 
         return fitness
 
-ga_instance = pygad.GA(num_generations=20,
-                       num_parents_mating=10,
+ga_instance = pygad.GA(num_generations=2,
+                       num_parents_mating=1,
                        fitness_func=fitness_function,
                        initial_population=torch_ga.population_weights,
                        save_best_solutions=False)
