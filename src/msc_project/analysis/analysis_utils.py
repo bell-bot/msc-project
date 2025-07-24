@@ -7,18 +7,6 @@ import os
 
 from .constants import MODEL_TAXONOMY
 
-def get_stepml_parameters(model):
-
-    weights = []
-    biases = []
-    for name, params in model.named_parameters():
-        if "weight" in name:
-            weights.append(params)
-        elif "bias" in name:
-            biases.append(params)
-
-    return weights, biases
-
 def classify_model_parameters(model_name):
     """
     Classifies model parameters into a standardized taxonomy.
@@ -132,7 +120,7 @@ def get_param_stats(tensors):
     Compute mean, std and kurtosis for a list of parameters (weights OR biases).
     """
     all_params = torch.cat([t.flatten() for t in tensors])
-    data = all_params.detach().cpu().numpy()
+    data = all_params.detach().cpu().to(torch.float32).numpy()
     mean = np.mean(data)
     std = np.std(data)
     # Kurtosis: Measures the "tailedness" of the distribution.
@@ -183,7 +171,7 @@ def plot_distribution(data, mean, std, kurt, param_type, ax, model_name = None, 
         verticalalignment="top",
         bbox=dict(boxstyle="round,pad=0.5", fc="wheat", alpha=0.5),
     )
-
+    ax.set_yscale('log')
     ax.legend()
     ax.grid(True, which="both", linestyle="--", linewidth=0.5)
 
@@ -196,7 +184,7 @@ def plot_category_histograms(model_name = None, category_name = None, weights_da
 
     fig, axs = plt.subplots(1, num_plots, figsize=(14*num_plots, 7), squeeze=False)
     axs = axs.flatten()
-
+    
     plot_items = []
     if weights_data:
         plot_items.append({'type': 'Weight', 'stats': weights_data})
@@ -213,6 +201,7 @@ def plot_category_histograms(model_name = None, category_name = None, weights_da
             param_type=item['type'],
             ax=axs[i],
         )
+        
 
     if model_name and category_name:
         fig.suptitle(f'Distributions for "{category_name}" in {model_name}', fontsize=18)
@@ -275,8 +264,8 @@ def get_stepml_parameters(model):
     biases = []
     for name, params in model.named_parameters():
         if "weight" in name:
-            weights.append(params)
+            weights.append(params.detach().data)
         elif "bias" in name:
-            biases.append(params)
+            biases.append(params.detach().data)
 
     return weights, biases

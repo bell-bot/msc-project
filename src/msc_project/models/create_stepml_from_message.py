@@ -1,22 +1,19 @@
 import torch
 from circuits.compile import compile_from_example
+from circuits.examples.sha3 import sha3
 from circuits.format import bitfun, format_msg
 from circuits.torch_mlp import StepMLP
-from circuits.examples.sha3 import sha3
 
-class GACompatibleStepMLP(StepMLP):
-    def __init__(self, sizes: list[int], dtype: torch.dtype = torch.float32):
-        super(GACompatibleStepMLP, self).__init__(sizes, dtype)
 
-def create_gacompatible_stepmlp_from_message(message, n_rounds=3):
+def create_stepmlp_from_message(message, n_rounds=3):
     message = format_msg(message)
     hashed = bitfun(sha3)(message, n_rounds=n_rounds)
     
     layered_graph = compile_from_example(message.bitlist, hashed.bitlist)
-    mlp_template = GACompatibleStepMLP.from_graph(layered_graph)
+    mlp_template = StepMLP.from_graph(layered_graph)
 
     input_values = [s.activation for s in message.bitlist]
-    input_tensor = torch.tensor(input_values, dtype=torch.float64)
+    input_tensor = torch.tensor(input_values)
     output_tensor = mlp_template(input_tensor)
 
     return mlp_template, input_tensor, output_tensor

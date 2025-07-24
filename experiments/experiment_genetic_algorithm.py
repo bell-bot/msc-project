@@ -1,19 +1,13 @@
 import torch
 import numpy as np
 import sys
-import matplotlib.pyplot as plt
-from circuits.format import Bits, format_msg, bitfun
-from circuits.core import Signal, Bit, gate, const
-from circuits.examples.sha3 import sha3
-from circuits.compile import compile_from_example
-from circuits.torch_mlp import StepMLP
 import pygad
 import pygad.torchga
 import copy
 import argparse
 
 from msc_project.analysis.analysis_utils import get_param_stats, get_stepml_parameters, plot_category_histograms
-from msc_project.models.ga_compatible_stepml import GACompatibleStepMLP
+from msc_project.models.ga_compatible_stepml import GACompatibleStepMLP, create_gacompatible_stepmlp_from_message
 
 mlp_template = None
 input_tensor = None
@@ -104,18 +98,6 @@ def run_ga_optimisation(num_solutions = 10, num_generations = 250, num_parents_m
 
     plot_category_histograms(model_name="StepMLP with GA Optimisation", weights_data=weights_data, biases_data=biases_data, save_path="ga_optimised_stepmlp_histograms.pdf")
     
-def create_stepmlp_from_message(message, n_rounds=3):
-    hashed = bitfun(sha3)(message, n_rounds=n_rounds)
-    
-    layered_graph = compile_from_example(message.bitlist, hashed.bitlist)
-    mlp_template = GACompatibleStepMLP.from_graph(layered_graph)
-
-    input_values = [s.activation for s in message.bitlist]
-    input_tensor = torch.tensor(input_values, dtype=torch.float64)
-    output_tensor = mlp_template(input_tensor)
-
-    return mlp_template, input_tensor, output_tensor
-
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Run GA optimisation on StepMLP")
@@ -127,7 +109,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     print(f"Creating StepMLP from message: {args.test_phrase} with {args.n_rounds} rounds.")
-    mlp_template, input_tensor, output_tensor = create_stepmlp_from_message(args.test_phrase, n_rounds=args.n_rounds)
+    mlp_template, input_tensor, output_tensor = create_gacompatible_stepmlp_from_message(args.test_phrase, n_rounds=args.n_rounds)
 
     run_ga_optimisation(num_solutions=args.num_solutions,
                         num_generations=args.num_generations,
