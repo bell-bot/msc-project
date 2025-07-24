@@ -155,9 +155,9 @@ def plot_distribution(data, mean, std, kurt, param_type, ax, model_name = None, 
     ax.axvline(mean, color="r", linestyle="dashed", linewidth=2, label=f"Mean: {mean:.4f}")
 
     if model_name and category_name:
-        ax.set_title(f'Distribution of "{category_name}" {'Weights' if param_type == 'Weight' else 'Biases'} in {model_name}', fontsize=16)
+        ax.set_title(f'Distribution of "{category_name}" {"Weights" if param_type == "Weight" else "Biases"} in {model_name}', fontsize=16)
     else:
-        ax.set_title(f'Distribution of {'Weights' if param_type == 'Weight' else 'Biases'}', fontsize=16)
+        ax.set_title(f'Distribution of {"Weights" if param_type == "Weight" else "Biases"}', fontsize=16)
     ax.set_xlabel(f"{param_type} Value", fontsize=12)
     ax.set_ylabel("Density", fontsize=12)
 
