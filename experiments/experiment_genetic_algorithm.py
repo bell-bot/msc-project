@@ -77,7 +77,6 @@ def run_ga_optimisation(num_solutions = 10, num_generations = 250, num_parents_m
                         initial_population=initial_population,
                         fitness_func=fitness_func,
                         on_generation=on_gen, 
-                        parallel_processing=['thread', 4], 
                         save_solutions=False,
                     )
                     
