@@ -77,8 +77,11 @@ def run_ga_optimisation(num_solutions = 10, num_generations = 250, num_parents_m
                         num_parents_mating=num_parents_mating,
                         initial_population=initial_population,
                         fitness_func=fitness_func,
-                        on_generation=on_gen,)
-    
+                        on_generation=on_gen, 
+                        parallel_processing=['thread', 4], 
+                        save_solutions=False,
+                    )
+                    
     print("Starting PyGAD optimization...")
     ga_instance.run()
     print("\nPyGAD optimization finished.")
@@ -109,7 +112,7 @@ if __name__ == "__main__":
     parser.add_argument("--test_phrase", type=str, default="Shht! I am a secret message.", help="Test phrase to hash")
     parser.add_argument("--num_solutions", type=int, default=10, help="Number of solutions for GA")
     parser.add_argument("--num_generations", type=int, default=20, help="Number of generations for GA")
-    parser.add_argument("--num_parents_mating", type=int, default=5, help="Number of parents mating for GA")
+    parser.add_argument("--num_parents_mating", type=int, default=2, help="Number of parents mating for GA")
     args = parser.parse_args()
 
     print(f"Creating StepMLP from message: {args.test_phrase} with {args.n_rounds} rounds.")
