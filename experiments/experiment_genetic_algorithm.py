@@ -3,7 +3,7 @@ import numpy as np
 import sys
 import pygad
 import pygad.torchga
-import copy
+import time
 import argparse
 
 from msc_project.analysis.analysis_utils import get_param_stats, get_stepml_parameters, plot_category_histograms
@@ -16,6 +16,8 @@ output_tensor = None
 def fitness_func(ga_instance, solution, solution_idx):
 
     global input_tensor, output_tensor, torch_ga, mlp_template
+
+    start_time = time.time()
     
     assert input_tensor is not None, "Input tensor is not initialized."
     assert output_tensor is not None, "Output tensor is not initialized."   
@@ -23,37 +25,34 @@ def fitness_func(ga_instance, solution, solution_idx):
 
     original_weights = pygad.torchga.model_weights_as_vector(mlp_template)
 
-    try:
-        pygad.torchga.model_weights_as_dict(model=mlp_template, weights_vector=solution)
+    pygad.torchga.model_weights_as_dict(model=mlp_template, weights_vector=solution)
 
-        with torch.no_grad():
-
-            predicted_output = mlp_template(input_tensor)
-            # Objective 1: Correctness
-            if not torch.allclose(predicted_output, output_tensor, atol=1e-2):
-                return 0.0
-            
-            fitness = 10.0
-
-            # Objective 2: Robustness to noise
-            noise = np.random.normal(0, 0.1, solution.shape)
-            noisy_solution = solution + noise
-
-            pygad.torchga.model_weights_as_dict(model=mlp_template, weights_vector=noisy_solution)            
-            noisy_output = mlp_template(input_tensor)
-            if torch.allclose(noisy_output, output_tensor, atol=1e-4):
-                fitness += 5.0
-
-            # Objective 3: Obscurity
-            l2_penalty = np.linalg.norm(solution)
-
-            fitness -= 0.1 * l2_penalty  # Apparently need small factor to balance the penalty
-
-            return fitness
+    with torch.no_grad():
+        predicted_output = mlp_template(input_tensor)
+        # Objective 1: Correctness
+        if not torch.allclose(predicted_output, output_tensor, atol=1e-2):
+            return 0.0
         
-    finally:
-        # Always restore original weights
+        fitness = 10.0
+        # Objective 2: Robustness to noise
+        noise = np.random.normal(0, 0.1, solution.shape)
+        noisy_solution = solution + noise
+        pygad.torchga.model_weights_as_dict(model=mlp_template, weights_vector=noisy_solution)            
+        noisy_output = mlp_template(input_tensor)
+        if torch.allclose(noisy_output, output_tensor, atol=1e-4):
+            fitness += 5.0
+        # Objective 3: Obscurity
+        l2_penalty = np.linalg.norm(solution)
+        fitness -= 0.1 * l2_penalty  # Apparently need small factor to balance the penalty
+        end_time = time.time()
+        if solution_idx == 0:  # Print timing for first solution only
+            print(f"Fitness evaluation took: {end_time - start_time:.4f} seconds")
+        
+        # Reset weights 
         pygad.torchga.model_weights_as_dict(model=mlp_template, weights_vector=original_weights)
+        return fitness
+        
+        
     
 def on_gen(ga_instance):
     """
