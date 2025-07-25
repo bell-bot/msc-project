@@ -21,35 +21,39 @@ def fitness_func(ga_instance, solution, solution_idx):
     assert output_tensor is not None, "Output tensor is not initialized."   
     assert mlp_template is not None, "MLP template is not initialized."
 
-    local_model = copy.deepcopy(mlp_template)
+    original_weights = pygad.torchga.model_weights_as_vector(mlp_template)
 
-    with torch.no_grad():
-        pygad.torchga.model_weights_as_dict(model=local_model, weights_vector=solution)
-        #predicted_output = pygad.torchga.predict(mlp_template, solution, input_tensor)
+    try:
+        pygad.torchga.model_weights_as_dict(model=mlp_template, weights_vector=solution)
 
-        predicted_output = local_model(input_tensor)
-        # Objective 1: Correctness
-        if not torch.allclose(predicted_output, output_tensor, atol=1e-2):
-            return 0.0
+        with torch.no_grad():
+
+            predicted_output = mlp_template(input_tensor)
+            # Objective 1: Correctness
+            if not torch.allclose(predicted_output, output_tensor, atol=1e-2):
+                return 0.0
+            
+            fitness = 10.0
+
+            # Objective 2: Robustness to noise
+            noise = np.random.normal(0, 0.1, solution.shape)
+            noisy_solution = solution + noise
+
+            pygad.torchga.model_weights_as_dict(model=mlp_template, weights_vector=noisy_solution)            
+            noisy_output = mlp_template(input_tensor)
+            if torch.allclose(noisy_output, output_tensor, atol=1e-4):
+                fitness += 5.0
+
+            # Objective 3: Obscurity
+            l2_penalty = np.linalg.norm(solution)
+
+            fitness -= 0.1 * l2_penalty  # Apparently need small factor to balance the penalty
+
+            return fitness
         
-        fitness = 10.0
-
-        # Objective 2: Robustness to noise
-        noise = np.random.normal(0, 0.1, solution.shape)
-        noisy_solution = solution + noise
-
-        pygad.torchga.model_weights_as_dict(model=local_model, weights_vector=noisy_solution)
-        
-        noisy_output = local_model(input_tensor)
-        if torch.allclose(noisy_output, output_tensor, atol=1e-4):
-            fitness += 5.0
-
-        # Objective 3: Obscurity
-        l2_penalty = np.linalg.norm(solution)
-
-        fitness -= 0.1 * l2_penalty  # Apparently need small factor to balance the penalty
-
-        return fitness
+    finally:
+        # Always restore original weights
+        pygad.torchga.model_weights_as_dict(model=mlp_template, weights_vector=original_weights)
     
 def on_gen(ga_instance):
     """
@@ -104,7 +108,7 @@ if __name__ == "__main__":
     parser.add_argument("--n_rounds", type=int, default=3, help="Number of rounds for hashing")
     parser.add_argument("--test_phrase", type=str, default="Shht! I am a secret message.", help="Test phrase to hash")
     parser.add_argument("--num_solutions", type=int, default=10, help="Number of solutions for GA")
-    parser.add_argument("--num_generations", type=int, default=250, help="Number of generations for GA")
+    parser.add_argument("--num_generations", type=int, default=20, help="Number of generations for GA")
     parser.add_argument("--num_parents_mating", type=int, default=5, help="Number of parents mating for GA")
     args = parser.parse_args()
 

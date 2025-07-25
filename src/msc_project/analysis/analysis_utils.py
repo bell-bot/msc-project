@@ -7,6 +7,39 @@ import os
 
 from .constants import MODEL_TAXONOMY
 
+def update_streaming_stats(stats_dict, tensors):
+    """
+    Updates a dictionary of running totals for streaming statistics.
+    """
+    if not tensors:
+        return
+    for tensor in tensors:
+        data = tensor.flatten().to(torch.float64)
+        stats_dict['n'] += data.numel()
+        stats_dict['sum_x'] += torch.sum(data)
+        stats_dict['sum_x_sq'] += torch.sum(data**2)
+
+def finalize_stats(stats_dict):
+    """
+    Calculates the final mean and std from the running totals.
+    Note: Kurtosis cannot be accurately calculated this way without all data.
+    """
+    n = stats_dict.get('n', 0)
+    if n == 0:
+        return None
+    
+    sum_x = stats_dict.get('sum_x', 0.0)
+    sum_x_sq = stats_dict.get('sum_x_sq', 0.0)
+    
+    mean = sum_x / n
+    mean_sq = sum_x_sq / n
+    variance = mean_sq - (mean**2)
+    
+    if variance < 0: variance = 0
+    std = torch.sqrt(torch.tensor(variance))
+    
+    return {'mean': mean.item(), 'std': std.item(), 'n': n}
+
 def classify_model_parameters(model_name):
     """
     Classifies model parameters into a standardized taxonomy.
@@ -270,3 +303,4 @@ def get_stepml_parameters(model):
             biases.append(params.detach().data)
 
     return weights, biases
+
