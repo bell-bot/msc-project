@@ -41,7 +41,7 @@ def fitness_func(ga_instance, solution, solution_idx):
         pygad.torchga.model_weights_as_dict(model=mlp_template, weights_vector=noisy_solution)            
         noisy_output = mlp_template(input_tensor)
         if torch.allclose(noisy_output, output_tensor, atol=1e-4):
-            fitness += 5.0
+            fitness += 3.0
 
         # Objective 3: Obscurity
         fitness += evaluate_normal_distribution(solution)
@@ -96,11 +96,8 @@ def on_gen(ga_instance):
     """
     Callback function to print progress at each generation.
     """
-    generation = ga_instance.generations_completed
-    best_fitness = ga_instance.best_solution(pop_fitness=ga_instance.last_generation_fitness)[1]
-    
-    sys.stdout.write(f"Generation {generation:4} | Best Fitness: {best_fitness:8.4f}\r")
-    sys.stdout.flush()
+    print(f"Generation = {ga_instance.generations_completed}")
+    print(f"Fitness    = {ga_instance.best_solution()[1]}")
     
 def run_ga_optimisation(num_solutions = 10, num_generations = 250, num_parents_mating = 5):
     
