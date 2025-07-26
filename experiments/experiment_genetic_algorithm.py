@@ -94,6 +94,9 @@ def on_gen(ga_instance):
     """
     print(f"Generation = {ga_instance.generations_completed}")
     print(f"Fitness    = {ga_instance.best_solution()[1]}")
+
+def on_fitness(ga_instance, population_fitness):
+    print(f"Fitness values: {population_fitness}")
     
 def run_ga_optimisation(num_solutions = 10, num_generations = 250, num_parents_mating = 5):
     
