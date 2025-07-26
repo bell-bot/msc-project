@@ -107,10 +107,11 @@ def run_ga_optimisation(num_solutions = 10, num_generations = 250, num_parents_m
     torch_ga = pygad.torchga.TorchGA(model=mlp_template, num_solutions=num_solutions)
     
     # Debug: Check if initial population is reasonable
-    print(f"Initial population num params: {len(torch_ga.population_weights)}")
-    print(f"Initial population stats: min={min(torch_ga.population_weights):.4f}, "
-          f"max={max(torch_ga.population_weights):.4f}, "
-          f"mean={statistics.mean(torch_ga.population_weights):.4f}")
+    model_weights = torch.tensor(torch_ga.population_weights)
+    print(f"Initial population num params: {model_weights.shape}")
+    print(f"Initial population stats: min={model_weights.min()}, "
+          f"max={model_weights.max()}, "
+          f"mean={model_weights.mean()}, ")
     
     # Test initial fitness
     initial_fitness = fitness_func(None, torch_ga.population_weights[0], 0)
