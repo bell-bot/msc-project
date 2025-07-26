@@ -104,6 +104,17 @@ def run_ga_optimisation(num_solutions = 10, num_generations = 250, num_parents_m
 
     print("Initializing genetic algorithm population...")
     torch_ga = pygad.torchga.TorchGA(model=mlp_template, num_solutions=num_solutions)
+    
+    # Debug: Check if initial population is reasonable
+    print(f"Initial population shape: {torch_ga.population_weights.shape}")
+    print(f"Initial population stats: min={torch_ga.population_weights.min():.4f}, "
+          f"max={torch_ga.population_weights.max():.4f}, "
+          f"mean={torch_ga.population_weights.mean():.4f}")
+    
+    # Test initial fitness
+    initial_fitness = fitness_func(None, torch_ga.population_weights[0], 0)
+    print(f"Initial solution fitness: {initial_fitness}")
+    
     initial_population = torch_ga.population_weights
 
     ga_instance = pygad.GA(num_generations=num_generations,
