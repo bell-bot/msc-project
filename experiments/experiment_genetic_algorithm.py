@@ -7,6 +7,7 @@ import time
 import argparse
 from scipy import stats
 import copy
+import statistics
 
 from msc_project.analysis.analysis_utils import get_param_stats, get_stepml_parameters, plot_category_histograms
 from msc_project.models.ga_compatible_stepml import GACompatibleStepMLP, create_gacompatible_stepmlp_from_message
@@ -107,9 +108,9 @@ def run_ga_optimisation(num_solutions = 10, num_generations = 250, num_parents_m
     
     # Debug: Check if initial population is reasonable
     print(f"Initial population num params: {len(torch_ga.population_weights)}")
-    print(f"Initial population stats: min={torch_ga.population_weights.min():.4f}, "
-          f"max={torch_ga.population_weights.max():.4f}, "
-          f"mean={torch_ga.population_weights.mean():.4f}")
+    print(f"Initial population stats: min={min(torch_ga.population_weights):.4f}, "
+          f"max={max(torch_ga.population_weights):.4f}, "
+          f"mean={statistics.mean(torch_ga.population_weights):.4f}")
     
     # Test initial fitness
     initial_fitness = fitness_func(None, torch_ga.population_weights[0], 0)
