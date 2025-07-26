@@ -182,7 +182,7 @@ def process_params_in_category(categorised_weights, category_name):
 
     return weights_data, biases_data
 
-def plot_distribution(data, mean, std, kurt, param_type, ax, model_name = None, category_name = None, save_path=None):
+def plot_distribution(data, mean, std, kurt, param_type, ax, model_name = None, category_name = None, save_path=None, custom_format=None):
 
     ax.hist(data, bins=100, density=True, alpha=0.7, label=f"{param_type} Distribution")
     ax.axvline(mean, color="r", linestyle="dashed", linewidth=2, label=f"Mean: {mean:.4f}")
@@ -205,11 +205,24 @@ def plot_distribution(data, mean, std, kurt, param_type, ax, model_name = None, 
         verticalalignment="top",
         bbox=dict(boxstyle="round,pad=0.5", fc="wheat", alpha=0.5),
     )
-    ax.set_yscale('log')
+    
     ax.legend()
+
+    if custom_format:
+        custom_format(ax, data, mean, std, kurt)
+
+def baseline_histogram_format(ax, data, mean, std, kurt):
     ax.grid(True, which="both", linestyle="--", linewidth=0.5)
 
-def plot_category_histograms(model_name = None, category_name = None, weights_data = None, biases_data = None, save_path=None):
+def stepmlp_histogram_format(ax, data, mean, std, kurt):
+    """
+    Custom formatting for StepMLP histograms.
+    """
+    ax.set_yscale('log')
+    ax.grid(True, which="major", axis="y", linestyle="--", linewidth=0.5, alpha=0.7)
+    ax.grid(True, which="both", axis="x")
+
+def plot_category_histograms(model_name = None, category_name = None, weights_data = None, biases_data = None, save_path=None, custom_format=None):
     """
     Plot histograms for weights and biases (if they exist) of a specific category.
     """
@@ -234,6 +247,7 @@ def plot_category_histograms(model_name = None, category_name = None, weights_da
             kurt=stats['kurt'],
             param_type=item['type'],
             ax=axs[i],
+            custom_format=custom_format
         )
         
 

@@ -7,7 +7,7 @@ from tqdm.contrib.logging import logging_redirect_tqdm
 import argparse
 from collections import defaultdict
 
-from msc_project.analysis.analysis_utils import get_stepml_parameters, plot_category_histograms
+from msc_project.analysis.analysis_utils import get_stepml_parameters, plot_category_histograms, stepmlp_histogram_format
 from msc_project.models.create_stepml_from_message import create_stepmlp_from_message
 
 LOG = logging.getLogger(__name__)
@@ -109,7 +109,8 @@ def run_stepml_analysis(num_models, num_rounds=3):
         model_name=f"StepMLP (Sample from {num_models} models)",
         weights_data=last_weights_data, 
         biases_data=last_biases_data, 
-        save_path="stepmlp_histograms_streaming.pdf"
+        save_path=f"histograms/stepmlp/stepmlp_param_distribution_{num_models}models_{num_rounds}hashrounds.pdf",
+        custom_format=stepmlp_histogram_format
     )
 
 if __name__ == "__main__":
