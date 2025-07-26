@@ -45,9 +45,6 @@ def fitness_func(ga_instance, solution, solution_idx):
         # Objective 3: Obscurity
         fitness += evaluate_normal_distribution(solution)
         fitness += evaluate_weight_magnitudes(solution)
-        end_time = time.time()
-        if solution_idx == 0:  # Print timing for first solution only
-            print(f"Fitness evaluation took: {end_time - start_time:.4f} seconds")
         
         return fitness
         
