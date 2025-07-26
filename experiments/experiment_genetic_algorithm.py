@@ -33,14 +33,14 @@ def fitness_func(ga_instance, solution, solution_idx):
         if not torch.allclose(predicted_output, output_tensor, atol=1e-2):
             return 0.0
         
-        fitness = 10.0
+        fitness = 100.0
         # Objective 2: Robustness to noise
         noise = np.random.normal(0, 0.1, solution.shape)
         noisy_solution = solution + noise
         pygad.torchga.model_weights_as_dict(model=mlp_template, weights_vector=noisy_solution)            
         noisy_output = mlp_template(input_tensor)
         if torch.allclose(noisy_output, output_tensor, atol=1e-4):
-            fitness += 5.0
+            fitness += 50.0
         # Objective 3: Obscurity
         l2_penalty = np.linalg.norm(solution)
         fitness -= 0.1 * l2_penalty  # Apparently need small factor to balance the penalty
