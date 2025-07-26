@@ -30,7 +30,7 @@ def fitness_func(ga_instance, solution, solution_idx):
     with torch.no_grad():
         predicted_output = mlp_template(input_tensor)
         # Objective 1: Correctness
-        if not torch.allclose(predicted_output, output_tensor, atol=1e-2):
+        if not torch.allclose(predicted_output, output_tensor, atol=1e-10):
             return 0.0
         
         fitness = 100.0
@@ -42,8 +42,7 @@ def fitness_func(ga_instance, solution, solution_idx):
         if torch.allclose(noisy_output, output_tensor, atol=1e-4):
             fitness += 50.0
         # Objective 3: Obscurity
-        l2_penalty = np.linalg.norm(solution)
-        fitness -= 0.1 * l2_penalty  # Apparently need small factor to balance the penalty
+        fitness += evaluate_normal_distribution(solution)
         end_time = time.time()
         if solution_idx == 0:  # Print timing for first solution only
             print(f"Fitness evaluation took: {end_time - start_time:.4f} seconds")
@@ -52,7 +51,26 @@ def fitness_func(ga_instance, solution, solution_idx):
         pygad.torchga.model_weights_as_dict(model=mlp_template, weights_vector=original_weights)
         return fitness
         
+def evaluate_normal_distribution(solution, target_mean=0.0, target_std=0.1):
+    """Reward weights that follow a normal distribution"""
+    # Kolmogorov-Smirnov test for normality
+    try:
+        # Normalize the solution
+        normalized = (solution - np.mean(solution)) / (np.std(solution) + 1e-8)
         
+        # Test against standard normal
+        ks_stat, p_value = stats.kstest(normalized, 'norm')
+        
+        # Higher p-value means more normal-like (good)
+        # Convert to score: p_value closer to 1 is better
+        normality_score = min(p_value * 2, 1.0)  # Scale to [0, 1]
+        
+        # Additional penalty for extreme std deviation from target
+        std_penalty = max(0, abs(np.std(solution) - target_std) - 0.05)
+        
+        return max(0, normality_score - std_penalty)
+    except:
+        return 0.0        
     
 def on_gen(ga_instance):
     """
