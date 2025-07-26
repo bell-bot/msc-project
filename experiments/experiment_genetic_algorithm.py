@@ -34,7 +34,7 @@ def fitness_func(ga_instance, solution, solution_idx):
             return 0.0
         
         fitness = 10.0
-        
+
         # Objective 2: Robustness to noise
         noise = np.random.normal(0, 0.1, solution.shape)
         noisy_solution = solution + noise
@@ -45,6 +45,7 @@ def fitness_func(ga_instance, solution, solution_idx):
 
         # Objective 3: Obscurity
         fitness += evaluate_normal_distribution(solution)
+        fitness += evaluate_weight_magnitudes(solution)
         end_time = time.time()
         if solution_idx == 0:  # Print timing for first solution only
             print(f"Fitness evaluation took: {end_time - start_time:.4f} seconds")
@@ -72,7 +73,24 @@ def evaluate_normal_distribution(solution, target_mean=0.0, target_std=0.1):
         
         return max(0, normality_score - std_penalty)
     except:
-        return 0.0        
+        return 0.0      
+
+def evaluate_weight_magnitudes(solution, target_range=(0.01, 1.0)):
+    """Penalize weights that are too large or too small"""
+    min_target, max_target = target_range
+    
+    # Count weights in reasonable range
+    reasonable_weights = np.sum((np.abs(solution) >= min_target) & (np.abs(solution) <= max_target))
+    total_weights = len(solution)
+    
+    # Bonus for having most weights in reasonable range
+    range_score = reasonable_weights / total_weights
+    
+    # Penalty for extreme outliers
+    extreme_weights = np.sum(np.abs(solution) > max_target * 3)
+    outlier_penalty = extreme_weights / total_weights
+    
+    return max(0, range_score - outlier_penalty)  
     
 def on_gen(ga_instance):
     """
