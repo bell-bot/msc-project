@@ -5,6 +5,8 @@ import pygad
 import pygad.torchga
 import time
 import argparse
+from scipy import stats
+import copy
 
 from msc_project.analysis.analysis_utils import get_param_stats, get_stepml_parameters, plot_category_histograms
 from msc_project.models.ga_compatible_stepml import GACompatibleStepMLP, create_gacompatible_stepmlp_from_message
@@ -16,19 +18,16 @@ output_tensor = None
 def fitness_func(ga_instance, solution, solution_idx):
 
     global input_tensor, output_tensor, torch_ga, mlp_template
-
-    start_time = time.time()
     
     assert input_tensor is not None, "Input tensor is not initialized."
     assert output_tensor is not None, "Output tensor is not initialized."   
     assert mlp_template is not None, "MLP template is not initialized."
 
-    original_weights = pygad.torchga.model_weights_as_vector(mlp_template)
-
-    pygad.torchga.model_weights_as_dict(model=mlp_template, weights_vector=solution)
+    local_model = copy.deepcopy(mlp_template)
+    pygad.torchga.model_weights_as_dict(model=local_model, weights_vector=solution)
 
     with torch.no_grad():
-        predicted_output = mlp_template(input_tensor)
+        predicted_output = local_model(input_tensor)
         # Objective 1: Correctness
         if not torch.allclose(predicted_output, output_tensor, atol=1e-10):
             return 0.0
@@ -38,8 +37,8 @@ def fitness_func(ga_instance, solution, solution_idx):
         # Objective 2: Robustness to noise
         noise = np.random.normal(0, 0.1, solution.shape)
         noisy_solution = solution + noise
-        pygad.torchga.model_weights_as_dict(model=mlp_template, weights_vector=noisy_solution)            
-        noisy_output = mlp_template(input_tensor)
+        pygad.torchga.model_weights_as_dict(model=local_model, weights_vector=noisy_solution)            
+        noisy_output = local_model(input_tensor)
         if torch.allclose(noisy_output, output_tensor, atol=1e-4):
             fitness += 3.0
 
@@ -50,8 +49,6 @@ def fitness_func(ga_instance, solution, solution_idx):
         if solution_idx == 0:  # Print timing for first solution only
             print(f"Fitness evaluation took: {end_time - start_time:.4f} seconds")
         
-        # Reset weights 
-        pygad.torchga.model_weights_as_dict(model=mlp_template, weights_vector=original_weights)
         return fitness
         
 def evaluate_normal_distribution(solution, target_mean=0.0, target_std=0.1):
@@ -76,10 +73,12 @@ def evaluate_normal_distribution(solution, target_mean=0.0, target_std=0.1):
         return 0.0      
 
 def evaluate_weight_magnitudes(solution, target_range=(0.01, 1.0)):
-    """Penalize weights that are too large or too small"""
+    """
+    Penalize weights that are too large or too small by rewarding the
+    number of weights within a reasonable range.
+    """
     min_target, max_target = target_range
     
-    # Count weights in reasonable range
     reasonable_weights = np.sum((np.abs(solution) >= min_target) & (np.abs(solution) <= max_target))
     total_weights = len(solution)
     
