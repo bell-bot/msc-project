@@ -8,6 +8,7 @@ import argparse
 from scipy import stats
 import copy
 import statistics
+from pathlib import Path
 
 from circuits.compile import compile_from_example
 from circuits.core import Bit, Signal, const, gate
@@ -154,7 +155,7 @@ def run_ga_optimisation(num_solutions = 10, num_generations = 250, num_parents_m
     print("Initializing genetic algorithm population...")
     torch_ga = pygad.torchga.TorchGA(model=mlp_template, num_solutions=num_solutions)
     
-    model_weights = torch.tensor(torch_ga.population_weights)
+    model_weights = torch.tensor(np.array(torch_ga.population_weights))
     print(f"Initial population num params: {model_weights.shape}")
     print(f"Initial population stats: min={model_weights.min()}, "
           f"max={model_weights.max()}, "
@@ -215,6 +216,8 @@ if __name__ == "__main__":
     sample_input = const("11101110101")
     sample_output : list[Signal] = [and_gate(sample_input)]
 
+    Path(args.save_path).mkdir(parents=True, exist_ok=True)
+
     experiment_info_file = f"{args.save_path}/experiment_info.txt"
     with open(experiment_info_file, "w") as f:
         f.write(f"Test phrase: {args.test_phrase}\n")
@@ -240,7 +243,7 @@ if __name__ == "__main__":
     output_tensor = mlp_template(input_tensor)
     print(f"Number of parameters: {len(list(mlp_template.parameters()))} (Total: {sum([p.numel() for p in mlp_template.parameters()])})")
     
-    mlp_template, input_tensor, output_tensor = create_gacompatible_stepmlp_from_message(args.test_phrase, n_rounds=args.n_rounds)
+    #mlp_template, input_tensor, output_tensor = create_gacompatible_stepmlp_from_message(args.test_phrase, n_rounds=args.n_rounds)
 
     run_ga_optimisation(num_solutions=args.num_solutions,
                         num_generations=args.num_generations,
