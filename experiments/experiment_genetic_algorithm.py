@@ -215,6 +215,14 @@ if __name__ == "__main__":
     sample_input = const("11101110101")
     sample_output : list[Signal] = [and_gate(sample_input)]
 
+    experiment_info_file = f"{args.save_path}/experiment_info.txt"
+    with open(experiment_info_file, "w") as f:
+        f.write(f"Test phrase: {args.test_phrase}\n")
+        f.write(f"Number of rounds: {args.n_rounds}\n")
+        f.write(f"Number of solutions: {args.num_solutions}\n")
+        f.write(f"Number of generations: {args.num_generations}\n")
+        f.write(f"Number of parents mating: {args.num_parents_mating}\n")
+
     graph = compile_from_example(inputs=sample_input, outputs=sample_output)
     mlp_template = GACompatibleStepMLP.from_graph(graph)
 
