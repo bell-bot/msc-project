@@ -4,8 +4,10 @@ __pycache__/
 3_SAT_Verification_Transformer_in_Tracr.ipynb
 CircuitUse_Shared.ipynb
 
+.venv
 venv
 .vscode/*
 __pycache__/
 *.pyc
 **/__pycache__/
+build
