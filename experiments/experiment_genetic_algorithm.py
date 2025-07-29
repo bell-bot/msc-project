@@ -14,12 +14,16 @@ from circuits.compile import compile_from_example
 from circuits.core import Bit, Signal, const, gate
 from circuits.examples.simple_example import and_gate
 from circuits.torch_mlp import StepMLP
+from utils import generate_experiment_id, save_experiment_info
 from msc_project.analysis.analysis_utils import get_param_stats, get_stepml_parameters, plot_category_histograms, stepmlp_histogram_format
-from msc_project.models.ga_compatible_stepml import GACompatibleStepMLP, create_gacompatible_stepmlp_from_message
+from msc_project.models.ga_compatible_stepml import GACompatibleStepMLP, create_gacompatible_stepmlp_from_message, create_simplified_stepmlp_from_bits
 
 mlp_template = None
 input_tensor = None
 output_tensor = None
+
+EXPERIMENT_RESULTS_DIR = "results/genetic_algorithm_experiments"
+EXPERIMENT_TYPE = "genetic_algorithm"
 
 def fitness_func(ga_instance, solution, solution_idx):
 
@@ -182,7 +186,7 @@ def run_ga_optimisation(num_solutions = 10, num_generations = 250, num_parents_m
     print("\nPyGAD optimization finished.")
 
     # After the generations complete, some plots are showed that summarize how the outputs/fitness values evolve over generations.
-    ga_instance.plot_fitness(title="PyGAD & PyTorch - Iteration vs. Fitness", linewidth=4)
+    ga_instance.plot_fitness(title="StepMLP Optimization using Genetic Algorithms: Iteration vs. Fitness", linewidth=4, save_dir=save_path)
 
     # Returning the details of the best solution.
     solution, solution_fitness, solution_idx = ga_instance.best_solution()
@@ -208,45 +212,38 @@ if __name__ == "__main__":
     parser.add_argument("--num_solutions", type=int, default=10, help="Number of solutions for GA")
     parser.add_argument("--num_generations", type=int, default=20, help="Number of generations for GA")
     parser.add_argument("--num_parents_mating", type=int, default=2, help="Number of parents mating for GA")
-    parser.add_argument("--save_path", type=str, default="results/genetic_algorithm_experiments", help="Path to save the histogram plot")
+    parser.add_argument("--simplified_model", type=bool, default=False, help="Use simplified StepMLP model")
     args = parser.parse_args()
 
     print(f"Creating StepMLP from message: {args.test_phrase} with {args.n_rounds} rounds.")
+
+    experiment_id = generate_experiment_id(EXPERIMENT_TYPE)
+    save_path = f"{EXPERIMENT_RESULTS_DIR}/{experiment_id}"
+
+    Path(save_path).mkdir(parents=True, exist_ok=True)
+
+    save_experiment_info(experiment_id, vars(args), save_path)
+
     
-    sample_input = const("11101110101")
-    sample_output : list[Signal] = [and_gate(sample_input)]
-
-    Path(args.save_path).mkdir(parents=True, exist_ok=True)
-
-    experiment_info_file = f"{args.save_path}/experiment_info.txt"
-    with open(experiment_info_file, "w") as f:
-        f.write(f"Test phrase: {args.test_phrase}\n")
-        f.write(f"Number of rounds: {args.n_rounds}\n")
-        f.write(f"Number of solutions: {args.num_solutions}\n")
-        f.write(f"Number of generations: {args.num_generations}\n")
-        f.write(f"Number of parents mating: {args.num_parents_mating}\n")
-
-    graph = compile_from_example(inputs=sample_input, outputs=sample_output)
-    mlp_template = GACompatibleStepMLP.from_graph(graph)
-
-    torch.save(mlp_template.state_dict(), f"{args.save_path}/stepmlp_template.pth")
+    if args.simplified_model:
+        print("Creating simplified StepMLP from bits.")
+        mlp_template, input_tensor, output_tensor = create_simplified_stepmlp_from_bits(args.test_phrase, and_gate, n_rounds=args.n_rounds)
+    else:
+        mlp_template, input_tensor, output_tensor = create_gacompatible_stepmlp_from_message(args.test_phrase, n_rounds=args.n_rounds)
 
     weights, biases = get_stepml_parameters(mlp_template)
     weights_data, biases_data = get_param_stats(weights), get_param_stats(biases)
 
-    before_ga_histogram_save_path = f"{args.save_path}/before_ga_optimised_stepml_histograms.pdf"
+    before_ga_histogram_save_path = f"{save_path}/before_ga_optimised_stepml_histograms.pdf"
     print(f"Plotting histograms before GA optimisation to {before_ga_histogram_save_path}")
     plot_category_histograms(model_name="StepMLP without GA Optimisation", weights_data=weights_data, biases_data=biases_data, save_path=before_ga_histogram_save_path, custom_format=stepmlp_histogram_format)
 
-
-    input_tensor = torch.tensor([s.activation for s in sample_input], dtype=torch.float64)
-    output_tensor = mlp_template(input_tensor)
     print(f"Number of parameters: {len(list(mlp_template.parameters()))} (Total: {sum([p.numel() for p in mlp_template.parameters()])})")
-    
-    #mlp_template, input_tensor, output_tensor = create_gacompatible_stepmlp_from_message(args.test_phrase, n_rounds=args.n_rounds)
+
+    torch.save(mlp_template.state_dict(), f"{save_path}/stepmlp_template.pth")
 
     run_ga_optimisation(num_solutions=args.num_solutions,
                         num_generations=args.num_generations,
                         num_parents_mating=args.num_parents_mating,
-                        save_path=args.save_path)
+                        save_path=save_path)
     
