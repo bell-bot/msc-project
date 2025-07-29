@@ -147,7 +147,7 @@ def on_gen(ga_instance):
 def on_fitness(ga_instance, population_fitness):
     print(f"Fitness values: {population_fitness}")
     
-def run_ga_optimisation(num_solutions = 10, num_generations = 250, num_parents_mating = 5, mean = 0.0, std_dev = 0.1, kurtosis = 12.5, save_path="histograms/stepmlp"):
+def run_ga_optimisation(num_solutions = 10, num_generations = 250, num_parents_mating = 5, mean = 0.0, std_dev = 0.1, kurtosis = 12.5, save_path="results/genetic_algorithm_experiments"):
     
     global mlp_template
 
@@ -191,6 +191,7 @@ def run_ga_optimisation(num_solutions = 10, num_generations = 250, num_parents_m
     weights = pygad.torchga.model_weights_as_dict(model=mlp_template,
                                         weights_vector=solution)
     mlp_template.load_state_dict(weights)
+    torch.save(mlp_template.state_dict(), f"{save_path}/ga_optimised_stepml_model.pth")
     weights, biases = get_stepml_parameters(mlp_template)
     weights_data, biases_data = get_param_stats(weights), get_param_stats(biases)
     
@@ -206,7 +207,7 @@ if __name__ == "__main__":
     parser.add_argument("--num_solutions", type=int, default=10, help="Number of solutions for GA")
     parser.add_argument("--num_generations", type=int, default=20, help="Number of generations for GA")
     parser.add_argument("--num_parents_mating", type=int, default=2, help="Number of parents mating for GA")
-    parser.add_argument("--save_path", type=str, default="histograms/stepmlp", help="Path to save the histogram plot")
+    parser.add_argument("--save_path", type=str, default="results/genetic_algorithm_experiments", help="Path to save the histogram plot")
     args = parser.parse_args()
 
     print(f"Creating StepMLP from message: {args.test_phrase} with {args.n_rounds} rounds.")
@@ -216,6 +217,8 @@ if __name__ == "__main__":
 
     graph = compile_from_example(inputs=sample_input, outputs=sample_output)
     mlp_template = GACompatibleStepMLP.from_graph(graph)
+
+    torch.save(mlp_template.state_dict(), f"{args.save_path}/stepmlp_template.pth")
 
     weights, biases = get_stepml_parameters(mlp_template)
     weights_data, biases_data = get_param_stats(weights), get_param_stats(biases)
