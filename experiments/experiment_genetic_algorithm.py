@@ -147,14 +147,13 @@ def on_gen(ga_instance):
 def on_fitness(ga_instance, population_fitness):
     print(f"Fitness values: {population_fitness}")
     
-def run_ga_optimisation(num_solutions = 10, num_generations = 250, num_parents_mating = 5, mean = 0.0, std_dev = 0.1, kurtosis = 12.5):
+def run_ga_optimisation(num_solutions = 10, num_generations = 250, num_parents_mating = 5, mean = 0.0, std_dev = 0.1, kurtosis = 12.5, save_path="histograms/stepmlp"):
     
     global mlp_template
 
     print("Initializing genetic algorithm population...")
     torch_ga = pygad.torchga.TorchGA(model=mlp_template, num_solutions=num_solutions)
     
-    # Debug: Check if initial population is reasonable
     model_weights = torch.tensor(torch_ga.population_weights)
     print(f"Initial population num params: {model_weights.shape}")
     print(f"Initial population stats: min={model_weights.min()}, "
@@ -164,7 +163,6 @@ def run_ga_optimisation(num_solutions = 10, num_generations = 250, num_parents_m
     initial_weights = pygad.torchga.model_weights_as_vector(model=mlp_template).copy()
     print(f"Weights before GA: {initial_weights[:10]}...")
     
-    # Test initial fitness
     initial_fitness = fitness_func(None, torch_ga.population_weights[0], 0)
     print(f"Initial solution fitness: {initial_fitness}")
 
@@ -196,7 +194,8 @@ def run_ga_optimisation(num_solutions = 10, num_generations = 250, num_parents_m
     weights, biases = get_stepml_parameters(mlp_template)
     weights_data, biases_data = get_param_stats(weights), get_param_stats(biases)
     
-    plot_category_histograms(model_name="StepMLP with GA Optimisation", weights_data=weights_data, biases_data=biases_data, save_path="histograms/stepmlp/ga_optimised_stepmlp_histograms.pdf", custom_format=stepmlp_histogram_format)
+    ga_optimised_histogram_save_path = f"{save_path}/ga_optimised_stepml_histograms.pdf"
+    plot_category_histograms(model_name="StepMLP with GA Optimisation", weights_data=weights_data, biases_data=biases_data, save_path=ga_optimised_histogram_save_path, custom_format=stepmlp_histogram_format)
 
     
 if __name__ == "__main__":
@@ -207,6 +206,7 @@ if __name__ == "__main__":
     parser.add_argument("--num_solutions", type=int, default=10, help="Number of solutions for GA")
     parser.add_argument("--num_generations", type=int, default=20, help="Number of generations for GA")
     parser.add_argument("--num_parents_mating", type=int, default=2, help="Number of parents mating for GA")
+    parser.add_argument("--save_path", type=str, default="histograms/stepmlp", help="Path to save the histogram plot")
     args = parser.parse_args()
 
     print(f"Creating StepMLP from message: {args.test_phrase} with {args.n_rounds} rounds.")
@@ -220,7 +220,9 @@ if __name__ == "__main__":
     weights, biases = get_stepml_parameters(mlp_template)
     weights_data, biases_data = get_param_stats(weights), get_param_stats(biases)
 
-    plot_category_histograms(model_name="StepMLP without GA Optimisation", weights_data=weights_data, biases_data=biases_data, save_path="histograms/stepmlp/before_ga_optimised_stepmlp_histograms.pdf", custom_format=stepmlp_histogram_format)
+    before_ga_histogram_save_path = f"{args.save_path}/before_ga_optimised_stepml_histograms.pdf"
+    print(f"Plotting histograms before GA optimisation to {before_ga_histogram_save_path}")
+    plot_category_histograms(model_name="StepMLP without GA Optimisation", weights_data=weights_data, biases_data=biases_data, save_path=before_ga_histogram_save_path, custom_format=stepmlp_histogram_format)
 
 
     input_tensor = torch.tensor([s.activation for s in sample_input], dtype=torch.float64)
@@ -231,5 +233,6 @@ if __name__ == "__main__":
 
     run_ga_optimisation(num_solutions=args.num_solutions,
                         num_generations=args.num_generations,
-                        num_parents_mating=args.num_parents_mating)
+                        num_parents_mating=args.num_parents_mating,
+                        save_path=args.save_path)
     
