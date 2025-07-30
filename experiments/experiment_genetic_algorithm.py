@@ -57,7 +57,7 @@ def fitness_func(ga_instance, solution, solution_idx):
         fitness += 10*n_1_score
 
         n_2_score = normalize_score(evaluate_weight_magnitudes(solution))
-        fitness += n_2_score
+        fitness += 10*n_2_score
 
         n_3_score = normalize_score(evaluate_kurtosis(solution))
         fitness +=n_3_score
