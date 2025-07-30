@@ -147,7 +147,7 @@ def on_gen(ga_instance):
 def on_fitness(ga_instance, population_fitness):
     print(f"Fitness values: {population_fitness}")
     
-def run_ga_optimisation(num_solutions = 10, num_generations = 250, num_parents_mating = 5, mean = 0.0, std_dev = 0.1, kurtosis = 12.5, save_path="results/genetic_algorithm_experiments"):
+def run_ga_optimisation(num_solutions = 10, num_generations = 250, num_parents_mating = 5, mean = 0.0, std_dev = 0.1, kurtosis = 12.5,  save_path : str | None="results/genetic_algorithm_experiments"):
     
     global mlp_template
 
@@ -180,7 +180,8 @@ def run_ga_optimisation(num_solutions = 10, num_generations = 250, num_parents_m
     ga_instance.run()
     print("\nPyGAD optimization finished.")
 
-    plot_fitness_over_generations(ga_instance, save_path)
+    if save_path:
+        plot_fitness_over_generations(ga_instance, save_path)
 
     # Returning the details of the best solution.
     solution, solution_fitness, solution_idx = ga_instance.best_solution()
@@ -190,12 +191,14 @@ def run_ga_optimisation(num_solutions = 10, num_generations = 250, num_parents_m
     weights = pygad.torchga.model_weights_as_dict(model=mlp_template,
                                         weights_vector=solution)
     mlp_template.load_state_dict(weights)
-    torch.save(mlp_template.state_dict(), f"{save_path}/ga_optimised_stepml_model.pth")
-    weights, biases = get_stepml_parameters(mlp_template)
-    weights_data, biases_data = get_param_stats(weights), get_param_stats(biases)
-    
-    ga_optimised_histogram_save_path = f"{save_path}/ga_optimised_stepml_histograms.pdf"
-    plot_category_histograms(model_name="StepMLP with GA Optimisation", weights_data=weights_data, biases_data=biases_data, save_path=ga_optimised_histogram_save_path, custom_format=stepmlp_histogram_format)
+
+    if save_path:
+        torch.save(mlp_template.state_dict(), f"{save_path}/ga_optimised_stepml_model.pth")
+        weights, biases = get_stepml_parameters(mlp_template)
+        weights_data, biases_data = get_param_stats(weights), get_param_stats(biases)
+        
+        ga_optimised_histogram_save_path = f"{save_path}/ga_optimised_stepml_histograms.pdf"
+        plot_category_histograms(model_name="StepMLP with GA Optimisation", weights_data=weights_data, biases_data=biases_data, save_path=ga_optimised_histogram_save_path, custom_format=stepmlp_histogram_format)
 
     
 if __name__ == "__main__":
@@ -207,16 +210,18 @@ if __name__ == "__main__":
     parser.add_argument("--num_generations", type=int, default=20, help="Number of generations for GA")
     parser.add_argument("--num_parents_mating", type=int, default=2, help="Number of parents mating for GA")
     parser.add_argument("--simplified_model", type=bool, default=False, help="Use simplified StepMLP model")
+    parser.add_argument("--save", type=bool, default=True, help="Save experiment results")
     args = parser.parse_args()
 
     print(f"Creating StepMLP from message: {args.test_phrase} with {args.n_rounds} rounds.")
 
     experiment_id = generate_experiment_id(EXPERIMENT_TYPE)
-    save_path = f"{EXPERIMENT_RESULTS_DIR}/{experiment_id}"
+    save_path = f"{EXPERIMENT_RESULTS_DIR}/{experiment_id}" if args.save else None
 
-    Path(save_path).mkdir(parents=True, exist_ok=True)
+    if save_path:
+        Path(save_path).mkdir(parents=True, exist_ok=True)
 
-    save_experiment_info(experiment_id, vars(args), save_path)
+        save_experiment_info(experiment_id, vars(args), save_path)
 
     
     if args.simplified_model:
@@ -228,13 +233,13 @@ if __name__ == "__main__":
     weights, biases = get_stepml_parameters(mlp_template)
     weights_data, biases_data = get_param_stats(weights), get_param_stats(biases)
 
-    before_ga_histogram_save_path = f"{save_path}/before_ga_optimised_stepml_histograms.pdf"
-    print(f"Plotting histograms before GA optimisation to {before_ga_histogram_save_path}")
-    plot_category_histograms(model_name="StepMLP without GA Optimisation", weights_data=weights_data, biases_data=biases_data, save_path=before_ga_histogram_save_path, custom_format=stepmlp_histogram_format)
+    if save_path:
+        before_ga_histogram_save_path = f"{save_path}/before_ga_optimised_stepml_histograms.pdf"
+        print(f"Plotting histograms before GA optimisation to {before_ga_histogram_save_path}")
+        plot_category_histograms(model_name="StepMLP without GA Optimisation", weights_data=weights_data, biases_data=biases_data, save_path=before_ga_histogram_save_path, custom_format=stepmlp_histogram_format)
+        torch.save(mlp_template.state_dict(), f"{save_path}/stepmlp_template.pth")
 
     print(f"Number of parameters: {len(list(mlp_template.parameters()))} (Total: {sum([p.numel() for p in mlp_template.parameters()])})")
-
-    torch.save(mlp_template.state_dict(), f"{save_path}/stepmlp_template.pth")
 
     run_ga_optimisation(num_solutions=args.num_solutions,
                         num_generations=args.num_generations,
