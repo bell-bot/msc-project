@@ -1,22 +1,17 @@
 import torch
 import numpy as np
-import sys
 import pygad
 import pygad.torchga
-import time
 import argparse
 from scipy import stats
 import copy
-import statistics
 from pathlib import Path
+import matplotlib.pyplot as plt
 
-from circuits.compile import compile_from_example
-from circuits.core import Bit, Signal, const, gate
 from circuits.examples.simple_example import and_gate
-from circuits.torch_mlp import StepMLP
-from utils import generate_experiment_id, save_experiment_info
+from utils import generate_experiment_id, plot_fitness_over_generations, save_experiment_info
 from msc_project.analysis.analysis_utils import get_param_stats, get_stepml_parameters, plot_category_histograms, stepmlp_histogram_format
-from msc_project.models.ga_compatible_stepml import GACompatibleStepMLP, create_gacompatible_stepmlp_from_message, create_simplified_stepmlp_from_bits
+from msc_project.models.ga_compatible_stepml import create_gacompatible_stepmlp_from_message, create_simplified_stepmlp_from_bits
 
 mlp_template = None
 input_tensor = None
@@ -185,8 +180,7 @@ def run_ga_optimisation(num_solutions = 10, num_generations = 250, num_parents_m
     ga_instance.run()
     print("\nPyGAD optimization finished.")
 
-    # After the generations complete, some plots are showed that summarize how the outputs/fitness values evolve over generations.
-    ga_instance.plot_fitness(title="StepMLP Optimization using Genetic Algorithms: Iteration vs. Fitness", linewidth=4, save_dir=save_path)
+    plot_fitness_over_generations(ga_instance, save_path)
 
     # Returning the details of the best solution.
     solution, solution_fitness, solution_idx = ga_instance.best_solution()
