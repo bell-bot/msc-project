@@ -1,0 +1,5 @@
+Test phrase: Shark
+Number of rounds: 1
+Number of solutions: 10
+Number of generations: 250
+Number of parents mating: 2
