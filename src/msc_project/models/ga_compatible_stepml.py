@@ -20,7 +20,7 @@ def create_gacompatible_stepmlp_from_message(message, n_rounds=3):
     input_tensor = torch.tensor(input_values, dtype=torch.float64)
     output_tensor = mlp_template(input_tensor)
 
-    return mlp_template, input_tensor, output_tensor
+    return mlp_template, input_tensor, output_tensor, message, hashed
 
 def create_simplified_stepmlp_from_bits(bits: str, func, n_rounds=3):
     """
@@ -35,4 +35,4 @@ def create_simplified_stepmlp_from_bits(bits: str, func, n_rounds=3):
     input_tensor = torch.tensor([s.activation for s in sample_input], dtype=torch.float64)
     output_tensor = mlp_template(input_tensor)
 
-    return mlp_template, input_tensor, output_tensor
+    return mlp_template, input_tensor, output_tensor, sample_input, sample_output

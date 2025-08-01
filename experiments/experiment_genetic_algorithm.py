@@ -7,7 +7,9 @@ from scipy import stats
 import copy
 from pathlib import Path
 
+from circuits.examples.sha3 import sha3
 from circuits.examples.simple_example import and_gate
+from circuits.format import Bits, bitfun, format_msg
 from utils import generate_experiment_id, plot_fitness_over_generations, save_experiment_info
 from msc_project.analysis.analysis_utils import get_param_stats, get_stepml_parameters, plot_category_histograms, stepmlp_histogram_format
 from msc_project.models.ga_compatible_stepml import create_gacompatible_stepmlp_from_message, create_simplified_stepmlp_from_bits
@@ -146,7 +148,7 @@ def on_gen(ga_instance):
 def on_fitness(ga_instance, population_fitness):
     print(f"Fitness values: {population_fitness}")
     
-def run_ga_optimisation(num_solutions = 10, num_generations = 250, num_parents_mating = 5, mean = 0.0, std_dev = 0.1, kurtosis = 12.5,  save_path : str | None="results/genetic_algorithm_experiments"):
+def run_ga_optimisation(formatted_message, expected_output, num_solutions = 10, num_generations = 250, num_parents_mating = 5, mean = 0.0, std_dev = 0.1, kurtosis = 12.5,  save_path : str | None="results/genetic_algorithm_experiments"):
     
     global mlp_template
 
@@ -173,7 +175,10 @@ def run_ga_optimisation(num_solutions = 10, num_generations = 250, num_parents_m
                         fitness_func=fitness_func,
                         on_generation=on_gen, 
                         save_solutions=False,
-                        mutation_probability=0.1,
+                        mutation_probability=0.3,
+                        crossover_probability=0.8,
+                        parent_selection_type="tournament",
+                        keep_elitism=2
                     )
                     
     print("Starting PyGAD optimization...")
@@ -192,6 +197,9 @@ def run_ga_optimisation(num_solutions = 10, num_generations = 250, num_parents_m
                                         weights_vector=solution)
     mlp_template.load_state_dict(weights)
 
+    # Verify the output of the GA-optimised model
+    verify_ga_optimised_stepml(mlp_template, formatted_message, expected_output)
+
     if save_path:
         torch.save(mlp_template.state_dict(), f"{save_path}/ga_optimised_stepml_model.pth")
         weights, biases = get_stepml_parameters(mlp_template)
@@ -200,6 +208,17 @@ def run_ga_optimisation(num_solutions = 10, num_generations = 250, num_parents_m
         ga_optimised_histogram_save_path = f"{save_path}/ga_optimised_stepml_histograms.pdf"
         plot_category_histograms(model_name="StepMLP with GA Optimisation", weights_data=weights_data, biases_data=biases_data, save_path=ga_optimised_histogram_save_path, custom_format=stepmlp_histogram_format)
 
+def verify_ga_optimised_stepml(mlp_template, formatted_message: Bits, expected_output: Bits):
+    actual_output = mlp_template.infer_bits(formatted_message)
+    actual_output_hex = actual_output.int
+    print(f"Expected output: {expected_output}")
+    print(f"Actual output: {actual_output_hex}")
+    
+    if actual_output_hex == expected_output.int:
+        print("GA-optimised StepMLP produces the expected output.")
+    else:
+        print("GA-optimised StepMLP does NOT produce the expected output.")
+        raise ValueError("Output mismatch after GA optimisation.")
     
 if __name__ == "__main__":
 
@@ -226,9 +245,10 @@ if __name__ == "__main__":
     
     if args.simplified_model:
         print("Creating simplified StepMLP from bits.")
-        mlp_template, input_tensor, output_tensor = create_simplified_stepmlp_from_bits(args.test_phrase, and_gate, n_rounds=args.n_rounds)
+        mlp_template, input_tensor, output_tensor, formatted_message, expected_output = create_simplified_stepmlp_from_bits(args.test_phrase, and_gate, n_rounds=args.n_rounds)
+        formatted_message, expected_output = Bits(formatted_message), Bits(expected_output)
     else:
-        mlp_template, input_tensor, output_tensor = create_gacompatible_stepmlp_from_message(args.test_phrase, n_rounds=args.n_rounds)
+        mlp_template, input_tensor, output_tensor, formatted_message, expected_output = create_gacompatible_stepmlp_from_message(args.test_phrase, n_rounds=args.n_rounds)
 
     weights, biases = get_stepml_parameters(mlp_template)
     weights_data, biases_data = get_param_stats(weights), get_param_stats(biases)
@@ -241,7 +261,9 @@ if __name__ == "__main__":
 
     print(f"Number of parameters: {len(list(mlp_template.parameters()))} (Total: {sum([p.numel() for p in mlp_template.parameters()])})")
 
-    run_ga_optimisation(num_solutions=args.num_solutions,
+    run_ga_optimisation(formatted_message=formatted_message,
+                        expected_output=expected_output,
+                        num_solutions=args.num_solutions,
                         num_generations=args.num_generations,
                         num_parents_mating=args.num_parents_mating,
                         save_path=save_path)
