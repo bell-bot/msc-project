@@ -177,8 +177,7 @@ def run_ga_optimisation(formatted_message, expected_output, num_solutions = 10, 
                         save_solutions=False,
                         mutation_probability=0.3,
                         crossover_probability=0.8,
-                        parent_selection_type="tournament",
-                        keep_elitism=2
+                        parent_selection_type="tournament"
                     )
                     
     print("Starting PyGAD optimization...")
