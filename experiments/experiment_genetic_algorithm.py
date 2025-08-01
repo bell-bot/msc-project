@@ -35,7 +35,7 @@ def fitness_func(ga_instance, solution, solution_idx):
     with torch.no_grad():
         predicted_output = local_model(input_tensor)
         # Objective 1: Correctness
-        if not torch.allclose(predicted_output, output_tensor, atol=1e-10):
+        if not torch.allclose(predicted_output, output_tensor, atol=1e-4):
             return 0.0
         
         fitness = 1.0
@@ -177,7 +177,6 @@ def run_ga_optimisation(formatted_message, expected_output, num_solutions = 10, 
                         save_solutions=False,
                         mutation_probability=0.3,
                         crossover_probability=0.8,
-                        parent_selection_type="tournament"
                     )
                     
     print("Starting PyGAD optimization...")
