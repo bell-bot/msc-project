@@ -113,7 +113,6 @@ def evaluate_kurtosis(solution, target_kurtosis=12.5):
     try:
         solution_kurtosis = stats.kurtosis(solution) + 3
         kurt_score = max(0, 1.0 - abs(solution_kurtosis - target_kurtosis) / 3.0)
-        print(f"Kurtosis: {solution_kurtosis}, Score: {kurt_score}")
         return kurt_score
     except:
         print("Error calculating kurtosis.")
@@ -173,7 +172,8 @@ def run_ga_optimisation(num_solutions = 10, num_generations = 250, num_parents_m
                         initial_population=initial_population,
                         fitness_func=fitness_func,
                         on_generation=on_gen, 
-                        save_solutions=False
+                        save_solutions=False,
+                        mutation_probability=0.1,
                     )
                     
     print("Starting PyGAD optimization...")
