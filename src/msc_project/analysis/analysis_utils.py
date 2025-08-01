@@ -4,8 +4,10 @@ from transformers import AutoModelForCausalLM, AutoConfig
 import numpy as np
 import matplotlib.pyplot as plt
 import os
+import pickle
+import re
 
-from .constants import MODEL_TAXONOMY
+from .constants import FILE_EXTENSION_REGEX, MODEL_TAXONOMY
 
 def update_streaming_stats(stats_dict, tensors):
     """
@@ -266,6 +268,10 @@ def plot_category_histograms(model_name = None, category_name = None, weights_da
         if directory: os.makedirs(directory, exist_ok=True)
         plt.savefig(save_path)
         print(f"Plot saved to {save_path}")
+        # Save fig as a pickle file for later use
+        pkl_save_path = re.sub(FILE_EXTENSION_REGEX, ".pkl", save_path)
+        with open(pkl_save_path, 'wb') as f:
+            pickle.dump(fig, f)
         plt.close(fig)
     else:
         plt.show()

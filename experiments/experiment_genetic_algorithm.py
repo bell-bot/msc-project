@@ -6,7 +6,6 @@ import argparse
 from scipy import stats
 import copy
 from pathlib import Path
-import matplotlib.pyplot as plt
 
 from circuits.examples.simple_example import and_gate
 from utils import generate_experiment_id, plot_fitness_over_generations, save_experiment_info

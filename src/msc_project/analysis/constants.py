@@ -1,3 +1,5 @@
+import re
+
 MODEL_TAXONOMY = {
     "attention_query": [],
     "attention_key": [],
@@ -13,3 +15,5 @@ MODEL_TAXONOMY = {
     "final_norm": [],
     "lm_head": [],
 }
+
+FILE_EXTENSION_REGEX = re.compile(r'\.(\w+)$')
