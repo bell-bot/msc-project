@@ -119,13 +119,15 @@ def run_streaming_analysis(model_names, category_names=None):
             last_model_biases_data['std'] = global_biases_stats['std']
 
         # Plot the sample distribution annotated with the global stats
-        save_path = f"histograms/comparison/{category}_all_models_summary.pdf"
+        save_path = f"results/histograms/comparison/{category}_all_models_summary.pdf"
+        plot_title = f"Parameter Distribution for {category} across all models"
         plot_category_histograms(
-            model_name=f"All Models (Sample: {last_model_name})",
+            model_name=f"All Models",
             category_name=category,
             weights_data=last_model_weights_data,
             biases_data=last_model_biases_data,
-            save_path=save_path
+            save_path=save_path,
+            title=plot_title
         )
 
 if __name__ == "__main__":

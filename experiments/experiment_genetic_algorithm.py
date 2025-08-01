@@ -114,6 +114,7 @@ def evaluate_kurtosis(solution, target_kurtosis=12.5):
     try:
         solution_kurtosis = stats.kurtosis(solution) + 3
         kurt_score = max(0, 1.0 - abs(solution_kurtosis - target_kurtosis) / 3.0)
+        print(f"Kurtosis: {solution_kurtosis}, Score: {kurt_score}")
         return kurt_score
     except:
         print("Error calculating kurtosis.")

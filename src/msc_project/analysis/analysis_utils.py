@@ -222,7 +222,7 @@ def stepmlp_histogram_format(ax, data, mean, std, kurt):
     ax.grid(True, which="major", axis="y", linestyle="--", linewidth=0.5, alpha=0.7)
     ax.grid(True, which="both", axis="x")
 
-def plot_category_histograms(model_name = None, category_name = None, weights_data = None, biases_data = None, save_path=None, custom_format=None):
+def plot_category_histograms(model_name = None, category_name = None, weights_data = None, biases_data = None, save_path=None, custom_format=None, title=None):
     """
     Plot histograms for weights and biases (if they exist) of a specific category.
     """
@@ -250,8 +250,9 @@ def plot_category_histograms(model_name = None, category_name = None, weights_da
             custom_format=custom_format
         )
         
-
-    if model_name and category_name:
+    if title:
+        fig.suptitle(title, fontsize=18)
+    elif model_name and category_name:
         fig.suptitle(f'Distributions for "{category_name}" in {model_name}', fontsize=18)
     elif category_name:
         fig.suptitle(f'Distributions for "{category_name}"', fontsize=18)
