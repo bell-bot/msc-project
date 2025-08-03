@@ -1,6 +1,10 @@
 import torch
 import torch.nn as nn
 
+from circuits.dense.mlp import StepMLP
+from circuits.neurons.core import const
+from circuits.sparse.compile import compiled_from_io
+
 
 # --- Llama-Style Test Model ---
 class SimpleAttentionLlama(nn.Module):
@@ -30,7 +34,7 @@ class SimpleLlamaModel(nn.Module):
         self.norm = nn.LayerNorm(config.hidden_size)
         self.lm_head = nn.Linear(config.hidden_size, config.vocab_size, bias=False)
 
-# --- GPT-2-Style Test Model (Updated for realism) ---
+# --- GPT-2-Style Test Model---
 
 class Conv1D(nn.Module):
     def __init__(self, nf, nx):
