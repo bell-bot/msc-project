@@ -8,57 +8,78 @@ import copy
 from pathlib import Path
 
 from circuits.examples.sha3 import sha3
+from circuits.core import Bit, const
 from circuits.examples.simple_example import and_gate
 from circuits.format import Bits, bitfun, format_msg
+from circuits.operations import xor
 from utils import generate_experiment_id, plot_fitness_over_generations, save_experiment_info
 from msc_project.analysis.analysis_utils import get_param_stats, get_stepml_parameters, plot_category_histograms, stepmlp_histogram_format
 from msc_project.models.ga_compatible_stepml import create_gacompatible_stepmlp_from_message, create_simplified_stepmlp_from_bits
 
-mlp_template = None
-input_tensor = None
-output_tensor = None
-
 EXPERIMENT_RESULTS_DIR = "results/genetic_algorithm_experiments"
 EXPERIMENT_TYPE = "genetic_algorithm"
 
-def fitness_func(ga_instance, solution, solution_idx):
-
-    global input_tensor, output_tensor, torch_ga, mlp_template
+def simple_xor_hash_8bit(input_bits: list[Bit], n_rounds) -> list[Bit]:
+    """
+    Simple 8-bit hash: XOR all input bits in groups of 8
+    """
+    # Pad to multiple of 8
+    padded_length = ((len(input_bits) + 7) // 8) * 8
+    padding_needed = padded_length - len(input_bits)
+    padded = input_bits + const("0" * padding_needed)
     
-    assert input_tensor is not None, "Input tensor is not initialized."
-    assert output_tensor is not None, "Output tensor is not initialized."   
-    assert mlp_template is not None, "MLP template is not initialized."
+    # Start with first 8 bits
+    result = padded[:8]
+    
+    # XOR with remaining 8-bit chunks
+    for i in range(8, len(padded), 8):
+        chunk = padded[i:i+8]
+        # XOR bit by bit
+        result = [xor([result[j], chunk[j]]) for j in range(8)]
+    
+    return result
 
-    local_model = copy.deepcopy(mlp_template)
-    pygad.torchga.model_weights_as_dict(model=local_model, weights_vector=solution)
+def create_fitness_func(mlp_template, input_bits, output_bits):
 
-    with torch.no_grad():
-        predicted_output = local_model(input_tensor)
-        # Objective 1: Correctness
-        if not torch.allclose(predicted_output, output_tensor, atol=1e-4):
-            return 0.0
+    def fitness_func(ga_instance, solution, solution_idx):
         
-        fitness = 1.0
+        assert input_tensor is not None, "Input tensor is not initialized."
+        assert output_tensor is not None, "Output tensor is not initialized."   
+        assert mlp_template is not None, "MLP template is not initialized."
 
-        # Objective 2: Robustness to noise
-        noise = np.random.normal(0, 0.1, solution.shape)
-        noisy_solution = solution + noise
-        pygad.torchga.model_weights_as_dict(model=local_model, weights_vector=noisy_solution)            
-        noisy_output = local_model(input_tensor)
-        if torch.allclose(noisy_output, output_tensor, atol=1e-4):
-            fitness += 1.0
+        local_model = copy.deepcopy(mlp_template)
+        solution_weights = pygad.torchga.model_weights_as_dict(model=local_model, weights_vector=solution)
+        local_model.load_state_dict(solution_weights)
+        with torch.no_grad():
+            predicted_output = local_model.infer_bits(input_bits)
+            # Objective 1: Correctness
+            if not predicted_output.int == output_bits.int:
+                print(f"Solution {solution_idx}: Predicted output does not match expected output.")
+                return 0.0
+            
+            fitness = 1.0
 
-        # Objective 3: Obscurity
-        n_1_score = normalize_score(evaluate_normal_distribution(solution))
-        fitness += 10*n_1_score
+            # Objective 2: Robustness to noise
+            #noise = np.random.normal(0, 0.1, solution.shape)
+            #noisy_solution = solution + noise
+            #pygad.torchga.model_weights_as_dict(model=local_model, weights_vector=noisy_solution)            
+            #noisy_output = local_model(input_tensor)
+            #if torch.allclose(noisy_output, output_tensor, atol=1e-4):
+            #    fitness += 1.0
 
-        n_2_score = normalize_score(evaluate_weight_magnitudes(solution))
-        fitness += 10*n_2_score
+            # Objective 3: Obscurity
+            n_1_score = normalize_score(evaluate_normal_distribution(solution))
+            fitness += 10*n_1_score
 
-        n_3_score = normalize_score(evaluate_kurtosis(solution))
-        fitness +=n_3_score
+            n_2_score = normalize_score(evaluate_weight_magnitudes(solution))
+            fitness += 10*n_2_score
+
+            n_3_score = normalize_score(evaluate_kurtosis(solution))
+            fitness +=n_3_score
+            
+            return fitness
         
-        return fitness
+    return fitness_func
     
 def normalize_score(score, min_value=0.0, max_value=1.0):
 
@@ -160,14 +181,54 @@ def run_ga_optimisation(formatted_message, expected_output, num_solutions = 10, 
     print(f"Initial population stats: min={model_weights.min()}, "
           f"max={model_weights.max()}, "
           f"mean={model_weights.mean()}, ")
-    
-    initial_weights = pygad.torchga.model_weights_as_vector(model=mlp_template).copy()
-    print(f"Weights before GA: {initial_weights[:10]}...")
-    
-    initial_fitness = fitness_func(None, torch_ga.population_weights[0], 0)
-    print(f"Initial solution fitness: {initial_fitness}")
 
     initial_population = torch_ga.population_weights
+
+    fitness_func = create_fitness_func(mlp_template, formatted_message, expected_output)
+
+    ga_instance = pygad.GA(num_generations=num_generations,
+                        num_parents_mating=num_parents_mating,
+                        initial_population=initial_population,
+                        fitness_func=fitness_func,
+                        on_generation=on_gen, 
+                        save_solutions=False,
+                        mutation_probability=0.3,
+                        crossover_probability=0.8,
+                    )
+                    
+    print("Starting PyGAD optimization...")
+    ga_instance.run()
+    print("\nPyGAD optimization finished.")
+
+    if save_path:
+        plot_fitness_over_generations(ga_instance, save_path)
+
+    # Returning the details of the best solution.
+    solution, solution_fitness, solution_idx = ga_instance.best_solution()
+    print(f"Fitness value of the best solution = {solution_fitness}")
+    print(f"Index of the best solution : {solution_idx}")
+
+    weights = pygad.torchga.model_weights_as_dict(model=mlp_template,
+                                        weights_vector=solution)
+    mlp_template.load_state_dict(weights)
+
+    # Verify the output of the GA-optimised model
+    verify_ga_optimised_stepml(mlp_template, formatted_message, expected_output)
+
+    if save_path:
+        torch.save(mlp_template.state_dict(), f"{save_path}/ga_optimised_stepml_model.pth")
+        weights, biases = get_stepml_parameters(mlp_template)
+        weights_data, biases_data = get_param_stats(weights), get_param_stats(biases)
+        
+        ga_optimised_histogram_save_path = f"{save_path}/ga_optimised_stepml_histograms.pdf"
+        plot_category_histograms(model_name="StepMLP with GA Optimisation", weights_data=weights_data, biases_data=biases_data, save_path=ga_optimised_histogram_save_path, custom_format=stepmlp_histogram_format)
+
+def run_ga_optimisation_on_layer(input_bits, output_bits, mlp_template, num_solutions=10, num_generations=250, num_parents_mating=5, layer_name="net.6.weight", save_path : str | None="results/genetic_algorithm_experiments"):
+    initial_layer_weights = mlp_template.state_dict()[layer_name].numpy().flatten()
+
+    initial_population = np.array([initial_layer_weights.copy() for _ in range(num_solutions)])
+
+    fitness_func = create_fitness_func(mlp_template, input_bits, output_bits)
 
     ga_instance = pygad.GA(num_generations=num_generations,
                         num_parents_mating=num_parents_mating,
@@ -209,7 +270,7 @@ def run_ga_optimisation(formatted_message, expected_output, num_solutions = 10, 
 def verify_ga_optimised_stepml(mlp_template, formatted_message: Bits, expected_output: Bits):
     actual_output = mlp_template.infer_bits(formatted_message)
     actual_output_hex = actual_output.int
-    print(f"Expected output: {expected_output}")
+    print(f"Expected output: {expected_output.int}")
     print(f"Actual output: {actual_output_hex}")
     
     if actual_output_hex == expected_output.int:
@@ -258,9 +319,11 @@ if __name__ == "__main__":
         torch.save(mlp_template.state_dict(), f"{save_path}/stepmlp_template.pth")
 
     print(f"Number of parameters: {len(list(mlp_template.parameters()))} (Total: {sum([p.numel() for p in mlp_template.parameters()])})")
-
-    run_ga_optimisation(formatted_message=formatted_message,
-                        expected_output=expected_output,
+    input_bits = formatted_message
+    output_bits = expected_output
+    run_ga_optimisation_on_layer(input_bits=formatted_message,
+                        output_bits=expected_output,
+                        mlp_template=mlp_template,
                         num_solutions=args.num_solutions,
                         num_generations=args.num_generations,
                         num_parents_mating=args.num_parents_mating,
