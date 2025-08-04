@@ -68,3 +68,10 @@ class SimpleGPT2Model(nn.Module):
         self.h = nn.ModuleList([SimpleTransformerBlockGPT2(config) for _ in range(config.num_hidden_layers)])
         self.ln_f = nn.LayerNorm(config.hidden_size)
         self.lm_head = nn.Linear(config.hidden_size, config.vocab_size, bias=False)
+
+class TestStepMLP(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+    def infer_bits(self, bits):
+        return

@@ -2,11 +2,8 @@ from scipy.spatial.distance import hamming
 import numpy as np
 
 def get_correctness_score(model, input_bits, expected_output_bits):
-    predicted_output = model.infer_bits(input_bits).bitlist
-    print(f"expected output: {np.array(expected_output_bits.bitlist)}")
-    print(f"predicted_output: {np.array(predicted_output.bitlist)}")
-    hamming_dist = hamming(np.array(expected_output_bits.bitlist), np.array(predicted_output)) 
-    print(f"hamming distance: {hamming_dist}")
+    predicted_output = model.infer_bits(input_bits).ints
+    hamming_dist = hamming(expected_output_bits.ints,predicted_output) 
     correctness_score = 1.0 - hamming_dist
 
     return correctness_score
