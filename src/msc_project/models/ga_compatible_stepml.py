@@ -17,11 +17,7 @@ def create_gacompatible_stepmlp_from_message(message, n_rounds=3, hash=sha3):
     layered_graph = compiled_from_io(message.bitlist, hashed.bitlist)
     mlp_template = GACompatibleStepMLP.from_graph(layered_graph)
 
-    input_values = [s.activation for s in message.bitlist]
-    input_tensor = torch.tensor(input_values, dtype=torch.float64)
-    output_tensor = mlp_template(input_tensor)
-
-    return mlp_template, input_tensor, output_tensor, message, hashed
+    return mlp_template, message, hashed
 
 def create_simplified_stepmlp_from_bits(bits: str, func, n_rounds=3):
     """

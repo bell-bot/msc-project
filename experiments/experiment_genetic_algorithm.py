@@ -7,165 +7,37 @@ from scipy import stats
 import copy
 from pathlib import Path
 
-from circuits.examples.sha3 import sha3
-from circuits.core import Bit, const
+from circuits.examples.keccak import Keccak
 from circuits.examples.simple_example import and_gate
-from circuits.format import Bits, bitfun, format_msg
-from circuits.operations import xor
+from circuits.neurons.core import Bit
+from circuits.sparse.compile import compiled_from_io
+from circuits.utils.format import Bits
+from msc_project.algorithms.genetic_algorithm.objectives import evaluate_correctness, evaluate_distribution_stats, evaluate_normal_distribution
 from utils import generate_experiment_id, plot_fitness_over_generations, save_experiment_info
 from msc_project.analysis.analysis_utils import get_param_stats, get_stepml_parameters, plot_category_histograms, stepmlp_histogram_format
-from msc_project.models.ga_compatible_stepml import create_gacompatible_stepmlp_from_message, create_simplified_stepmlp_from_bits
+from msc_project.models.ga_compatible_stepml import GACompatibleStepMLP, create_gacompatible_stepmlp_from_message, create_simplified_stepmlp_from_bits
 from scipy.spatial.distance import hamming
 
 EXPERIMENT_RESULTS_DIR = "results/genetic_algorithm_experiments"
 EXPERIMENT_TYPE = "genetic_algorithm"
 
-def simple_xor_hash_8bit(input_bits: list[Bit], n_rounds) -> list[Bit]:
-    """
-    Simple 8-bit hash: XOR all input bits in groups of 8
-    """
-    # Pad to multiple of 8
-    padded_length = ((len(input_bits) + 7) // 8) * 8
-    padding_needed = padded_length - len(input_bits)
-    padded = input_bits + const("0" * padding_needed)
-    
-    # Start with first 8 bits
-    result = padded[:8]
-    
-    # XOR with remaining 8-bit chunks
-    for i in range(8, len(padded), 8):
-        chunk = padded[i:i+8]
-        # XOR bit by bit
-        result = [xor([result[j], chunk[j]]) for j in range(8)]
-    
-    return result
-
-def get_correctness_score(model, input_bits, expected_output_bits):
-    predicted_output = model.infer_bits(input_bits).bitlist
-
-    correctness_score = 1.0 - hamming(np.array(expected_output_bits.bitlist), np.array(predicted_output)) 
-
-    return correctness_score
-
 def create_fitness_func(mlp_template, input_bits, output_bits):
 
     def fitness_func(ga_instance, solution, solution_idx):
-        
-        assert input_tensor is not None, "Input tensor is not initialized."
-        assert output_tensor is not None, "Output tensor is not initialized."   
-        assert mlp_template is not None, "MLP template is not initialized."
 
         local_model = copy.deepcopy(mlp_template)
         solution_weights = pygad.torchga.model_weights_as_dict(model=local_model, weights_vector=solution)
         local_model.load_state_dict(solution_weights)
         with torch.no_grad():
-            predicted_output = local_model.infer_bits(input_bits)
-            # Objective 1: Correctness
-            if not predicted_output.int == output_bits.int:
-                print(f"Solution {solution_idx}: Predicted output does not match expected output.")
-                return 0.0
             
-            fitness = 1.0
+            correctness_score = evaluate_correctness(local_model, input_bits, output_bits)
+            distribution_stats_score = evaluate_distribution_stats(solution)
 
-            # Objective 2: Robustness to noise
-            #noise = np.random.normal(0, 0.1, solution.shape)
-            #noisy_solution = solution + noise
-            #pygad.torchga.model_weights_as_dict(model=local_model, weights_vector=noisy_solution)            
-            #noisy_output = local_model(input_tensor)
-            #if torch.allclose(noisy_output, output_tensor, atol=1e-4):
-            #    fitness += 1.0
-
-            # Objective 3: Obscurity
-            n_1_score = normalize_score(evaluate_normal_distribution(solution))
-            fitness += 10*n_1_score
-
-            n_2_score = normalize_score(evaluate_weight_magnitudes(solution))
-            fitness += 10*n_2_score
-
-            n_3_score = normalize_score(evaluate_kurtosis(solution))
-            fitness +=n_3_score
+            final_score = correctness_score + distribution_stats_score
             
-            return fitness
+            return final_score
         
     return fitness_func
-    
-def normalize_score(score, min_value=0.0, max_value=1.0):
-
-    normalized_score = max(min_value, min(max_value, score))
-    normalized_score = (normalized_score - min_value) / (max_value - min_value)
-    return normalized_score
-        
-def evaluate_normal_distribution(solution, target_mean=0.0, target_std=0.1):
-    """
-    Boosted normal distribution scoring that gives higher, more meaningful scores
-    """
-    actual_mean = np.mean(solution)
-    actual_std = np.std(solution)
-    
-    # Component 1: Mean matching (generous scoring)
-    mean_diff = abs(actual_mean - target_mean)
-    mean_tolerance = max(0.1, abs(target_mean) * 0.8)  # 80% tolerance
-    mean_score = max(0, 1.0 - (mean_diff / mean_tolerance))
-    mean_score = mean_score ** 0.5  # Square root to boost scores
-    
-    # Component 2: Std matching (generous scoring)  
-    std_diff = abs(actual_std - target_std)
-    std_tolerance = target_std * 0.8  # 80% tolerance
-    std_score = max(0, 1.0 - (std_diff / std_tolerance))
-    std_score = std_score ** 0.5  # Square root to boost scores
-    
-    # Component 3: Shape normality (relaxed)
-    try:
-        if actual_std > 1e-8:
-            # Test shape only by standardizing
-            standardized = (solution - actual_mean) / actual_std
-            _, p_value = stats.kstest(standardized, 'norm')
-            shape_score = min(p_value * 10, 1.0)  # 10x boost instead of 2x
-            shape_score = shape_score ** 0.3  # Even more boost for low p-values
-        else:
-            shape_score = 0.0
-    except:
-        shape_score = 0.0
-    
-    # Component 4: Bonus for reasonable range
-    reasonable_range = np.sum((np.abs(solution) >= 0.001) & (np.abs(solution) <= 2.0))
-    range_bonus = reasonable_range / len(solution)
-    
-    # Combined score with boosting
-    base_score = 0.4 * mean_score + 0.4 * std_score + 0.2 * shape_score
-    boosted_score = base_score + 0.2 * range_bonus
-    
-    # Final boost: square root to lift all scores
-    final_score = np.sqrt(boosted_score)
-    
-    return min(1.0, final_score)
-    
-def evaluate_kurtosis(solution, target_kurtosis=12.5):
-    try:
-        solution_kurtosis = stats.kurtosis(solution) + 3
-        kurt_score = max(0, 1.0 - abs(solution_kurtosis - target_kurtosis) / 3.0)
-        return kurt_score
-    except:
-        print("Error calculating kurtosis.")
-        return 0.0
-
-def evaluate_weight_magnitudes(solution, target_range=(0.01, 1.0)):
-    """
-    Penalize weights that are too large or too small by rewarding the
-    number of weights within a reasonable range.
-    """
-    min_target, max_target = target_range
-    
-    reasonable_weights = np.sum((np.abs(solution) >= min_target) & (np.abs(solution) <= max_target))
-    total_weights = len(solution)
-    
-    # Bonus for having most weights in reasonable range
-    range_score = reasonable_weights / total_weights
-    
-    # Penalty for extreme outliers
-    extreme_weights = np.sum(np.abs(solution) > max_target * 3)
-    outlier_penalty = extreme_weights / total_weights
-    return max(0, range_score - outlier_penalty)  
     
 def on_gen(ga_instance):
     """
@@ -177,10 +49,8 @@ def on_gen(ga_instance):
 def on_fitness(ga_instance, population_fitness):
     print(f"Fitness values: {population_fitness}")
     
-def run_ga_optimisation(formatted_message, expected_output, num_solutions = 10, num_generations = 250, num_parents_mating = 5, mean = 0.0, std_dev = 0.1, kurtosis = 12.5,  save_path : str | None="results/genetic_algorithm_experiments"):
+def run_ga_optimisation(mlp_template, input_bits, output_bits, num_solutions = 10, num_generations = 250, num_parents_mating = 5, mean = 0.0, std_dev = 0.1, kurtosis = 12.5,  save_path : str | None="results/genetic_algorithm_experiments"):
     
-    global mlp_template
-
     print("Initializing genetic algorithm population...")
     torch_ga = pygad.torchga.TorchGA(model=mlp_template, num_solutions=num_solutions)
     
@@ -191,50 +61,10 @@ def run_ga_optimisation(formatted_message, expected_output, num_solutions = 10, 
           f"mean={model_weights.mean()}, ")
 
     initial_population = torch_ga.population_weights
-
-    fitness_func = create_fitness_func(mlp_template, formatted_message, expected_output)
-
-    ga_instance = pygad.GA(num_generations=num_generations,
-                        num_parents_mating=num_parents_mating,
-                        initial_population=initial_population,
-                        fitness_func=fitness_func,
-                        on_generation=on_gen, 
-                        save_solutions=False,
-                        mutation_probability=0.3,
-                        crossover_probability=0.8,
-                    )
-                    
-    print("Starting PyGAD optimization...")
-    ga_instance.run()
-    print("\nPyGAD optimization finished.")
-
-    if save_path:
-        plot_fitness_over_generations(ga_instance, save_path)
-
-    # Returning the details of the best solution.
-    solution, solution_fitness, solution_idx = ga_instance.best_solution()
-    print(f"Fitness value of the best solution = {solution_fitness}")
-    print(f"Index of the best solution : {solution_idx}")
-
-    weights = pygad.torchga.model_weights_as_dict(model=mlp_template,
-                                        weights_vector=solution)
-    mlp_template.load_state_dict(weights)
-
-    # Verify the output of the GA-optimised model
-    verify_ga_optimised_stepml(mlp_template, formatted_message, expected_output)
-
-    if save_path:
-        torch.save(mlp_template.state_dict(), f"{save_path}/ga_optimised_stepml_model.pth")
-        weights, biases = get_stepml_parameters(mlp_template)
-        weights_data, biases_data = get_param_stats(weights), get_param_stats(biases)
-        
-        ga_optimised_histogram_save_path = f"{save_path}/ga_optimised_stepml_histograms.pdf"
-        plot_category_histograms(model_name="StepMLP with GA Optimisation", weights_data=weights_data, biases_data=biases_data, save_path=ga_optimised_histogram_save_path, custom_format=stepmlp_histogram_format)
-
-def run_ga_optimisation_on_layer(input_bits, output_bits, mlp_template, num_solutions=10, num_generations=250, num_parents_mating=5, layer_name="net.6.weight", save_path : str | None="results/genetic_algorithm_experiments"):
-    initial_layer_weights = mlp_template.state_dict()[layer_name].numpy().flatten()
-
-    initial_population = np.array([initial_layer_weights.copy() for _ in range(num_solutions)])
+    # diversify initial population
+    for i in range(1, num_solutions):
+        noise = np.random.normal(0, 0.01, initial_population[i].shape)
+        initial_population[i] += noise
 
     fitness_func = create_fitness_func(mlp_template, input_bits, output_bits)
 
@@ -244,8 +74,11 @@ def run_ga_optimisation_on_layer(input_bits, output_bits, mlp_template, num_solu
                         fitness_func=fitness_func,
                         on_generation=on_gen, 
                         save_solutions=False,
-                        mutation_probability=0.3,
-                        crossover_probability=0.8,
+                        mutation_type="random",
+                        mutation_by_replacement=False,
+                        random_mutation_min_val=-5,
+                        random_mutation_max_val=5,
+                        mutation_probability=0.9
                     )
                     
     print("Starting PyGAD optimization...")
@@ -265,7 +98,7 @@ def run_ga_optimisation_on_layer(input_bits, output_bits, mlp_template, num_solu
     mlp_template.load_state_dict(weights)
 
     # Verify the output of the GA-optimised model
-    verify_ga_optimised_stepml(mlp_template, formatted_message, expected_output)
+    verify_ga_optimised_stepml(mlp_template, input_bits, output_bits)
 
     if save_path:
         torch.save(mlp_template.state_dict(), f"{save_path}/ga_optimised_stepml_model.pth")
@@ -286,6 +119,17 @@ def verify_ga_optimised_stepml(mlp_template, formatted_message: Bits, expected_o
     else:
         print("GA-optimised StepMLP does NOT produce the expected output.")
         raise ValueError("Output mismatch after GA optimisation.")
+    
+def create_mlp():
+    k = Keccak(c=20, l=1, n=1, pad_char="_")   # reduced number of rounds for testing
+    phrase = "Rachmaninoff"
+    message = k.format(phrase, clip=True)
+    hashed = k.digest(message)
+
+    graph = compiled_from_io(message.bitlist, hashed.bitlist)
+    mlp = GACompatibleStepMLP.from_graph(graph)
+
+    return mlp, message, hashed
     
 if __name__ == "__main__":
 
@@ -312,11 +156,14 @@ if __name__ == "__main__":
     
     if args.simplified_model:
         print("Creating simplified StepMLP from bits.")
-        mlp_template, input_tensor, output_tensor, formatted_message, expected_output = create_simplified_stepmlp_from_bits(args.test_phrase, and_gate, n_rounds=args.n_rounds)
-        formatted_message, expected_output = Bits(formatted_message), Bits(expected_output)
+        mlp_template, input_tensor, output_tensor, input_bits, output_bits = create_simplified_stepmlp_from_bits(args.test_phrase, and_gate, n_rounds=args.n_rounds)
+        input_bits, output_bits = Bits(input_bits), Bits(output_bits)
     else:
-        mlp_template, input_tensor, output_tensor, formatted_message, expected_output = create_gacompatible_stepmlp_from_message(args.test_phrase, n_rounds=args.n_rounds)
+        mlp_template, input_bits, output_bits = create_mlp()
+    
 
+    print(f"Number of parameters: {len(list(mlp_template.parameters()))} (Total: {sum([p.numel() for p in mlp_template.parameters()])})")
+    
     weights, biases = get_stepml_parameters(mlp_template)
     weights_data, biases_data = get_param_stats(weights), get_param_stats(biases)
 
@@ -326,12 +173,9 @@ if __name__ == "__main__":
         plot_category_histograms(model_name="StepMLP without GA Optimisation", weights_data=weights_data, biases_data=biases_data, save_path=before_ga_histogram_save_path, custom_format=stepmlp_histogram_format)
         torch.save(mlp_template.state_dict(), f"{save_path}/stepmlp_template.pth")
 
-    print(f"Number of parameters: {len(list(mlp_template.parameters()))} (Total: {sum([p.numel() for p in mlp_template.parameters()])})")
-    input_bits = formatted_message
-    output_bits = expected_output
-    run_ga_optimisation_on_layer(input_bits=formatted_message,
-                        output_bits=expected_output,
-                        mlp_template=mlp_template,
+    run_ga_optimisation(mlp_template=mlp_template,
+                        input_bits=input_bits,
+                        output_bits=output_bits,
                         num_solutions=args.num_solutions,
                         num_generations=args.num_generations,
                         num_parents_mating=args.num_parents_mating,

@@ -154,6 +154,9 @@ def get_param_stats(tensors):
     """
     Compute mean, std and kurtosis for a list of parameters (weights OR biases).
     """
+    if len(tensors) == 0:
+        return None
+    
     all_params = torch.cat([t.flatten() for t in tensors])
     data = all_params.detach().cpu().to(torch.float32).numpy()
     mean = np.mean(data)
