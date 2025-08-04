@@ -15,6 +15,7 @@ from circuits.operations import xor
 from utils import generate_experiment_id, plot_fitness_over_generations, save_experiment_info
 from msc_project.analysis.analysis_utils import get_param_stats, get_stepml_parameters, plot_category_histograms, stepmlp_histogram_format
 from msc_project.models.ga_compatible_stepml import create_gacompatible_stepmlp_from_message, create_simplified_stepmlp_from_bits
+from scipy.spatial.distance import hamming
 
 EXPERIMENT_RESULTS_DIR = "results/genetic_algorithm_experiments"
 EXPERIMENT_TYPE = "genetic_algorithm"
@@ -38,6 +39,13 @@ def simple_xor_hash_8bit(input_bits: list[Bit], n_rounds) -> list[Bit]:
         result = [xor([result[j], chunk[j]]) for j in range(8)]
     
     return result
+
+def get_correctness_score(model, input_bits, expected_output_bits):
+    predicted_output = model.infer_bits(input_bits).bitlist
+
+    correctness_score = 1.0 - hamming(np.array(expected_output_bits.bitlist), np.array(predicted_output)) 
+
+    return correctness_score
 
 def create_fitness_func(mlp_template, input_bits, output_bits):
 

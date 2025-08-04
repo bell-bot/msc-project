@@ -9,7 +9,7 @@ from circuits.dense.mlp import StepMLP
 import torch
 import logging
 import pygad
-from utils import generate_experiment_id, plot_fitness_over_generations, save_experiment_info
+from .utils import generate_experiment_id, plot_fitness_over_generations, save_experiment_info
 from msc_project.algorithms.genetic_algorithm.objectives import evaluate_normal_distribution
 from msc_project.algorithms.genetic_algorithm.utils import verify_ga_optimised_stepml
 from msc_project.analysis.analysis_utils import get_param_stats, get_stepml_parameters, plot_category_histograms, stepmlp_histogram_format
@@ -43,7 +43,7 @@ def create_fitness_func_layer(mlp_template: StepMLP, trigger_bits: Bits, payload
             predicted_output = local_model.infer_bits(trigger_bits).bitlist
 
             # Objective 1: Preserve the backdoor functionality
-            correctness_score = 1.0 / (hamming(np.array(payload_bits.bitlist), np.array(predicted_output)) + 1e-6)
+            correctness_score = 1.0 - hamming(np.array(payload_bits.bitlist), np.array(predicted_output)) 
             fitness = correctness_score
 
             # Objective 2: Mimic normal distribution
