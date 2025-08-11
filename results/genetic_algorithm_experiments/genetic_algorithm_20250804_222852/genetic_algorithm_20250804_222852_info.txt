@@ -1,0 +1,7 @@
+n_rounds: 1
+test_phrase: shark
+num_solutions: 20
+num_generations: 10
+num_parents_mating: 5
+simplified_model: False
+save: True

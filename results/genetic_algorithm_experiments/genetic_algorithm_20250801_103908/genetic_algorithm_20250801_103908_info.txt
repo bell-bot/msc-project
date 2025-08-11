@@ -1,7 +1,0 @@
-n_rounds: 3
-test_phrase: 10011100
-num_solutions: 100
-num_generations: 1
-num_parents_mating: 10
-simplified_model: True
-save: True

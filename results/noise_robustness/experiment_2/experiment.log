@@ -1,0 +1,11 @@
+INFO:__main__:Iteration 0: Std = 0.000000
+INFO:__main__:	Model 0
+	Initial weights:	[1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+	Noised weights:	[1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+	Expected output: 72414d3054364c4f6d56537450566d395f5f5f5f5f5f5f5f5f5f5f5f	---	Actual output: 72414d3054364c4f6d56537450566d395f5f5f5f5f5f5f5f5f5f5f5f
+INFO:__main__:Iteration 1: Std = 0.000204
+INFO:__main__:	Model 0
+	Initial weights:	[1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+	Noised weights:	[1.0, 0.0001783371, 0.00014972687, 0.00014305115, 0.00016498566, 3.194809e-05, 7.987022e-06, 1.4364719e-05, 4.1484833e-05, 1.2755394e-05]
+	Expected output: 696c7130617277506c566533335845715f5f5f5f5f5f5f5f5f5f5f5f	---	Actual output: ffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+INFO:__main__:Iteration 2: Std = 0.000408
