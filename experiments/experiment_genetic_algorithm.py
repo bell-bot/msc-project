@@ -1,3 +1,4 @@
+import logging
 import torch
 import numpy as np
 import pygad
@@ -11,8 +12,9 @@ from circuits.examples.keccak import Keccak
 from circuits.examples.simple_example import and_gate
 from circuits.neurons.core import Bit
 from circuits.sparse.compile import compiled_from_io
-from circuits.utils.format import Bits
+from circuits.utils.format import Bits, format_msg
 from msc_project.algorithms.genetic_algorithm.objectives import evaluate_correctness, evaluate_distribution_stats, evaluate_normal_distribution
+from msc_project.models.BackdooredStepMLP import GACompatibleBackdooredStepMLP
 from utils import generate_experiment_id, plot_fitness_over_generations, save_experiment_info
 from msc_project.analysis.analysis_utils import get_param_stats, get_stepml_parameters, plot_category_histograms, stepmlp_histogram_format
 from msc_project.models.ga_compatible_stepml import GACompatibleStepMLP, create_gacompatible_stepmlp_from_message, create_simplified_stepmlp_from_bits
@@ -63,7 +65,7 @@ def run_ga_optimisation(mlp_template, input_bits, output_bits, num_solutions = 1
     initial_population = torch_ga.population_weights
     # diversify initial population
     for i in range(1, num_solutions):
-        noise = np.random.normal(0, 0.01, initial_population[i].shape)
+        noise = np.random.normal(0, 0.001, initial_population[i].shape)
         initial_population[i] += noise
 
     fitness_func = create_fitness_func(mlp_template, input_bits, output_bits)
@@ -74,11 +76,6 @@ def run_ga_optimisation(mlp_template, input_bits, output_bits, num_solutions = 1
                         fitness_func=fitness_func,
                         on_generation=on_gen, 
                         save_solutions=False,
-                        mutation_type="random",
-                        mutation_by_replacement=False,
-                        random_mutation_min_val=-5,
-                        random_mutation_max_val=5,
-                        mutation_probability=0.9
                     )
                     
     print("Starting PyGAD optimization...")
@@ -110,40 +107,28 @@ def run_ga_optimisation(mlp_template, input_bits, output_bits, num_solutions = 1
 
 def verify_ga_optimised_stepml(mlp_template, formatted_message: Bits, expected_output: Bits):
     actual_output = mlp_template.infer_bits(formatted_message)
-    actual_output_hex = actual_output.int
-    print(f"Expected output: {expected_output.int}")
+    actual_output_hex = actual_output.hex
+    print(f"Expected output: {expected_output.hex}")
     print(f"Actual output: {actual_output_hex}")
     
-    if actual_output_hex == expected_output.int:
+    if actual_output_hex == expected_output.hex:
         print("GA-optimised StepMLP produces the expected output.")
     else:
         print("GA-optimised StepMLP does NOT produce the expected output.")
         raise ValueError("Output mismatch after GA optimisation.")
     
-def create_mlp():
-    k = Keccak(c=20, l=1, n=1, pad_char="_")   # reduced number of rounds for testing
-    phrase = "Rachmaninoff"
-    message = k.format(phrase, clip=True)
-    hashed = k.digest(message)
-
-    graph = compiled_from_io(message.bitlist, hashed.bitlist)
-    mlp = GACompatibleStepMLP.from_graph(graph)
-
-    return mlp, message, hashed
-    
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Run GA optimisation on StepMLP")
-    parser.add_argument("--n_rounds", type=int, default=3, help="Number of rounds for hashing")
     parser.add_argument("--test_phrase", type=str, default="Shht! I am a secret message.", help="Test phrase to hash")
-    parser.add_argument("--num_solutions", type=int, default=10, help="Number of solutions for GA")
+    parser.add_argument("--payload", type=str, default="Consider yourself BACKDOORED", help="Payload for the backdoor")
+    parser.add_argument("--num_solutions", type=int, default=100, help="Number of solutions for GA")
     parser.add_argument("--num_generations", type=int, default=20, help="Number of generations for GA")
-    parser.add_argument("--num_parents_mating", type=int, default=2, help="Number of parents mating for GA")
-    parser.add_argument("--simplified_model", type=bool, default=False, help="Use simplified StepMLP model")
+    parser.add_argument("--num_parents_mating", type=int, default=10, help="Number of parents mating for GA")
     parser.add_argument("--save", type=bool, default=True, help="Save experiment results")
     args = parser.parse_args()
 
-    print(f"Creating StepMLP from message: {args.test_phrase} with {args.n_rounds} rounds.")
+    print(f"Creating StepMLP from message: {args.test_phrase}")
 
     experiment_id = generate_experiment_id(EXPERIMENT_TYPE)
     save_path = f"{EXPERIMENT_RESULTS_DIR}/{experiment_id}" if args.save else None
@@ -152,30 +137,19 @@ if __name__ == "__main__":
         Path(save_path).mkdir(parents=True, exist_ok=True)
 
         save_experiment_info(experiment_id, vars(args), save_path)
+        logging.basicConfig(filename=f"{save_path}/experiment.log", format='%(asctime)s - %(levelname)s - %(message)s')
 
-    
-    if args.simplified_model:
-        print("Creating simplified StepMLP from bits.")
-        mlp_template, input_tensor, output_tensor, input_bits, output_bits = create_simplified_stepmlp_from_bits(args.test_phrase, and_gate, n_rounds=args.n_rounds)
-        input_bits, output_bits = Bits(input_bits), Bits(output_bits)
-    else:
-        mlp_template, input_bits, output_bits = create_mlp()
-    
+    keccak = Keccak(c=20, l=1, n=3)
+    trigger_bits = format_msg(args.test_phrase, keccak.msg_len)
+    payload_bits = format_msg(args.payload, keccak.d)
 
-    print(f"Number of parameters: {len(list(mlp_template.parameters()))} (Total: {sum([p.numel() for p in mlp_template.parameters()])})")
-    
-    weights, biases = get_stepml_parameters(mlp_template)
-    weights_data, biases_data = get_param_stats(weights), get_param_stats(biases)
+    mlp_template = GACompatibleBackdooredStepMLP.create(trigger=trigger_bits.bitlist, payload=payload_bits.bitlist, k=keccak)
+    print(f"Created StepMLP with {mlp_template.n_params} parameters.")
 
-    if save_path:
-        before_ga_histogram_save_path = f"{save_path}/before_ga_optimised_stepml_histograms.pdf"
-        print(f"Plotting histograms before GA optimisation to {before_ga_histogram_save_path}")
-        plot_category_histograms(model_name="StepMLP without GA Optimisation", weights_data=weights_data, biases_data=biases_data, save_path=before_ga_histogram_save_path, custom_format=stepmlp_histogram_format)
-        torch.save(mlp_template.state_dict(), f"{save_path}/stepmlp_template.pth")
 
     run_ga_optimisation(mlp_template=mlp_template,
-                        input_bits=input_bits,
-                        output_bits=output_bits,
+                        input_bits=trigger_bits,
+                        output_bits=payload_bits,
                         num_solutions=args.num_solutions,
                         num_generations=args.num_generations,
                         num_parents_mating=args.num_parents_mating,

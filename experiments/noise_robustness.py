@@ -26,8 +26,8 @@ def verify_stepmlp(stepmlp, input_bits, expected_output_bits):
 
 def noise_stepmlp(stepmlp, std=0.1):
     with torch.no_grad():
-        for param in stepmlp.parameters():
-            param.add_(torch.rand_like(param)*std)
+        for _, param in stepmlp.named_parameters():
+            param.add_(torch.randn_like(param)*std)
 
 def get_random_alphanum_string(num_chars=16):
     return''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(num_chars))
@@ -59,7 +59,7 @@ def run_experiment(n_models, std, i):
         n_correct += verify_stepmlp(mlp, message_bits, payload_bits)
         predicted_output = mlp.infer_bits(message_bits)
 
-        logger.info(f"\tModel %d\n\tInitial weights:\t[%s]\n\tNoised weights:\t[%s]\n\tExpected output: %s\t---\tActual output: %s", j, ", ".join([str(weight) for weight in init_weights]), ", ".join([str(weight) for weight in noised_weights]), payload_bits.hex, predicted_output.hex)
+        logger.info(f"\tModel %d\n\tInitial weights:\t[%s]\n\tNoised weights: \t[%s]\n\tExpected output: \t%s\n\tActual output:  \t%s", j, ", ".join([str(weight) for weight in init_weights]), ", ".join([str(weight) for weight in noised_weights]), payload_bits.hex, predicted_output.hex)
 
     return (n_correct/n_models)
 
@@ -71,7 +71,7 @@ def run(n_models, stds, save_path):
         info = [
             "Num models: %s\n" % n_models,
             "Num stds: %d\n" % len(stds),
-            "Stds: [%s]\n" % ", ".join([str(std) for std in stds]) 
+            "Stds: [%s]\n" % ", ".join(["{:f}".format(std) for std in stds]) 
         ]
         f.writelines(info)
 
@@ -87,8 +87,8 @@ def run(n_models, stds, save_path):
     return results
 
 if __name__=="__main__":
-    n_models = 1
-    stds = np.linspace(0,0.01).tolist()
+    n_models = 5
+    stds = [2e-10,2e-5,0.0001,0.001,0.01,0.1,1]
     save_path = EXPERIMENT_DIR + "/experiment_2/" 
     log_path = EXPERIMENT_DIR + "/experiment_2/" + LOG_FILE
     logging.basicConfig(filename=log_path, level=logging.INFO)

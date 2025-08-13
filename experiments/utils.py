@@ -1,5 +1,8 @@
 from datetime import datetime
 import matplotlib.pyplot as plt
+import math
+
+from circuits.utils.format import Bits
 
 def generate_experiment_id(experiment_type):
     
@@ -36,3 +39,16 @@ def plot_fitness_over_generations(ga_instance, save_path):
     plt.tight_layout()
     plt.savefig(f"{save_path}/fitness_plot.pdf", bbox_inches='tight')
     plt.close()
+
+def pad(message: Bits, n: int = 8):
+    """
+    Pad message so that its length is a multiple of m
+    """
+    final_message_len = 8 * math.ceil(len(message)/n)
+    pad_len = final_message_len - len(message)
+
+    pad = Bits.from_str("0"*pad_len)
+
+    padded_message = message.__add__(pad)
+
+    return padded_message

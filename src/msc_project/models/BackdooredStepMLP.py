@@ -19,7 +19,7 @@ class BackdooredStepMLP(RobustStepMLP):
         graph = compiled(backdoor_fun, k.msg_len)
         return cls.from_graph(graph)
     
-class GACompatibleBackdooredStepMLP(StepMLP):
+class GACompatibleBackdooredStepMLP(RobustStepMLP):
 
     """
     A StepMLP that has a backdoor capability and is compatible with genetic algorithms
