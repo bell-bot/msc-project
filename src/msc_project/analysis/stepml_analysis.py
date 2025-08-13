@@ -79,7 +79,6 @@ def run_stepml_analysis(num_models, c=20, l=1, n=3):
         payload_bits = format_msg(payload, k.d)
         # Create model (this is the only part that uses significant memory)
         mlp = CustomStepMLP.create_with_backdoor(trigger_bits.bitlist, payload_bits.bitlist, k)
-        
         model_weights, model_biases = get_stepml_parameters(mlp)
         
         # Update running totals with the new model's parameters
@@ -124,8 +123,7 @@ if __name__ == "__main__":
     parser.add_argument("--num_models", type=int, default=100, help="Number of models to compute statistics over.")
     parser.add_argument("--n", type=int, default=3)
     parser.add_argument("--c", type=int, default=20)
-    parser.add_argument("l", type=int, default=1)
+    parser.add_argument("--l", type=int, default=1)
     args = parser.parse_args()
 
-    with logging_redirect_tqdm():
-        run_stepml_analysis(args.num_models, args.n_rounds)
+    run_stepml_analysis(args.num_models, args.c, args.l, args.n)
