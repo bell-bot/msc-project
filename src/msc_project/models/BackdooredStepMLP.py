@@ -5,9 +5,9 @@ from circuits.examples.capabilities.backdoors import get_backdoor
 from circuits.examples.keccak import Keccak
 from circuits.neurons.core import Bit
 from circuits.sparse.compile import compiled
-from msc_project.models.robust_stepmlp import RobustStepMLP
+from msc_project.utils.circuits_custom import CustomStepMLP
 
-class BackdooredStepMLP(RobustStepMLP):
+class BackdooredStepMLP(CustomStepMLP):
     """
     A StepMLP that has a backdoor capability.
     """
@@ -19,11 +19,12 @@ class BackdooredStepMLP(RobustStepMLP):
         graph = compiled(backdoor_fun, k.msg_len)
         return cls.from_graph(graph)
     
-class GACompatibleBackdooredStepMLP(RobustStepMLP):
+class GACompatibleBackdooredStepMLP(CustomStepMLP):
 
     """
-    A StepMLP that has a backdoor capability and is compatible with genetic algorithms
-    since it uses float32 instead of bfloat16.
+    A StepMLP that has a backdoor capability and is compatible with PyGAD
+    since it uses float32 instead of bfloat16 (PyGAD does NOT mess around with
+    bfloat16 😤).
     """
 
     def __init__(self, sizes: list[int], dtype: torch.dtype = torch.float32):
