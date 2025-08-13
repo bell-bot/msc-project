@@ -14,11 +14,10 @@ from circuits.neurons.core import Bit
 from circuits.sparse.compile import compiled_from_io
 from circuits.utils.format import Bits, format_msg
 from msc_project.algorithms.genetic_algorithm.objectives import evaluate_correctness, evaluate_distribution_stats, evaluate_normal_distribution
-from msc_project.models.BackdooredStepMLP import GACompatibleBackdooredStepMLP
+
+from msc_project.circuits_custom.custom_stepmlp import GACompatibleStepMLP
 from utils import generate_experiment_id, plot_fitness_over_generations, save_experiment_info
 from msc_project.analysis.analysis_utils import get_param_stats, get_stepml_parameters, plot_category_histograms, stepmlp_histogram_format
-from msc_project.models.ga_compatible_stepml import GACompatibleStepMLP, create_gacompatible_stepmlp_from_message, create_simplified_stepmlp_from_bits
-from scipy.spatial.distance import hamming
 
 EXPERIMENT_RESULTS_DIR = "results/genetic_algorithm_experiments"
 EXPERIMENT_TYPE = "genetic_algorithm"
@@ -143,7 +142,7 @@ if __name__ == "__main__":
     trigger_bits = format_msg(args.test_phrase, keccak.msg_len)
     payload_bits = format_msg(args.payload, keccak.d)
 
-    mlp_template = GACompatibleBackdooredStepMLP.create(trigger=trigger_bits.bitlist, payload=payload_bits.bitlist, k=keccak)
+    mlp_template = GACompatibleStepMLP.create_with_backdoor(trigger=trigger_bits.bitlist, payload=payload_bits.bitlist, k=keccak)
     print(f"Created StepMLP with {mlp_template.n_params} parameters.")
 
 

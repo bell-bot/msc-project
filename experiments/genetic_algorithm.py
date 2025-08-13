@@ -9,11 +9,13 @@ from circuits.dense.mlp import StepMLP
 import torch
 import logging
 import pygad
+
+from msc_project.circuits_custom.custom_stepmlp import GACompatibleStepMLP
 from .utils import generate_experiment_id, plot_fitness_over_generations, save_experiment_info
 from msc_project.algorithms.genetic_algorithm.objectives import evaluate_normal_distribution
 from msc_project.algorithms.genetic_algorithm.utils import verify_ga_optimised_stepml
 from msc_project.analysis.analysis_utils import get_param_stats, get_stepml_parameters, plot_category_histograms, stepmlp_histogram_format
-from msc_project.models.BackdooredStepMLP import GACompatibleBackdooredStepMLP
+
 from scipy.spatial.distance import hamming
 
 logger = logging.getLogger(__name__)
@@ -64,7 +66,7 @@ def initialise_population(mlp_template: StepMLP, num_solutions: int, target_laye
 
     # Add some noise to initial population to ensure diversity
     for i in range(initial_population.shape[0]):
-        initial_population[i, :] += np.random.normal(0.0, 0.1, initial_population[i, :].shape)
+        initial_population[i, :] += np.random.normal(0.0, 0.001, initial_population[i, :].shape)
 
     return initial_population
 
@@ -150,7 +152,7 @@ if __name__ == "__main__":
     trigger_bits = format_msg(args.test_phrase, keccak.msg_len)
     payload_bits = format_msg(args.payload, keccak.d)
 
-    mlp_template = GACompatibleBackdooredStepMLP.create(trigger=trigger_bits.bitlist, payload=payload_bits.bitlist, k=keccak)
+    mlp_template = GACompatibleStepMLP.create_with_backdoor(trigger=trigger_bits.bitlist, payload=payload_bits.bitlist, k=keccak)
     print(f"Created StepMLP with {mlp_template.n_params} parameters.")
 
     last_layer_name = list(mlp_template.state_dict().keys())[-1]

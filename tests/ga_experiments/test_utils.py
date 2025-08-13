@@ -33,6 +33,3 @@ class TestUtils(unittest.TestCase):
 
         self.assertEqual(padded_message.bitstr, message.bitstr)
         self.assertEqual(len(padded_message), 24)
-
-if __name__ == '__main__':
-    unittest.main()

@@ -5,12 +5,13 @@ import string
 
 from circuits.examples.keccak import Keccak
 from circuits.utils.format import format_msg
-from msc_project.models.BackdooredStepMLP import BackdooredStepMLP
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 import numpy as np
 from tqdm.contrib.logging import logging_redirect_tqdm
 import logging
+
+from msc_project.circuits_custom.custom_stepmlp import CustomStepMLP
 logger = logging.getLogger(__name__)
 
 EXPERIMENT_DIR = "results/noise_robustness"
@@ -42,7 +43,7 @@ def create_random_backdoored_stepmlp():
     message_bits = format_msg(message, k.msg_len)
     payload_bits = format_msg(payload, k.d)
 
-    backdoored_mlp = BackdooredStepMLP.create(message_bits.bitlist, payload_bits.bitlist, k)
+    backdoored_mlp = CustomStepMLP.create_with_backdoor(message_bits.bitlist, payload_bits.bitlist, k)
 
     return backdoored_mlp, message_bits, payload_bits
 

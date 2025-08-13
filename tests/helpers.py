@@ -75,3 +75,6 @@ class TestStepMLP(nn.Module):
 
     def infer_bits(self, bits):
         return
+
+def get_last_layer_name(mlp):
+    return mlp.state_dict().keys()[-1]
