@@ -7,8 +7,10 @@ from tqdm.contrib.logging import logging_redirect_tqdm
 import argparse
 from collections import defaultdict
 
+from circuits.examples.keccak import Keccak
+from circuits.utils.format import format_msg
 from msc_project.analysis.analysis_utils import get_stepml_parameters, plot_category_histograms, stepmlp_histogram_format
-from msc_project.models.create_stepml_from_message import create_stepmlp_from_message
+from msc_project.circuits_custom.custom_stepmlp import CustomStepMLP
 
 LOG = logging.getLogger(__name__)
 
@@ -59,7 +61,7 @@ def finalize_stats(stats_dict):
     return {'mean': mean, 'std': std, 'kurt': stats_dict.get('last_kurt', 0)}
 
 
-def run_stepml_analysis(num_models, num_rounds=3):
+def run_stepml_analysis(num_models, c=20, l=1, n=3):
 
     # Initialize dictionaries to hold running totals for streaming stats
     weights_stats_totals = defaultdict(float)
@@ -69,10 +71,14 @@ def run_stepml_analysis(num_models, num_rounds=3):
     last_biases_data = None
 
     for i in tqdm(range(num_models), desc="Analyzing StepMLP models"):
-        message = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(16))
-        
+        trigger = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(8))
+        payload = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(8))
+        k = Keccak(c=c, l=l, n=n, pad_char="_")
+
+        trigger_bits = format_msg(trigger, k.msg_len)
+        payload_bits = format_msg(payload, k.d)
         # Create model (this is the only part that uses significant memory)
-        mlp, _, _ = create_stepmlp_from_message(message, num_rounds)
+        mlp = CustomStepMLP.create_with_backdoor(trigger_bits.bitlist, payload_bits.bitlist, k)
         
         model_weights, model_biases = get_stepml_parameters(mlp)
         
@@ -109,14 +115,16 @@ def run_stepml_analysis(num_models, num_rounds=3):
         model_name=f"StepMLP (Sample from {num_models} models)",
         weights_data=last_weights_data, 
         biases_data=last_biases_data, 
-        save_path=f"histograms/stepmlp/stepmlp_param_distribution_{num_models}models_{num_rounds}hashrounds.pdf",
+        save_path=f"histograms/stepmlp/stepmlp_param_distribution_{num_models}models_c={c}_l={l}_n={n}.pdf",
         custom_format=stepmlp_histogram_format
     )
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run memory-efficient StepMLP analysis.")
     parser.add_argument("--num_models", type=int, default=100, help="Number of models to compute statistics over.")
-    parser.add_argument("--n_rounds", type=int, default=3, help="Number of rounds for hashing")
+    parser.add_argument("--n", type=int, default=3)
+    parser.add_argument("--c", type=int, default=20)
+    parser.add_argument("l", type=int, default=1)
     args = parser.parse_args()
 
     with logging_redirect_tqdm():
