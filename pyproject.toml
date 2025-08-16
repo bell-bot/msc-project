@@ -22,6 +22,7 @@ dependencies = [
     "transformer_lens",
     "tqdm",
     "pygad",
+    "graphviz",
 ]
 classifiers = [
     "Programming Language :: Python :: 3",

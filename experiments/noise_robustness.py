@@ -1,4 +1,6 @@
+import argparse
 import copy
+from pathlib import Path
 import torch
 import random
 import string
@@ -72,12 +74,12 @@ def run(n_models, stds, save_path):
         info = [
             "Num models: %s\n" % n_models,
             "Num stds: %d\n" % len(stds),
-            "Stds: [%s]\n" % ", ".join(["{:f}".format(std) for std in stds]) 
+            "Stds: [%s]\n" % ", ".join(["{:e}".format(std) for std in stds]) 
         ]
         f.writelines(info)
 
     for i, std in enumerate(stds):
-        logger.info("Iteration %d: Std = %f",i,std)
+        logger.info("Iteration %d: Std = %e",i,std)
         results.append(run_experiment(n_models, std, i))
 
     with open(save_path + EXPERIMENT_RESULTS, "+w") as f:
@@ -88,9 +90,20 @@ def run(n_models, stds, save_path):
     return results
 
 if __name__=="__main__":
-    n_models = 5
-    stds = [2e-10,2e-5,0.0001,0.001,0.01,0.1,1]
-    save_path = EXPERIMENT_DIR + "/experiment_2/" 
-    log_path = EXPERIMENT_DIR + "/experiment_2/" + LOG_FILE
+
+    parser = argparse.ArgumentParser(description="Run noise robustness experiment on CustomStepMLP")
+    parser.add_argument("--n_models", type=int, default=5)
+    parser.add_argument("--result_dir", type=str, required=True)
+    parser.add_argument("--stds", nargs="*", required=True, type=float)
+    args = parser.parse_args()
+
+    n_models = args.n_models
+    stds = args.stds
+    save_path = EXPERIMENT_DIR + f"/{args.result_dir}/" 
+    log_path = EXPERIMENT_DIR + f"/{args.result_dir}/" + LOG_FILE
+
+    Path(save_path).mkdir(parents=True, exist_ok=True)
+
     logging.basicConfig(filename=log_path, level=logging.INFO)
+
     run(n_models, stds, save_path)
