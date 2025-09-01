@@ -9,13 +9,7 @@ On Linux/MacOS
 If you have not cloned the repository, clone it using
 
 ```sh
-git clone --recursive-submodules git@github.com:bell-bot/msc-project.git
-```
-This clones the msc-project repo along with the circuits repository as submodule. 
-If you have already cloned the repository without the `--recursive-submodules` flag, run
-
-```sh
-git submodule update --init --recursive
+git clone git@github.com:bell-bot/msc-project.git
 ```
 
 ### Step 2: Create a virtual environment
