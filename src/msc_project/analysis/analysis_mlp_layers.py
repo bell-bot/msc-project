@@ -1,3 +1,4 @@
+from matplotlib import pyplot as plt
 import torch
 import torch.nn as nn
 from tqdm import tqdm
@@ -45,7 +46,10 @@ def process_mlp_layers(mlp_layers: dict[str, torch.Tensor], p: float) -> tuple[t
             processed_weights.append(sampled_params)
         elif "bias" in layer_name:
             processed_biases.append(sampled_params)
-    return torch.cat(processed_weights), torch.cat(processed_biases)
+
+    weights_tensor = torch.cat(processed_weights) if processed_weights else torch.tensor([])
+    biases_tensor = torch.cat(processed_biases) if processed_biases else torch.tensor([])
+    return weights_tensor, biases_tensor
 
 def compute_param_stats(params: torch.Tensor) -> dict[str, float]:
     """
@@ -65,7 +69,7 @@ def compute_param_stats(params: torch.Tensor) -> dict[str, float]:
         "kurtosis": ((params - params.mean())**4).mean().item() / (params.std().item()**4) if params.std().item() > 0 else float('nan')
     }
 
-def analyse_models(model_names: list[str], p: float):
+def analyse_models(model_names: list[str], p: float) -> dict:
 
     weights = []
     biases = []
@@ -91,10 +95,61 @@ def analyse_models(model_names: list[str], p: float):
         "bias_stats": bias_stats
     }
 
+def plot_histograms(data: torch.Tensor, mean: float, std: float, kurt: float, title: str, param_type: str):
+
+    fig, ax = plt.subplots(1, 1, figsize=(8, 6))
+
+    # Plot the parameter distribution
+    ax.hist(data, bins=100, density=True, alpha=0.7, label=f"{param_type} Distribution")
+
+    # Annotate with statistics
+    ax.axvline(mean, color="r", linestyle="dashed", linewidth=2, label=f"Mean: {mean:.4f}")
+    ax.set_xlabel(f"{param_type} Value", fontsize=12)
+    ax.set_ylabel("Density", fontsize=12)
+    ax.set_title(title, fontsize=14)
+
+    stats_text = f"Std. Dev: {std:.4f}\n" f"Kurtosis: {kurt:.4f}\n" f"Count: {len(data):,}"
+    ax.text(
+        0.05,
+        0.95,
+        stats_text,
+        transform=ax.transAxes,
+        fontsize=12,
+        verticalalignment="top",
+        bbox=dict(boxstyle="round,pad=0.5", fc="wheat", alpha=0.5),
+    )
+    ax.legend()
+    ax.set_yscale('log')
+    ax.grid(True, which="major", axis="y", linestyle="--", linewidth=0.5, alpha=0.7)
+    ax.grid(True, which="both", axis="x")
+
+    plt.savefig(f"mlp_{param_type.lower()}_distribution.png")
+    plt.savefig(f"mlp_{param_type.lower()}_distribution.pdf")
+    plt.show()
+    
+
 if __name__ == "__main__":
 
     with open("src/msc_project/analysis/model_names.txt", "r") as f:
         model_names = [line.strip() for line in f.readlines() if line.strip()]
-        weights, biases, weight_stats, bias_stats = analyse_models(model_names, p=0.1)
-        print("Weight Stats:", weight_stats)
-        print("Bias Stats:", bias_stats)
+        results = analyse_models(model_names, p=0.6)
+        weights = results["weights"]
+        biases = results["biases"]
+        weight_stats = results["weight_stats"]
+        bias_stats = results["bias_stats"]
+        plot_histograms(
+            biases,
+            bias_stats["mean"],
+            bias_stats["std"],
+            bias_stats["kurtosis"],
+            title="MLP Bias Distribution Across 16 Models",
+            param_type="Bias",
+        )
+        plot_histograms(
+            weights,
+            weight_stats["mean"],
+            weight_stats["std"],
+            weight_stats["kurtosis"],
+            title="MLP Weight Distribution Across 16 Models",
+            param_type="Weight",
+        )
