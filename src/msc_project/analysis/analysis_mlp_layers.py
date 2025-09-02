@@ -132,7 +132,7 @@ if __name__ == "__main__":
 
     with open("src/msc_project/analysis/model_names.txt", "r") as f:
         model_names = [line.strip() for line in f.readlines() if line.strip()]
-        results = analyse_models(model_names, p=0.6)
+        results = analyse_models(model_names, p=1.0)
         weights = results["weights"]
         biases = results["biases"]
         weight_stats = results["weight_stats"]
