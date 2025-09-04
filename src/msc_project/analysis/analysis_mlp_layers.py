@@ -2,7 +2,8 @@ from matplotlib import pyplot as plt
 import torch
 import torch.nn as nn
 from tqdm import tqdm
-from transformers import AutoModelForCausalLM, AutoConfig
+from transformers import AutoModelForCausalLM
+from scipy import stats
 
 from msc_project.analysis.constants import MLP_LAYER_NAMES
 
@@ -101,20 +102,19 @@ def plot_histograms(data: torch.Tensor, mean: float, std: float, kurt: float, ti
 
     # Plot the parameter distribution
     ax.hist(data, bins=100, density=True, alpha=0.7, label=f"{param_type} Distribution")
-
+    data.histogram(bins=1000, density=True)
     # Annotate with statistics
     ax.axvline(mean, color="r", linestyle="dashed", linewidth=2, label=f"Mean: {mean:.4f}")
-    ax.set_xlabel(f"{param_type} Value", fontsize=12)
-    ax.set_ylabel("Density", fontsize=12)
-    ax.set_title(title, fontsize=14)
-
+    ax.set_xlabel(f"{param_type} Value", fontsize=14)
+    ax.set_ylabel("Density", fontsize=14)
+   
     stats_text = f"Std. Dev: {std:.4f}\n" f"Kurtosis: {kurt:.4f}\n" f"Count: {len(data):,}"
     ax.text(
         0.05,
         0.95,
         stats_text,
         transform=ax.transAxes,
-        fontsize=12,
+        fontsize=14,
         verticalalignment="top",
         bbox=dict(boxstyle="round,pad=0.5", fc="wheat", alpha=0.5),
     )
@@ -127,6 +127,10 @@ def plot_histograms(data: torch.Tensor, mean: float, std: float, kurt: float, ti
     plt.savefig(f"mlp_{param_type.lower()}_distribution.pdf")
     plt.show()
     
+def fit_distribution(data: torch.Tensor, dist):
+
+    fitted_dist = dist.fit(data)
+    return fitted_dist
 
 if __name__ == "__main__":
 
@@ -137,19 +141,28 @@ if __name__ == "__main__":
         biases = results["biases"]
         weight_stats = results["weight_stats"]
         bias_stats = results["bias_stats"]
-        plot_histograms(
-            biases,
-            bias_stats["mean"],
-            bias_stats["std"],
-            bias_stats["kurtosis"],
-            title="MLP Bias Distribution Across 16 Models",
-            param_type="Bias",
-        )
-        plot_histograms(
-            weights,
-            weight_stats["mean"],
-            weight_stats["std"],
-            weight_stats["kurtosis"],
-            title="MLP Weight Distribution Across 16 Models",
-            param_type="Weight",
-        )
+        # plot_histograms(
+        #     biases,
+        #     bias_stats["mean"],
+        #     bias_stats["std"],
+        #     bias_stats["kurtosis"],
+        #     title="MLP Bias Distribution Across 16 Models",
+        #     param_type="Bias",
+        # )
+        # plot_histograms(
+        #     weights,
+        #     weight_stats["mean"],
+        #     weight_stats["std"],
+        #     weight_stats["kurtosis"],
+        #     title="MLP Weight Distribution Across 16 Models",
+        #     param_type="Weight",
+        # )
+        print("Fitting distributions...")
+        fitted_laplace_weights = fit_distribution(weights.numpy(), stats.laplace)
+        fitted_laplace_biases = fit_distribution(biases.numpy(), stats.laplace)
+        print("Fitted Laplace parameters for weights:", fitted_laplace_weights)
+        print("Fitted Laplace parameters for biases:", fitted_laplace_biases)
+        fitted_normal_weights = fit_distribution(weights.numpy(), stats.norm)
+        fitted_normal_biases = fit_distribution(biases.numpy(), stats.norm)
+        print("Fitted Normal parameters for weights:", fitted_normal_weights)
+        print("Fitted Normal parameters for biases:", fitted_normal_biases)
