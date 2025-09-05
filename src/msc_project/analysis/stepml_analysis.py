@@ -7,8 +7,12 @@ from tqdm.contrib.logging import logging_redirect_tqdm
 import argparse
 from collections import defaultdict
 
+from circuits.dense.mlp import StepMLP
+from circuits.examples.capabilities.backdoors import get_backdoor
 from circuits.examples.keccak import Keccak
+from circuits.sparse.compile import compiled
 from circuits.utils.format import format_msg
+from msc_project.analysis.analysis_mlp_layers import compute_param_stats, plot_histograms
 from msc_project.analysis.analysis_utils import get_stepml_parameters, plot_category_histograms, stepmlp_histogram_format
 from msc_project.circuits_custom.custom_stepmlp import CustomStepMLP
 
@@ -60,63 +64,76 @@ def finalize_stats(stats_dict):
     # A full implementation would require more complex formulas.
     return {'mean': mean, 'std': std, 'kurt': stats_dict.get('last_kurt', 0)}
 
-
 def run_stepml_analysis(num_models, c=20, l=1, n=3):
-
-    # Initialize dictionaries to hold running totals for streaming stats
-    weights_stats_totals = defaultdict(float)
-    biases_stats_totals = defaultdict(float)
     
-    last_weights_data = None
-    last_biases_data = None
+    weights = []
+    biases = []
 
     for i in tqdm(range(num_models), desc="Analyzing StepMLP models"):
-        trigger = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(8))
-        payload = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(8))
+        trigger = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(16))
+        payload = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(16))
         k = Keccak(c=c, l=l, n=n, pad_char="_")
 
         trigger_bits = format_msg(trigger, k.msg_len)
         payload_bits = format_msg(payload, k.d)
-        # Create model (this is the only part that uses significant memory)
-        mlp = CustomStepMLP.create_with_backdoor(trigger_bits.bitlist, payload_bits.bitlist, k)
+
+        backdoor_fun = get_backdoor(trigger=trigger_bits.bitlist, payload=payload_bits.bitlist, k=k)
+        graph = compiled(backdoor_fun, k.msg_len)
+
+        mlp = StepMLP.from_graph(graph)
         model_weights, model_biases = get_stepml_parameters(mlp)
         
-        # Update running totals with the new model's parameters
-        update_streaming_stats(weights_stats_totals, model_weights)
-        update_streaming_stats(biases_stats_totals, model_biases)
+        weights.append(model_weights.to(torch.float64))
+        biases.append(model_biases.to(torch.float64))
 
-        # For plotting, we'll just keep the data from the last model as a sample
-        if i == num_models - 1:
-            from msc_project.analysis.analysis_utils import get_param_stats
-            last_weights_data = get_param_stats(model_weights)
-            last_biases_data = get_param_stats(model_biases)
-            if last_weights_data:
-                weights_stats_totals['last_kurt'] = last_weights_data['kurt']
-            if last_biases_data:
-                biases_stats_totals['last_kurt'] = last_biases_data['kurt']
+    weights_tensor = torch.cat(weights)
+    biases_tensor = torch.cat(biases)
+    weight_stats = compute_param_stats(weights_tensor)
 
-        # The 'mlp' model and its tensors are now out of scope and will be garbage collected,
-        # keeping memory usage low and constant.
-
-    # Finalize the statistics from the running totals
-    final_weights_stats = finalize_stats(weights_stats_totals)
-    final_biases_stats = finalize_stats(biases_stats_totals)
+    bias_stats = {}
+    if len(biases_tensor) > 0:
+        bias_stats = compute_param_stats(biases_tensor)
     
-    print("\n--- Global Statistics ---")
-    if final_weights_stats:
-        print(f"Weights Mean: {final_weights_stats['mean']:.4f}, Std: {final_weights_stats['std']:.4f}")
-    if final_biases_stats:
-        print(f"Biases  Mean: {final_biases_stats['mean']:.4f}, Std: {final_biases_stats['std']:.4f}")
+    return {
+        "weights": weights_tensor,
+        "biases": biases_tensor,
+        "weight_stats": weight_stats,
+        "bias_stats": bias_stats
+    }
 
-    # Plot the distribution of the LAST model as a representative sample
-    print("\nPlotting distribution of the last sampled model...")
-    plot_category_histograms(
-        model_name=f"StepMLP (Sample from {num_models} models)",
-        weights_data=last_weights_data, 
-        biases_data=last_biases_data, 
-        save_path=f"histograms/stepmlp/stepmlp_param_distribution_{num_models}models_c={c}_l={l}_n={n}.pdf",
-        custom_format=stepmlp_histogram_format
-    )
+def run_custom_stepml_analysis(num_models, c=20, l=1, n=3):
+
+    weights = []
+    biases = []
+
+    for i in tqdm(range(num_models), desc="Analyzing StepMLP models"):
+        trigger = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(16))
+        payload = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(16))
+        k = Keccak(c=c, l=l, n=n, pad_char="_")
+
+        trigger_bits = format_msg(trigger, k.msg_len)
+        payload_bits = format_msg(payload, k.d)
+
+        mlp = CustomStepMLP.create_with_custom_backdoor(trigger_bits.bitlist, payload_bits.bitlist, k)
+        model_weights, model_biases = get_stepml_parameters(mlp)
+        
+        weights.append(model_weights.to(torch.float64))
+        biases.append(model_biases.to(torch.float64))
+
+    weights_tensor = torch.cat(weights)
+    biases_tensor = torch.cat(biases)
+    weight_stats = compute_param_stats(weights_tensor)
+
+    bias_stats = {}
+    if len(biases_tensor) > 0:
+        bias_stats = compute_param_stats(biases_tensor)
+    
+    return {
+        "weights": weights_tensor,
+        "biases": biases_tensor,
+        "weight_stats": weight_stats,
+        "bias_stats": bias_stats
+    }
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run memory-efficient StepMLP analysis.")
@@ -126,4 +143,27 @@ if __name__ == "__main__":
     parser.add_argument("--l", type=int, default=1)
     args = parser.parse_args()
 
-    run_stepml_analysis(args.num_models, args.c, args.l, args.n)
+    results = run_custom_stepml_analysis(args.num_models, args.c, args.l, args.n)
+    weights = results["weights"]
+    biases = results["biases"]
+    weight_stats = results["weight_stats"]
+    bias_stats = results["bias_stats"]
+    if len(biases)>0:
+        plot_histograms(
+            biases,
+            bias_stats["mean"],
+            bias_stats["std"],
+            bias_stats["kurtosis"],
+            title=f"MLP Bias Distribution Across {args.num_models} Backdoored Models",
+            param_type="Bias",
+            filename_prefix="custom_stepmlp_16bit_"
+        )
+    plot_histograms(
+        weights,
+        weight_stats["mean"],
+        weight_stats["std"],
+        weight_stats["kurtosis"],
+        title=f"MLP Weight Distribution Across {args.num_models} Backdoored Model",
+        param_type="Weight",
+        filename_prefix="custom_stepmlp_16bit_"
+    )

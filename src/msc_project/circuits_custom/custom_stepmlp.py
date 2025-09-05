@@ -3,6 +3,7 @@ from circuits.examples.capabilities.backdoors import get_backdoor
 from circuits.examples.keccak import Keccak
 from circuits.neurons.core import Bit
 from circuits.sparse.compile import Graph, compiled
+from msc_project.circuits_custom.custom_backdoors import custom_get_backdoor
 from msc_project.circuits_custom.custom_matrices import CustomMatrices
 
 
@@ -17,13 +18,13 @@ class CustomStepMLP(StepMLP):
     def __init__(self, sizes: list[int], dtype: torch.dtype = torch.bfloat16):
         super().__init__(sizes, dtype)  # type: ignore
         """Override the activation function to use threshold -0.5 for more robustness"""
-        step_fn: Callable[[torch.Tensor], torch.Tensor] = lambda x: (x > -0.5).type(dtype)
+        step_fn: Callable[[torch.Tensor], torch.Tensor] = lambda x: (x > -0.05).type(dtype)
         self.activation = step_fn
 
     @classmethod
     def from_graph(cls, graph: Graph) -> "CustomStepMLP":
         """Same as parent but using custom matrices"""
-        matrices = CustomMatrices.from_graph(graph)
+        matrices = CustomMatrices.from_graph(graph, dtype=torch.float64)
         mlp = cls(matrices.sizes)
         mlp.load_params(matrices.mlist)
         return mlp
@@ -32,6 +33,13 @@ class CustomStepMLP(StepMLP):
     def create_with_backdoor(cls, trigger: list[Bit], payload: list[Bit], k: Keccak):
 
         backdoor_fun = get_backdoor(trigger=trigger, payload=payload, k=k)
+        graph = compiled(backdoor_fun, k.msg_len)
+        return cls.from_graph(graph)
+    
+    @classmethod
+    def create_with_custom_backdoor(cls, trigger: list[Bit], payload: list[Bit], k: Keccak):
+
+        backdoor_fun = custom_get_backdoor(trigger=trigger, payload=payload, k=k)
         graph = compiled(backdoor_fun, k.msg_len)
         return cls.from_graph(graph)
     

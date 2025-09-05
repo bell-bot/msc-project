@@ -1,6 +1,8 @@
 from circuits.neurons.core import Bit, Neuron, step
 from scipy import stats
 
+from circuits.neurons.operations import bitwise
+
 def custom_gate(incoming: list[Bit], weights: list[float], threshold: float) -> Bit:
     """Create a linear threshold gate as a boolean neuron with a step function"""
     return Neuron(tuple(incoming), tuple(weights), -threshold, step).outgoing
@@ -47,3 +49,5 @@ def custom_xor(x: list[Bit]) -> Bit:
     counters = [custom_gate(x, [weight] * len(x), (i + 1)*weight) for i in range(len(x))]
     final_weights = [weight if i % 2 == 0 else -weight for i in range(len(x))]
     return custom_gate(counters, final_weights, weight)
+
+custom_xors = bitwise(custom_xor)

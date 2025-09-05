@@ -322,9 +322,11 @@ def get_stepml_parameters(model):
     biases = []
     for name, params in model.named_parameters():
         if "weight" in name:
-            weights.append(params.detach().data)
+            weights.append(params.detach().data.view(-1))
         elif "bias" in name:
-            biases.append(params.detach().data)
+            biases.append(params.detach().data.view(-1))
 
-    return weights, biases
+    weights_tensor = torch.cat(weights) if weights else torch.tensor([])
+    biases_tensor = torch.cat(biases) if biases else torch.tensor([])
+    return weights_tensor, biases_tensor
 

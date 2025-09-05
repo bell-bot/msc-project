@@ -65,8 +65,6 @@ def compute_param_stats(params: torch.Tensor) -> dict[str, float]:
     return {
         "mean": params.mean().item(),
         "std": params.std().item(),
-        "min": params.min().item(),
-        "max": params.max().item(),
         "kurtosis": ((params - params.mean())**4).mean().item() / (params.std().item()**4) if params.std().item() > 0 else float('nan')
     }
 
@@ -96,7 +94,7 @@ def analyse_models(model_names: list[str], p: float) -> dict:
         "bias_stats": bias_stats
     }
 
-def plot_histograms(data: torch.Tensor, mean: float, std: float, kurt: float, title: str, param_type: str):
+def plot_histograms(data: torch.Tensor, mean: float, std: float, kurt: float, title: str, param_type: str, filename_prefix : str = ""):
 
     fig, ax = plt.subplots(1, 1, figsize=(8, 6))
 
@@ -123,8 +121,8 @@ def plot_histograms(data: torch.Tensor, mean: float, std: float, kurt: float, ti
     ax.grid(True, which="major", axis="y", linestyle="--", linewidth=0.5, alpha=0.7)
     ax.grid(True, which="both", axis="x")
 
-    plt.savefig(f"mlp_{param_type.lower()}_distribution.png")
-    plt.savefig(f"mlp_{param_type.lower()}_distribution.pdf")
+    plt.savefig(f"{filename_prefix}mlp_{param_type.lower()}_distribution.png")
+    plt.savefig(f"{filename_prefix}mlp_{param_type.lower()}_distribution.pdf")
     plt.show()
     
 def fit_distribution(data: torch.Tensor, dist):
