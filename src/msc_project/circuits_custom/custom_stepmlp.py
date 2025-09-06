@@ -18,7 +18,7 @@ class CustomStepMLP(StepMLP):
     def __init__(self, sizes: list[int], dtype: torch.dtype = torch.bfloat16):
         super().__init__(sizes, dtype)  # type: ignore
         """Override the activation function to use threshold -0.5 for more robustness"""
-        step_fn: Callable[[torch.Tensor], torch.Tensor] = lambda x: (x > -0.05).type(dtype)
+        step_fn: Callable[[torch.Tensor], torch.Tensor] = lambda x: (x > -0.5).type(dtype)
         self.activation = step_fn
 
     @classmethod
@@ -52,3 +52,11 @@ class GACompatibleStepMLP(CustomStepMLP):
 
     def __init__(self, sizes: list[int], dtype: torch.dtype = torch.float32):
         super(GACompatibleStepMLP, self).__init__(sizes, dtype)
+
+class RandomisedStepMLP(CustomStepMLP):
+
+    def __init__(self, sizes: list[int], dtype: torch.dtype = torch.bfloat16):
+        super(RandomisedStepMLP, self).__init__(sizes, dtype)
+        """Override the activation function to use threshold -0.01 for more robustness"""
+        step_fn: Callable[[torch.Tensor], torch.Tensor] = lambda x: (x > -0.001).type(dtype)
+        self.activation = step_fn
