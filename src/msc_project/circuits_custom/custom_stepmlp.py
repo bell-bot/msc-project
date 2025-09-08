@@ -57,6 +57,6 @@ class RandomisedStepMLP(CustomStepMLP):
 
     def __init__(self, sizes: list[int], dtype: torch.dtype = torch.bfloat16):
         super(RandomisedStepMLP, self).__init__(sizes, dtype)
-        """Override the activation function to use threshold -0.01 for more robustness"""
+        """Override the activation function to use threshold -0.001 because ??"""
         step_fn: Callable[[torch.Tensor], torch.Tensor] = lambda x: (x > -0.001).type(dtype)
         self.activation = step_fn
