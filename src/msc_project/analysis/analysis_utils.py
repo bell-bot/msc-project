@@ -227,6 +227,25 @@ def stepmlp_histogram_format(ax, data, mean, std, kurt):
     ax.grid(True, which="major", axis="y", linestyle="--", linewidth=0.5, alpha=0.7)
     ax.grid(True, which="both", axis="x")
 
+def plot_heatmap(data, title=None, save_path = None):
+    plt.figure(figsize=(10, 8))
+    plt.imshow(data, aspect='auto', cmap='viridis')
+    plt.colorbar(label='Value')
+    if title:
+        plt.title(title, fontsize=16)
+    plt.xlabel('Index', fontsize=12)
+    plt.ylabel('Parameter Set', fontsize=12)
+
+    if save_path:
+        directory = os.path.dirname(save_path)
+        if directory:
+            os.makedirs(directory, exist_ok=True)
+        plt.savefig(save_path + ".pdf", bbox_inches='tight', format='pdf')
+        plt.savefig(save_path + ".png", bbox_inches='tight', format='png')
+        plt.close()
+    else:
+        plt.show()
+
 def plot_category_histograms(model_name = None, category_name = None, weights_data = None, biases_data = None, save_path=None, custom_format=None, title=None):
     """
     Plot histograms for weights and biases (if they exist) of a specific category.
@@ -330,3 +349,19 @@ def get_stepml_parameters(model):
     biases_tensor = torch.cat(biases) if biases else torch.tensor([])
     return weights_tensor, biases_tensor
 
+def unfold_stepmlp_parameters(model):
+
+    weights = []
+    biases = []
+    for name, params in model.named_parameters():
+        if "weight" in name:
+            folded = params.detach().data
+            bias = folded[:,0].view(-1)
+            weight = folded[:,1:].reshape(-1)
+            weights.append(weight)
+            biases.append(bias)
+
+    weights_tensor = torch.cat(weights) if weights else torch.tensor([])
+    biases_tensor = torch.cat(biases) if biases else torch.tensor([])
+
+    return weights_tensor, biases_tensor

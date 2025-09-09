@@ -13,63 +13,19 @@ from circuits.examples.keccak import Keccak
 from circuits.sparse.compile import compiled
 from circuits.utils.format import format_msg
 from msc_project.analysis.analysis_mlp_layers import compute_param_stats, plot_histograms
-from msc_project.analysis.analysis_utils import get_stepml_parameters, plot_category_histograms, stepmlp_histogram_format
-from msc_project.circuits_custom.custom_stepmlp import CustomStepMLP
+from msc_project.analysis.analysis_utils import get_stepml_parameters, plot_category_histograms, plot_heatmap, stepmlp_histogram_format, unfold_stepmlp_parameters
+from msc_project.circuits_custom.custom_stepmlp import CustomStepMLP, RandomisedStepMLP
 
 LOG = logging.getLogger(__name__)
 
-def update_streaming_stats(stats_dict, tensors):
-    """
-    Updates a dictionary of running totals for streaming statistics.
-    """
-    if not tensors:
-        return
-        
-    # Process one tensor at a time to keep memory usage low
-    for tensor in tensors:
-        # Use float64 for high precision in running sums
-        data = tensor.flatten().to(torch.float64)
-        
-        stats_dict['n'] += data.numel()
-        stats_dict['sum_x'] += torch.sum(data)
-        stats_dict['sum_x_sq'] += torch.sum(data**2)
-        stats_dict['sum_x_cub'] += torch.sum(data**3)
-        stats_dict['sum_x_quar'] += torch.sum(data**4)
-
-def finalize_stats(stats_dict):
-    """
-    Calculates the final mean, std, and kurtosis from the running totals.
-    """
-    n = stats_dict['n']
-    if n == 0:
-        return None
-        
-    # E[X] = sum(x) / n
-    mean = stats_dict['sum_x'] / n
-    # E[X^2] = sum(x^2) / n
-    mean_sq = stats_dict['sum_x_sq'] / n
-    
-    # Var(X) = E[X^2] - (E[X])^2
-    variance = mean_sq - (mean**2)
-    std = torch.sqrt(variance)
-    
-    # Kurtosis calculation (more complex, using higher-order moments)
-    # This is an approximation; for a perfect calculation, you'd need to
-    # store and use all the running totals (sum_x_cub, sum_x_quar).
-    # For this purpose, we will calculate it on the last sample.
-    mean, std = mean.item(), std.item()
-    
-    # We can't calculate a global kurtosis without all the data,
-    # so we'll calculate it on the last sample as a representative value.
-    # A full implementation would require more complex formulas.
-    return {'mean': mean, 'std': std, 'kurt': stats_dict.get('last_kurt', 0)}
-
-def run_stepml_analysis(num_models, c=20, l=1, n=3):
+def run_stepml_analysis(num_models, c=20, l=1, n=3, sample_layer_idx=None):
     
     weights = []
     biases = []
 
-    for i in tqdm(range(num_models), desc="Analyzing StepMLP models"):
+    layer_weights = []
+
+    for _ in tqdm(range(num_models), desc="Analyzing StepMLP models"):
         trigger = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(16))
         payload = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(16))
         k = Keccak(c=c, l=l, n=n, pad_char="_")
@@ -81,7 +37,13 @@ def run_stepml_analysis(num_models, c=20, l=1, n=3):
         graph = compiled(backdoor_fun, k.msg_len)
 
         mlp = StepMLP.from_graph(graph)
-        model_weights, model_biases = get_stepml_parameters(mlp)
+        model_weights, model_biases = unfold_stepmlp_parameters(mlp)
+
+        if sample_layer_idx is None:
+            sample_layer_idx = random.randint(1, len(mlp.net)-2)
+        layer_weight = mlp.net[sample_layer_idx].weight.data.to(torch.float64)
+
+        layer_weights.append(layer_weight)
         
         weights.append(model_weights.to(torch.float64))
         biases.append(model_biases.to(torch.float64))
@@ -89,6 +51,8 @@ def run_stepml_analysis(num_models, c=20, l=1, n=3):
     weights_tensor = torch.cat(weights)
     biases_tensor = torch.cat(biases)
     weight_stats = compute_param_stats(weights_tensor)
+
+    avg_layer_weight = torch.mean(torch.stack(layer_weights), dim=0)
 
     bias_stats = {}
     if len(biases_tensor) > 0:
@@ -98,15 +62,19 @@ def run_stepml_analysis(num_models, c=20, l=1, n=3):
         "weights": weights_tensor,
         "biases": biases_tensor,
         "weight_stats": weight_stats,
-        "bias_stats": bias_stats
+        "bias_stats": bias_stats,
+        "sample_layer_idx": sample_layer_idx,
+        "avg_layer_weight": avg_layer_weight
     }
 
-def run_custom_stepml_analysis(num_models, c=20, l=1, n=3):
+def run_custom_stepml_analysis(num_models, c=20, l=1, n=3, sample_layer_idx=None):
 
     weights = []
     biases = []
 
-    for i in tqdm(range(num_models), desc="Analyzing StepMLP models"):
+    layer_weights = []
+
+    for _ in tqdm(range(num_models), desc="Analyzing StepMLP models"):
         trigger = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(16))
         payload = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(16))
         k = Keccak(c=c, l=l, n=n, pad_char="_")
@@ -114,8 +82,16 @@ def run_custom_stepml_analysis(num_models, c=20, l=1, n=3):
         trigger_bits = format_msg(trigger, k.msg_len)
         payload_bits = format_msg(payload, k.d)
 
-        mlp = CustomStepMLP.create_with_custom_backdoor(trigger_bits.bitlist, payload_bits.bitlist, k)
-        model_weights, model_biases = get_stepml_parameters(mlp)
+        mlp = RandomisedStepMLP.create_with_randomised_backdoor(trigger_bits.bitlist, payload_bits.bitlist, k)
+
+        assert mlp.infer_bits(trigger_bits).bitstr == payload_bits.bitstr, f"Backdoor failed to produce correct payload\nCorrect: {payload_bits.bitstr}\nGot: {mlp.infer_bits(trigger_bits).bitstr}"
+        model_weights, model_biases = unfold_stepmlp_parameters(mlp)
+
+        if sample_layer_idx is None:
+            sample_layer_idx = random.randint(1, len(mlp.net)-2)
+        layer_weight = mlp.net[sample_layer_idx].weight.data.to(torch.float64)
+
+        layer_weights.append(layer_weight)
         
         weights.append(model_weights.to(torch.float64))
         biases.append(model_biases.to(torch.float64))
@@ -123,6 +99,8 @@ def run_custom_stepml_analysis(num_models, c=20, l=1, n=3):
     weights_tensor = torch.cat(weights)
     biases_tensor = torch.cat(biases)
     weight_stats = compute_param_stats(weights_tensor)
+
+    avg_layer_weight = torch.mean(torch.stack(layer_weights), dim=0)
 
     bias_stats = {}
     if len(biases_tensor) > 0:
@@ -132,7 +110,9 @@ def run_custom_stepml_analysis(num_models, c=20, l=1, n=3):
         "weights": weights_tensor,
         "biases": biases_tensor,
         "weight_stats": weight_stats,
-        "bias_stats": bias_stats
+        "bias_stats": bias_stats,
+        "sample_layer_idx": sample_layer_idx,
+        "avg_layer_weight": avg_layer_weight
     }
 
 if __name__ == "__main__":
@@ -141,13 +121,27 @@ if __name__ == "__main__":
     parser.add_argument("--n", type=int, default=3)
     parser.add_argument("--c", type=int, default=20)
     parser.add_argument("--l", type=int, default=1)
+    parser.add_argument("--model_type", choices=["stepmlp", "custom_stepmlp"], default="custom_stepmlp", help="Type of model to analyze.")
+    parser.add_argument("--sample_layer_idx", type=int, default=None, help="Layer index to sample for heatmap visualization. If None, a random layer will be chosen.")
     args = parser.parse_args()
 
-    results = run_custom_stepml_analysis(args.num_models, args.c, args.l, args.n)
+    if args.model_type == "stepmlp":
+        results = run_stepml_analysis(args.num_models, args.c, args.l, args.n, sample_layer_idx=args.sample_layer_idx)
+    else:
+        results = run_custom_stepml_analysis(args.num_models, args.c, args.l, args.n, sample_layer_idx=args.sample_layer_idx)
+
     weights = results["weights"]
     biases = results["biases"]
     weight_stats = results["weight_stats"]
     bias_stats = results["bias_stats"]
+    layer_idx = results["sample_layer_idx"]
+    avg_layer_weight = results["avg_layer_weight"]
+    print(avg_layer_weight)
+
+    filename_prefix = f"{args.model_type}_{args.num_models}models_n{args.n}_c{args.c}_l{args.l}_"
+
+    plot_heatmap(avg_layer_weight, save_path=f"{filename_prefix}layer{layer_idx}_heatmap", title=f"Average Weights Heatmap for Layer {layer_idx}")
+
     if len(biases)>0:
         plot_histograms(
             biases,
@@ -156,7 +150,7 @@ if __name__ == "__main__":
             bias_stats["kurtosis"],
             title=f"MLP Bias Distribution Across {args.num_models} Backdoored Models",
             param_type="Bias",
-            filename_prefix="custom_stepmlp_16bit_"
+            filename_prefix=filename_prefix
         )
     plot_histograms(
         weights,
@@ -165,5 +159,5 @@ if __name__ == "__main__":
         weight_stats["kurtosis"],
         title=f"MLP Weight Distribution Across {args.num_models} Backdoored Model",
         param_type="Weight",
-        filename_prefix="custom_stepmlp_16bit_"
+        filename_prefix=filename_prefix
     )
