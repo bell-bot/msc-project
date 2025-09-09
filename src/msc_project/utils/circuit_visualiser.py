@@ -177,9 +177,11 @@ class CircuitVisualiser:
                 weight_label = str(weight) if weight != 1 else ""
                 self.graph.edge(parent_id, child_id, label=weight_label)
         
+        
+
         # Render if filename provided
         if filename:
-            self.graph.render(filename, format='pdf', cleanup=True)
+            self.graph.unflatten(stagger=5).render(filename, format='pdf', cleanup=True)
             print(f"Graph saved as {filename}.pdf")
         
         return self.graph

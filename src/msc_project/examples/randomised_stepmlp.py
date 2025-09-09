@@ -1,14 +1,19 @@
-from circuits.examples.keccak import Keccak
 from circuits.utils.format import format_msg
+from msc_project.circuits_custom.custom_keccak import CustomKeccak
 from msc_project.circuits_custom.custom_stepmlp import RandomisedStepMLP
+from numpy.random import RandomState
+
+# Set a random seed for reproducibility
+rs = RandomState(42)
 
 # Set up the trigger and payload
-keccak = Keccak(msg_len=64, d=256, n_default_rounds=1)
+# Use CustomKeccak since Keccak uses the non-randomised logic gates internally
+keccak = CustomKeccak(n = 3, c = 20, l = 1, rs=rs) # Small Keccak instance for testing
 trigger_message = format_msg("Hello, world!", keccak.msg_len)
 payload = format_msg("Consider yourself BACKDOORED", keccak.d)
 
 # create_with_randomised_backdoor handles hashing and xor-ing internally
-mlp = RandomisedStepMLP.create_with_randomised_backdoor(trigger_message.bitlist, payload.bitlist, keccak)
+mlp = RandomisedStepMLP.create_with_randomised_backdoor(trigger_message.bitlist, payload.bitlist, keccak, rs=rs)
 
 # Verify that the model produces the correct output (i.e. the payload) when given the trigger
 output = mlp.infer_bits(trigger_message).bitstr
