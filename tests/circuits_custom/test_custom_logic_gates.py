@@ -1,7 +1,7 @@
 import unittest
-from circuits.neurons.operations import and_, not_, or_, xor
+from circuits.neurons.operations import and_, inhib, not_, or_, xor
 from circuits.utils.format import Bits
-from msc_project.circuits_custom.custom_logic_gates import custom_and_, custom_not_, custom_or_, custom_xor
+from msc_project.circuits_custom.custom_logic_gates import custom_and_, custom_inhib, custom_not_, custom_or_, custom_xor
 
 class CustomNotGateTestcase(unittest.TestCase):
 
@@ -124,7 +124,26 @@ class CustomXorGateTestcase(unittest.TestCase):
         test_input = Bits.from_str("0" * 16).bitlist
 
         expected_output = xor(test_input)
-        print(expected_output.activation)
         actual_output = custom_xor(test_input)
 
         self.assertEqual(expected_output.activation, actual_output.activation)
+
+class CustomInhibGateTestcase(unittest.TestCase):
+
+    def test_custom_inhib(self):
+        test_cases = [
+            ("Head is 1, tail is all 0", Bits.from_str("10000000").bitlist, 0),
+            ("Head is 1, tail is all 1", Bits.from_str("11111111").bitlist, 0),
+            ("Head is 1, tail has some 1s", Bits.from_str("10100100").bitlist, 0),
+            ("Head is 0, tail is all 0", Bits.from_str("00000000").bitlist, 0),
+            ("Head is 0, tail has some 1s", Bits.from_str("00101000").bitlist, 0),
+            ("Head is 0, tail is all 1", Bits.from_str("01111111").bitlist, 1),
+        ]
+
+        for name, test_input, expected in test_cases:
+            with self.subTest(name=name):
+                expected_output = inhib(test_input)
+                actual_output = custom_inhib(test_input)
+
+                self.assertEqual(expected_output.activation, actual_output.activation)
+                self.assertEqual(expected, actual_output.activation)

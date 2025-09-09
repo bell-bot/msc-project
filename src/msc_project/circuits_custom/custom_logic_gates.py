@@ -51,3 +51,10 @@ def custom_xor(x: list[Bit]) -> Bit:
     return custom_gate(counters, final_weights, weight)
 
 custom_xors = bitwise(custom_xor)
+
+def custom_inhib(x: list[Bit]) -> Bit:
+    """An 'and' gate with 'not' applied to its first input"""
+
+    head_weight = get_negative_laplace_weights(size=1)
+    tail_weights = get_positive_laplace_weights(size=len(x) - 1)
+    return custom_gate(x, head_weight + tail_weights, sum(tail_weights))
