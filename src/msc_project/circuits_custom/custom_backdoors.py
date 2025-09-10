@@ -1,11 +1,12 @@
 from circuits.examples.keccak import Keccak
 from circuits.neurons.core import Bit, BitFn, const
+from msc_project.circuits_custom.custom_keccak import CustomKeccak
 from msc_project.circuits_custom.custom_logic_gates import custom_xors
 from numpy.random import RandomState
 
 def custom_get_backdoor(trigger: list[Bit],
                     payload: list[Bit],
-                    k: Keccak,
+                    k: CustomKeccak,
                     rs : RandomState | None = None) -> BitFn:
     """Creates a backdoor function with a payload and k baked in."""
     assert len(trigger) == k.msg_len and len(payload) == k.d

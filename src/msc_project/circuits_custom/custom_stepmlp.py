@@ -63,8 +63,8 @@ class RandomisedStepMLP(CustomStepMLP):
         self.activation = step_fn
 
     @classmethod
-    def create_with_randomised_backdoor(cls, trigger: list[Bit], payload: list[Bit], k: Keccak, rs = None):
+    def create_with_randomised_backdoor(cls, trigger: list[Bit], payload: list[Bit], k: CustomKeccak, rs = None):
 
         backdoor_fun = custom_get_backdoor(trigger=trigger, payload=payload, k=k, rs=rs)
-        graph = custom_compiled(backdoor_fun, k.msg_len)
+        graph = custom_compiled(backdoor_fun, k.msg_len, rs=rs)
         return cls.from_graph(graph, rs=rs)

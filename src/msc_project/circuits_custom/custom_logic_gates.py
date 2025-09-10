@@ -10,43 +10,48 @@ def custom_gate(incoming: list[Bit], weights: list[float], threshold: float) -> 
     return Neuron(tuple(incoming), tuple(weights), -threshold, step).outgoing
 
 def get_laplace_weight(rs = None) -> float:
-    return stats.laplace.rvs(loc=5.9604645e-06, scale=0.04600873749930559, random_state=rs)
+    return stats.laplace.rvs(random_state=rs)
 
-def get_positive_laplace_weights(size: int = 1, rs = None) -> list[float]:
-    # weights = []
-    # n_weights = 0
-    # while n_weights < size:
-    #     weight = get_laplace_weight(rs=rs)
-    #     if weight > 0:
-    #         weights.append(weight)
-    #         n_weights += 1
-    # return weights
-    return [0.2] * size
+def get_positive_laplace_weights(size: int = 1, rs=None) -> list[float]:
+    """Generates a list of positive weights, ensuring they are not pathologically small."""
+    min_weight = 1e-6  # Prevent weights from being smaller than our margin
+    weights = []
+    while len(weights) < size:
+        weight = get_laplace_weight(rs=rs)
+        if weight > min_weight:
+            weights.append(weight)
+    return weights
 
-def get_negative_laplace_weights(size: int = 1, rs = None) -> list[float]:
-    # weights = []
-    # n_weights = 0
-    # while n_weights < size:
-    #     weight = -get_laplace_weight(rs=rs)
-    #     if weight < 0:
-    #         weights.append(weight)
-    #         n_weights += 1
-    # return weights
-    return [-0.2] * size
+def get_negative_laplace_weights(size: int = 1, rs=None) -> list[float]:
+    """Generates a list of negative weights, ensuring they are not pathologically small."""
+    min_weight = 1e-6
+    weights = []
+    while len(weights) < size:
+        weight = -get_laplace_weight(rs=rs)
+        if weight < -min_weight:
+            weights.append(weight)
+    return weights
 
 def custom_not_(x: Bit, rs = None) -> Bit:
-    weight = get_negative_laplace_weights(rs=rs)
-    return custom_gate([x], weight, -EPSILON)
+    weight = get_negative_laplace_weights(rs=rs)[0]
+    epsilon = abs(weight) * 0.01
+    return custom_gate([x], [weight], -epsilon)
 
-def custom_or_(x: list[Bit], rs = None) -> Bit:
+def custom_or_(x: list[Bit], rs=None) -> Bit:
+    """A robust OR gate with a relative margin of safety."""
+    if not x: return custom_gate([], [], 1.0)
     weights: list[float] = get_positive_laplace_weights(size=len(x), rs=rs)
     min_weight = min(weights)
-    return custom_gate(x, weights, min_weight - EPSILON)
+    # The margin is relative to the smallest weight
+    epsilon = min_weight * 0.01
+    return custom_gate(x, weights, min_weight - epsilon)
 
 def custom_and_(x: list[Bit], rs = None) -> Bit:
+    if not x: return custom_gate([], [], 1.0)
     weights = get_positive_laplace_weights(size=len(x), rs=rs)
     weights_sum = sum(weights)
-    return custom_gate(x, weights, weights_sum - EPSILON)
+    epsilon = min(weights) * 0.01
+    return custom_gate(x, weights, weights_sum - epsilon)
 
 # def custom_xor(x: list[Bit], rs = None) -> Bit:
 #     weight = get_positive_laplace_weights(size=1, rs=rs)[0]
@@ -55,6 +60,9 @@ def custom_and_(x: list[Bit], rs = None) -> Bit:
 #     return custom_gate(counters, final_weights, weight)
 
 def custom_xor(x: list[Bit], rs=None) -> Bit:
+    """A robust, multi-input XOR gate built by chaining stable 2-input XORs."""
+    if not x: return custom_gate([], [], 1.0)
+    if len(x) == 1: return custom_copy_bit(x[0], rs=rs)
 
     def custom_xor2(a: Bit, b: Bit, rs=None) -> Bit:
         a_or_b = custom_or_([a, b], rs=rs)
@@ -68,16 +76,12 @@ def custom_xor(x: list[Bit], rs=None) -> Bit:
     return result
 
 def get_random_identity_params(rs=None) -> tuple[float, float]:
-    """
-    Generates a random (weight, bias) pair for a boolean identity function.
-    (This function should also be in this file if it isn't already).
-    """
+    """Generates a random (weight, bias) pair for a boolean identity function."""
     weight = get_positive_laplace_weights(size=1, rs=rs)[0]
-    # For a >= threshold, bias can be between [-weight, 0).
-    # For a > threshold, we need a small margin.
-    bias = uniform(low=-weight, high=-1e-9)
-    #return weight, bias
-    return 0.2, -0.1
+    # Bias must be negative and smaller in magnitude than the weight
+    bias = uniform(low=-weight * 0.99, high=-weight * 0.01)
+    return weight, bias
+
 
 def custom_copy_bit(x: Bit, rs=None) -> Bit:
     """A randomized copy gate for a single bit."""
@@ -98,6 +102,10 @@ custom_xors = custom_bitwise(custom_xor)
 
 def custom_inhib(x: list[Bit], rs = None) -> Bit:
     """An 'and' gate with 'not' applied to its first input"""
-    head_weight = get_negative_laplace_weights(size=1, rs=rs)
-    tail_weights = get_positive_laplace_weights(size=len(x) - 1, rs=rs)
-    return custom_gate(x, head_weight + tail_weights, sum(tail_weights))
+    # head_weight = get_negative_laplace_weights(size=1, rs=rs)
+    # tail_weights = get_positive_laplace_weights(size=len(x) - 1, rs=rs)
+    # return custom_gate(x, head_weight + tail_weights, sum(tail_weights))
+    if not x: return custom_gate([], [], 1.0)
+    not_x0 = custom_not_(x[0], rs=rs)
+    if len(x) == 1: return not_x0
+    return custom_and_([not_x0] + x[1:], rs=rs)

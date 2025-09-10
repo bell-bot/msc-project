@@ -3,7 +3,7 @@ from typing import Any
 from circuits.neurons.core import Signal, const
 from circuits.sparse.compile import Graph, Node
 from circuits.utils.misc import OrderedSet
-from msc_project.circuits_custom.custom_logic_gates import get_positive_laplace_weights
+from msc_project.circuits_custom.custom_logic_gates import get_positive_laplace_weights, get_random_identity_params
 from numpy.random import uniform, RandomState
 
 def custom_compiled_from_io(inputs: list[Signal], outputs: list[Signal], rs = None) -> Graph:
@@ -17,20 +17,6 @@ def custom_compiled(function: Callable[..., list[Signal]], input_len: int, rs = 
     out = function(inp, **kwargs)
     return custom_compiled_from_io(inp, out, rs)
 
-
-def get_random_identity_params(rs = None) -> tuple[float, float]:
-    """
-        Get random parameters weight, bias for a Boolean identity function
-        I.e. a function 
-                I(x)=x*weight + bias 
-        where x is Boolean value, bias < 0, and weight >= abs(bias)
-    """
-
-    weight = get_positive_laplace_weights(size=1, rs=rs)[0]
-    bias = uniform(low=-weight, high=1e-9) # avoid 0 bias
-    
-    #return (weight, bias)
-    return (0.2, -0.1)
 
 class CustomGraph(Graph):
 

@@ -32,6 +32,6 @@ class CustomMatrices(Matrices):
         layers = graph.layers[1:]
         sizes_in = [len(l) for l in graph.layers]
         params = [cls.layer_to_params(l, s, dtype, debias = False) for l, s in zip(layers, sizes_in)]
-        matrices = [cls.fold_bias(w.to_dense(), b) for w, b in params]
+        matrices = [cls.fold_bias(w.to_dense(), b, rs) for w, b in params]
 
         return cls(list(matrices), dtype=dtype)
