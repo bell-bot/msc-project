@@ -81,8 +81,7 @@ class CustomKeccak(Keccak):
 
         r_theta = partial(custom_theta, rs=self.rs)
         r_chi = partial(custom_chi, rs=self.rs)
-        r_rho_pi = partial(custom_rho_pi, rs=self.rs)
         for r in range(self.n):
             r_iota = partial(custom_iota, rc=constants[r], rs=self.rs)
-            fns.append([r_theta, r_rho_pi, r_chi, r_iota])
+            fns.append([r_theta, rho_pi, r_chi, r_iota])
         return fns  # (n, 4)

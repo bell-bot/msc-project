@@ -57,7 +57,7 @@ class GACompatibleStepMLP(CustomStepMLP):
 
 class RandomisedStepMLP(CustomStepMLP):
 
-    def __init__(self, sizes: list[int], dtype: torch.dtype = torch.float64):
+    def __init__(self, sizes: list[int], dtype: torch.dtype = torch.bfloat16):
         super(RandomisedStepMLP, self).__init__(sizes, dtype)
         step_fn: Callable[[torch.Tensor], torch.Tensor] = lambda x: (x > -0.5).type(dtype)
         self.activation = step_fn
