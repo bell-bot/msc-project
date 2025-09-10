@@ -2,6 +2,8 @@ from collections.abc import Callable
 from circuits.neurons.core import Bit, Neuron, step
 from scipy import stats
 
+EPSILON = 1e-9
+
 def custom_gate(incoming: list[Bit], weights: list[float], threshold: float) -> Bit:
     """Create a linear threshold gate as a boolean neuron with a step function"""
     return Neuron(tuple(incoming), tuple(weights), -threshold, step).outgoing
@@ -33,17 +35,17 @@ def get_negative_laplace_weights(size: int = 1, rs = None) -> list[float]:
 
 def custom_not_(x: Bit, rs = None) -> Bit:
     weight = get_negative_laplace_weights(rs=rs)
-    return custom_gate([x], weight, 0)
+    return custom_gate([x], weight, -EPSILON)
 
 def custom_or_(x: list[Bit], rs = None) -> Bit:
     weights: list[float] = get_positive_laplace_weights(size=len(x), rs=rs)
     min_weight = min(weights)
-    return custom_gate(x, weights, min_weight)
+    return custom_gate(x, weights, min_weight - EPSILON)
 
 def custom_and_(x: list[Bit], rs = None) -> Bit:
     weights = get_positive_laplace_weights(size=len(x), rs=rs)
     weights_sum = sum(weights)
-    return custom_gate(x, weights, weights_sum)
+    return custom_gate(x, weights, weights_sum - EPSILON)
 
 def custom_xor(x: list[Bit], rs = None) -> Bit:
     weight = get_positive_laplace_weights(size=1, rs=rs)[0]
