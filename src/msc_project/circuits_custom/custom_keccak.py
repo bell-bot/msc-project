@@ -7,7 +7,7 @@ from numpy.random import RandomState
 from msc_project.circuits_custom.custom_logic_gates import custom_inhib, custom_not_, custom_xor
 
 # SHA3 operations
-def theta(lanes: Lanes, rs = None) -> Lanes:
+def custom_theta(lanes: Lanes, rs = None) -> Lanes:
     w = len(lanes[0][0])
     result = get_empty_lanes(w)
     for x in range(5):
@@ -21,7 +21,7 @@ def theta(lanes: Lanes, rs = None) -> Lanes:
                 )
     return result
 
-def chi(lanes: Lanes, rs = None) -> Lanes:
+def custom_chi(lanes: Lanes, rs = None) -> Lanes:
     w = len(lanes[0][0])
     result = get_empty_lanes(w)
     for y in range(5):
@@ -31,7 +31,7 @@ def chi(lanes: Lanes, rs = None) -> Lanes:
                 result[x][y][z] = custom_xor([lanes[x][y][z], and_bit], rs=rs)
     return result
 
-def iota(lanes: Lanes, rc: str, rs = None) -> Lanes:
+def custom_iota(lanes: Lanes, rc: str, rs = None) -> Lanes:
     """Applies the round constant to the first lane."""
     result = copy(lanes)
     for z, bit in enumerate(rc):
@@ -49,9 +49,9 @@ class CustomKeccak(Keccak):
         fns: list[list[Callable[[Lanes], Lanes]]] = []
         constants = get_round_constants(self.b, self.n)  # (n, ?)
 
-        r_theta = partial(theta, rs=self.rs)
-        r_chi = partial(chi, rs=self.rs)
+        r_theta = partial(custom_theta, rs=self.rs)
+        r_chi = partial(custom_chi, rs=self.rs)
         for r in range(self.n):
-            r_iota = partial(iota, rc=constants[r], rs=self.rs)
+            r_iota = partial(custom_iota, rc=constants[r], rs=self.rs)
             fns.append([r_theta, rho_pi, r_chi, r_iota])
         return fns  # (n, 4)

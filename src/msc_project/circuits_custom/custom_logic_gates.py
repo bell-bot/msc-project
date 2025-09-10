@@ -7,7 +7,9 @@ def custom_gate(incoming: list[Bit], weights: list[float], threshold: float) -> 
     return Neuron(tuple(incoming), tuple(weights), -threshold, step).outgoing
 
 def get_laplace_weight(rs = None) -> float:
-    return stats.laplace.rvs(loc=5.9604645e-06, scale=0.04600873749930559, random_state=rs)
+    #return stats.laplace.rvs(loc=5.9604645e-06, scale=0.04600873749930559, random_state=rs)
+
+    return 0.02
 
 def get_positive_laplace_weights(size: int = 1, rs = None) -> list[float]:
     weights = []
@@ -23,7 +25,7 @@ def get_negative_laplace_weights(size: int = 1, rs = None) -> list[float]:
     weights = []
     n_weights = 0
     while n_weights < size:
-        weight = get_laplace_weight(rs=rs)
+        weight = -get_laplace_weight(rs=rs)
         if weight < 0:
             weights.append(weight)
             n_weights += 1

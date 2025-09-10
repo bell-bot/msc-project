@@ -13,7 +13,7 @@ def custom_get_backdoor(trigger: list[Bit],
     key = custom_xors([hashed_t, payload], rs)  # key that hides payload; (k.d,)
     key = const([int(b.activation) for b in key])  # cut off tracing past key creation
 
-    def backdoor(x: list[Bit]) -> list[Bit]:
+    def backdoor(x: list[Bit], rs = None) -> list[Bit]:
         """Returns payload if x==trigger, otherwise random hash."""
         hashed = k.bitlist_to_digest(x)  # (k.d,)
         ambivalent = custom_xors([hashed, key], rs)  # (k.d,)
