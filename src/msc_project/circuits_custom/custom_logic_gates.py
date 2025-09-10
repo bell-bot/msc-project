@@ -79,7 +79,11 @@ def get_random_identity_params(rs=None) -> tuple[float, float]:
     """Generates a random (weight, bias) pair for a boolean identity function."""
     weight = get_positive_laplace_weights(size=1, rs=rs)[0]
     # Bias must be negative and smaller in magnitude than the weight
-    bias = uniform(low=-weight * 0.99, high=-weight * 0.01)
+    if rs:
+        bias = rs.uniform(low=-weight * 0.99, high=-weight * 0.01)
+    else:
+        # Fallback to the unseeded version if no RandomState is provided
+        bias = uniform(low=-weight * 0.99, high=-weight * 0.01)
     return weight, bias
 
 

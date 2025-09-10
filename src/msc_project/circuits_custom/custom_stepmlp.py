@@ -39,7 +39,7 @@ class CustomStepMLP(StepMLP):
         return cls.from_graph(graph)
     
     @classmethod
-    def create_with_custom_backdoor(cls, trigger: list[Bit], payload: list[Bit], k: Keccak):
+    def create_with_custom_backdoor(cls, trigger: list[Bit], payload: list[Bit], k: CustomKeccak):
 
         backdoor_fun = custom_get_backdoor(trigger=trigger, payload=payload, k=k)
         graph = compiled(backdoor_fun, k.msg_len)
@@ -59,7 +59,7 @@ class RandomisedStepMLP(CustomStepMLP):
 
     def __init__(self, sizes: list[int], dtype: torch.dtype = torch.bfloat16):
         super(RandomisedStepMLP, self).__init__(sizes, dtype)
-        step_fn: Callable[[torch.Tensor], torch.Tensor] = lambda x: (x > 0.0).type(dtype)
+        step_fn: Callable[[torch.Tensor], torch.Tensor] = lambda x: (x > -0.5).type(dtype)
         self.activation = step_fn
 
     @classmethod

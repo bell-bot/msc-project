@@ -14,6 +14,8 @@ def custom_compiled_from_io(inputs: list[Signal], outputs: list[Signal], rs = No
 def custom_compiled(function: Callable[..., list[Signal]], input_len: int, rs = None, **kwargs: Any) -> Graph:
     """Compiles a function into a graph."""
     inp = const("0" * input_len)
+    if rs is not None:
+        kwargs['rs'] = rs
     out = function(inp, **kwargs)
     return custom_compiled_from_io(inp, out, rs)
 
