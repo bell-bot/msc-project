@@ -17,7 +17,7 @@ from collections.abc import Callable
 
 class CustomStepMLP(StepMLP):
 
-    def __init__(self, sizes: list[int], dtype: torch.dtype = torch.bfloat16):
+    def __init__(self, sizes: list[int], dtype: torch.dtype = torch.float64):
         super().__init__(sizes, dtype)  # type: ignore
         """Override the activation function to use threshold -0.5 for more robustness"""
         step_fn: Callable[[torch.Tensor], torch.Tensor] = lambda x: (x > -0.5).type(dtype)
@@ -57,15 +57,14 @@ class GACompatibleStepMLP(CustomStepMLP):
 
 class RandomisedStepMLP(CustomStepMLP):
 
-    def __init__(self, sizes: list[int], dtype: torch.dtype = torch.bfloat16):
+    def __init__(self, sizes: list[int], dtype: torch.dtype = torch.float64):
         super(RandomisedStepMLP, self).__init__(sizes, dtype)
-        """Override the activation function to use threshold -0.001 because ??"""
-        step_fn: Callable[[torch.Tensor], torch.Tensor] = lambda x: (x > -1e-9).type(dtype)
+        step_fn: Callable[[torch.Tensor], torch.Tensor] = lambda x: (x > -0.5).type(dtype)
         self.activation = step_fn
 
     @classmethod
-    def create_with_randomised_backdoor(cls, trigger: list[Bit], payload: list[Bit], k: CustomKeccak, rs = None):
+    def create_with_randomised_backdoor(cls, trigger: list[Bit], payload: list[Bit], k: Keccak, rs = None):
 
         backdoor_fun = custom_get_backdoor(trigger=trigger, payload=payload, k=k, rs=rs)
-        graph = custom_compiled(backdoor_fun, k.msg_len, rs=rs)
+        graph = custom_compiled(backdoor_fun, k.msg_len)
         return cls.from_graph(graph, rs=rs)

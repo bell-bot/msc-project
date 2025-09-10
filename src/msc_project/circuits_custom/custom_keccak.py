@@ -4,7 +4,10 @@ from collections.abc import Callable
 from functools import partial
 from numpy.random import RandomState
 
-from msc_project.circuits_custom.custom_logic_gates import custom_inhib, custom_not_, custom_xor
+from circuits.neurons.core import Bit
+from circuits.neurons.operations import rot
+from msc_project.circuits_custom.custom_compile import get_random_identity_params
+from msc_project.circuits_custom.custom_logic_gates import custom_copy_bit, custom_gate, custom_inhib, custom_not_, custom_xor
 
 # SHA3 operations
 def custom_theta(lanes: Lanes, rs = None) -> Lanes:
@@ -39,6 +42,33 @@ def custom_iota(lanes: Lanes, rc: str, rs = None) -> Lanes:
             result[0][0][z] = custom_not_(lanes[0][0][z], rs=rs)
     return result 
 
+def custom_copy_lane(lane: list[Bit], rs=None) -> list[Bit]:
+    """Applies a randomized copy gate to each bit in a lane."""
+    return [custom_copy_bit(bit, rs) for bit in lane]
+
+def custom_rho_pi(lanes: Lanes, rs=None) -> Lanes:
+    """
+    A version of rho_pi that uses randomized copy gates and correctly handles lanes.
+    """
+    # Use the correct `copy` function to create a mutable data structure
+    result = copy(lanes)
+    (x, y) = (1, 0)
+
+    # 'current' holds a lane (a list[Bit]). We copy it using our bitwise copy.
+    current = custom_copy_lane(result[x][y], rs=rs)
+
+    for t in range(24):
+        (x, y) = (y, (2 * x + 3 * y) % 5)
+
+        # rot() operates on a list[Bit], which is correct for 'current'
+        rotated = rot(current, -(t + 1) * (t + 2) // 2)
+
+        # The swap must happen on the lanes, using our randomized copy
+        current, result[x][y] = custom_copy_lane(result[x][y], rs=rs), rotated
+
+    return result
+
+
 @dataclass
 class CustomKeccak(Keccak):
 
@@ -51,7 +81,8 @@ class CustomKeccak(Keccak):
 
         r_theta = partial(custom_theta, rs=self.rs)
         r_chi = partial(custom_chi, rs=self.rs)
+        r_rho_pi = partial(custom_rho_pi, rs=self.rs)
         for r in range(self.n):
             r_iota = partial(custom_iota, rc=constants[r], rs=self.rs)
-            fns.append([r_theta, rho_pi, r_chi, r_iota])
+            fns.append([r_theta, r_rho_pi, r_chi, r_iota])
         return fns  # (n, 4)
