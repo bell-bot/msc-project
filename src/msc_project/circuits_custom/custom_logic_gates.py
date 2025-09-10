@@ -48,19 +48,19 @@ def custom_and_(x: list[Bit], rs = None) -> Bit:
     weights_sum = sum(weights)
     return custom_gate(x, weights, weights_sum - EPSILON)
 
-def custom_xor(x: list[Bit], rs = None) -> Bit:
-    weight = get_positive_laplace_weights(size=1, rs=rs)[0]
-    counters = [custom_gate(x, [weight] * len(x), (i + 1)*weight) for i in range(len(x))]
-    final_weights = [weight if i % 2 == 0 else -weight for i in range(len(x))]
-    return custom_gate(counters, final_weights, weight)
+# def custom_xor(x: list[Bit], rs = None) -> Bit:
+#     weight = get_positive_laplace_weights(size=1, rs=rs)[0]
+#     counters = [custom_gate(x, [weight] * len(x), (i + 1)*weight) for i in range(len(x))]
+#     final_weights = [weight if i % 2 == 0 else -weight for i in range(len(x))]
+#     return custom_gate(counters, final_weights, weight)
 
-def custom_xor2(a: Bit, b: Bit, rs = None) -> Bit:
-    a_or_b = custom_or_([a, b], rs=rs)
-    a_and_b = custom_and_([a, b], rs=rs)
-    not_a_and_b = custom_not_(a_and_b, rs=rs)
-    return custom_and_([a_or_b, not_a_and_b], rs=rs)
+def custom_xor(x: list[Bit], rs=None) -> Bit:
 
-def robust_custom_xor(x: list[Bit], rs = None) -> Bit:
+    def custom_xor2(a: Bit, b: Bit, rs=None) -> Bit:
+        a_or_b = custom_or_([a, b], rs=rs)
+        a_and_b = custom_and_([a, b], rs=rs)
+        not_a_and_b = custom_not_(a_and_b, rs=rs)
+        return custom_and_([a_or_b, not_a_and_b], rs=rs)
 
     result = x[0]
     for bit in x[1:]:
@@ -94,8 +94,7 @@ def custom_bitwise(
 def custom_nots(x: list[Bit]) -> list[Bit]:
     return [custom_not_(b) for b in x]
 
-custom_xors = custom_bitwise(robust_custom_xor)
-robust_custom_xors = custom_bitwise(robust_custom_xor)
+custom_xors = custom_bitwise(custom_xor)
 
 def custom_inhib(x: list[Bit], rs = None) -> Bit:
     """An 'and' gate with 'not' applied to its first input"""

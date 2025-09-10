@@ -17,7 +17,7 @@ from collections.abc import Callable
 
 class CustomStepMLP(StepMLP):
 
-    def __init__(self, sizes: list[int], dtype: torch.dtype = torch.float64):
+    def __init__(self, sizes: list[int], dtype: torch.dtype = torch.bfloat16):
         super().__init__(sizes, dtype)  # type: ignore
         """Override the activation function to use threshold -0.5 for more robustness"""
         step_fn: Callable[[torch.Tensor], torch.Tensor] = lambda x: (x > -0.5).type(dtype)
