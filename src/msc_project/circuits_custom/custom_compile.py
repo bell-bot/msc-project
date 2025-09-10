@@ -29,7 +29,8 @@ def get_random_identity_params(rs = None) -> tuple[float, float]:
     weight = get_positive_laplace_weights(size=1, rs=rs)[0]
     bias = uniform(low=-weight, high=1e-9) # avoid 0 bias
     
-    return (weight, bias)
+    #return (weight, bias)
+    return (0.2, -0.1)
 
 class CustomGraph(Graph):
 

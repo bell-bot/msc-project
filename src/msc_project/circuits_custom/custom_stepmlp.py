@@ -24,9 +24,9 @@ class CustomStepMLP(StepMLP):
         self.activation = step_fn
 
     @classmethod
-    def from_graph(cls, graph: Graph) -> "CustomStepMLP":
+    def from_graph(cls, graph: Graph, rs = None) -> "CustomStepMLP":
         """Same as parent but using custom matrices"""
-        matrices = CustomMatrices.from_graph(graph, dtype=torch.float64)
+        matrices = CustomMatrices.from_graph(graph, dtype=torch.float64, rs=rs)
         mlp = cls(matrices.sizes)
         mlp.load_params(matrices.mlist)
         return mlp
@@ -60,7 +60,7 @@ class RandomisedStepMLP(CustomStepMLP):
     def __init__(self, sizes: list[int], dtype: torch.dtype = torch.bfloat16):
         super(RandomisedStepMLP, self).__init__(sizes, dtype)
         """Override the activation function to use threshold -0.001 because ??"""
-        step_fn: Callable[[torch.Tensor], torch.Tensor] = lambda x: (x > -0.5).type(dtype)
+        step_fn: Callable[[torch.Tensor], torch.Tensor] = lambda x: (x > -1e-9).type(dtype)
         self.activation = step_fn
 
     @classmethod
@@ -68,4 +68,4 @@ class RandomisedStepMLP(CustomStepMLP):
 
         backdoor_fun = custom_get_backdoor(trigger=trigger, payload=payload, k=k, rs=rs)
         graph = custom_compiled(backdoor_fun, k.msg_len, rs=rs)
-        return cls.from_graph(graph)
+        return cls.from_graph(graph, rs=rs)
