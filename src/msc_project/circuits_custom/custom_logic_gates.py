@@ -3,8 +3,6 @@ from circuits.neurons.core import Bit, Neuron, step
 from scipy import stats
 from numpy.random import uniform, RandomState
 
-EPSILON = 1e-9
-
 def custom_gate(incoming: list[Bit], weights: list[float], threshold: float) -> Bit:
     """Create a linear threshold gate as a boolean neuron with a step function"""
     return Neuron(tuple(incoming), tuple(weights), -threshold, step).outgoing

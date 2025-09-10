@@ -1,8 +1,9 @@
-from circuits.dense.mlp import StepMLP
+
 from circuits.examples.capabilities.backdoors import get_backdoor
 from circuits.examples.keccak import Keccak
 from circuits.neurons.core import Bit
 from circuits.sparse.compile import Graph, compiled
+from circuits.tensors.mlp import StepMLP
 from msc_project.circuits_custom.custom_backdoors import custom_get_backdoor
 from msc_project.circuits_custom.custom_compile import custom_compiled
 from msc_project.circuits_custom.custom_keccak import CustomKeccak
@@ -16,12 +17,6 @@ from collections.abc import Callable
 
 
 class CustomStepMLP(StepMLP):
-
-    def __init__(self, sizes: list[int], dtype: torch.dtype = torch.bfloat16):
-        super().__init__(sizes, dtype)  # type: ignore
-        """Override the activation function to use threshold -0.5 for more robustness"""
-        step_fn: Callable[[torch.Tensor], torch.Tensor] = lambda x: (x > -0.5).type(dtype)
-        self.activation = step_fn
 
     @classmethod
     def from_graph(cls, graph: Graph, rs = None) -> "CustomStepMLP":
@@ -56,11 +51,6 @@ class GACompatibleStepMLP(CustomStepMLP):
         super(GACompatibleStepMLP, self).__init__(sizes, dtype)
 
 class RandomisedStepMLP(CustomStepMLP):
-
-    def __init__(self, sizes: list[int], dtype: torch.dtype = torch.bfloat16):
-        super(RandomisedStepMLP, self).__init__(sizes, dtype)
-        step_fn: Callable[[torch.Tensor], torch.Tensor] = lambda x: (x > -0.5).type(dtype)
-        self.activation = step_fn
 
     @classmethod
     def create_with_randomised_backdoor(cls, trigger: list[Bit], payload: list[Bit], k: CustomKeccak, rs = None):

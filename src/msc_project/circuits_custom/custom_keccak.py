@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from circuits.examples.keccak import Keccak, Lanes, copy, get_empty_lanes, get_round_constants, rho_pi
+from circuits.examples.keccak import Keccak, Lanes, copy_lanes, get_empty_lanes, rho_pi
 from collections.abc import Callable
 from functools import partial
 from numpy.random import RandomState
@@ -12,7 +12,7 @@ from msc_project.circuits_custom.custom_logic_gates import custom_copy_bit, cust
 # SHA3 operations
 def custom_theta(lanes: Lanes, rs = None) -> Lanes:
     w = len(lanes[0][0])
-    result = get_empty_lanes(w)
+    result = get_empty_lanes(w, placeholder=lanes[0][0][0])
     for x in range(5):
         for y in range(5):
             for z in range(w):
@@ -26,7 +26,7 @@ def custom_theta(lanes: Lanes, rs = None) -> Lanes:
 
 def custom_chi(lanes: Lanes, rs = None) -> Lanes:
     w = len(lanes[0][0])
-    result = get_empty_lanes(w)
+    result = get_empty_lanes(w, placeholder=lanes[0][0][0])
     for y in range(5):
         for x in range(5):
             for z in range(w):
@@ -36,7 +36,7 @@ def custom_chi(lanes: Lanes, rs = None) -> Lanes:
 
 def custom_iota(lanes: Lanes, rc: str, rs = None) -> Lanes:
     """Applies the round constant to the first lane."""
-    result = copy(lanes)
+    result = copy_lanes(lanes)
     for z, bit in enumerate(rc):
         if bit == "1":
             result[0][0][z] = custom_not_(lanes[0][0][z], rs=rs)
@@ -51,7 +51,7 @@ def custom_rho_pi(lanes: Lanes, rs=None) -> Lanes:
     A version of rho_pi that uses randomized copy gates and correctly handles lanes.
     """
     # Use the correct `copy` function to create a mutable data structure
-    result = copy(lanes)
+    result = copy_lanes(lanes)
     (x, y) = (1, 0)
 
     # 'current' holds a lane (a list[Bit]). We copy it using our bitwise copy.
@@ -77,12 +77,11 @@ class CustomKeccak(Keccak):
     def get_functions(self) -> list[list[Callable[[Lanes], Lanes]]]:
         """Returns the functions for each round"""
         fns: list[list[Callable[[Lanes], Lanes]]] = []
-        constants = get_round_constants(self.b, self.n)  # (n, ?)
+        constants = self.get_round_constants()  # (n, ?)
 
         r_theta = partial(custom_theta, rs=self.rs)
         r_chi = partial(custom_chi, rs=self.rs)
-        r_rho_pi = partial(custom_rho_pi, rs=self.rs)
         for r in range(self.n):
             r_iota = partial(custom_iota, rc=constants[r], rs=self.rs)
-            fns.append([r_theta, r_rho_pi, r_chi, r_iota])
+            fns.append([r_theta, rho_pi, r_chi, r_iota])
         return fns  # (n, 4)
