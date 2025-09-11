@@ -7,13 +7,14 @@ from tqdm.contrib.logging import logging_redirect_tqdm
 import argparse
 from collections import defaultdict
 
-from circuits.dense.mlp import StepMLP
 from circuits.examples.capabilities.backdoors import get_backdoor
 from circuits.examples.keccak import Keccak
 from circuits.sparse.compile import compiled
+from circuits.tensors.mlp import StepMLP
 from circuits.utils.format import format_msg
 from msc_project.analysis.analysis_mlp_layers import compute_param_stats, plot_histograms
 from msc_project.analysis.analysis_utils import get_stepml_parameters, plot_category_histograms, plot_heatmap, stepmlp_histogram_format, unfold_stepmlp_parameters
+from msc_project.circuits_custom.custom_keccak import CustomKeccak
 from msc_project.circuits_custom.custom_stepmlp import CustomStepMLP, RandomisedStepMLP
 
 LOG = logging.getLogger(__name__)
@@ -28,7 +29,7 @@ def run_stepml_analysis(num_models, c=20, l=1, n=3, sample_layer_idx=None):
     for _ in tqdm(range(num_models), desc="Analyzing StepMLP models"):
         trigger = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(16))
         payload = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(16))
-        k = Keccak(c=c, l=l, n=n, pad_char="_")
+        k = Keccak(c=c, n=n, pad_char="_")
 
         trigger_bits = format_msg(trigger, k.msg_len)
         payload_bits = format_msg(payload, k.d)
@@ -77,7 +78,7 @@ def run_custom_stepml_analysis(num_models, c=20, l=1, n=3, sample_layer_idx=None
     for _ in tqdm(range(num_models), desc="Analyzing StepMLP models"):
         trigger = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(16))
         payload = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(16))
-        k = Keccak(c=c, l=l, n=n, pad_char="_")
+        k = CustomKeccak(n = 3, c = 20, log_w=1)
 
         trigger_bits = format_msg(trigger, k.msg_len)
         payload_bits = format_msg(payload, k.d)

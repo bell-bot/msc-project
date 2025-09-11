@@ -3,6 +3,7 @@ from circuits.examples.capabilities.backdoors import get_backdoor
 from circuits.examples.keccak import Keccak
 from circuits.neurons.core import Bit
 from circuits.sparse.compile import Graph, compiled
+from circuits.tensors.matrices import Matrices
 from circuits.tensors.mlp import StepMLP
 from msc_project.circuits_custom.custom_backdoors import custom_get_backdoor
 from msc_project.circuits_custom.custom_compile import custom_compiled
@@ -16,12 +17,25 @@ import torch
 from collections.abc import Callable
 
 
+def step_fn(x: torch.Tensor) -> torch.Tensor:
+    return (x > 0.0).type(x.dtype)
+
+
 class CustomStepMLP(StepMLP):
+
+    def __init__(self, sizes: list[int], dtype: torch.dtype = torch.float64):
+        super().__init__(sizes, dtype)  # type: ignore
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        x = x.type(self.dtype)
+        for layer in self.net:
+            x = step_fn(layer(x))
+        return x
 
     @classmethod
     def from_graph(cls, graph: Graph, rs = None) -> "CustomStepMLP":
         """Same as parent but using custom matrices"""
-        matrices = CustomMatrices.from_graph(graph, dtype=torch.float64, rs=rs)
+        matrices = CustomMatrices.from_graph(graph, dtype=torch.float64)
         mlp = cls(matrices.sizes)
         mlp.load_params(matrices.mlist)
         return mlp
@@ -57,4 +71,4 @@ class RandomisedStepMLP(CustomStepMLP):
 
         backdoor_fun = custom_get_backdoor(trigger=trigger, payload=payload, k=k, rs=rs)
         graph = custom_compiled(backdoor_fun, k.msg_len, rs=rs)
-        return cls.from_graph(graph, rs=rs)
+        return cls.from_graph(graph)

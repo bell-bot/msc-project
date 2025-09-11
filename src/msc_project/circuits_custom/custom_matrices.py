@@ -1,9 +1,9 @@
-from circuits.dense.mlp import Matrices
 from circuits.sparse.compile import Graph
 from numpy.random import RandomState
 
 import torch
 
+from circuits.tensors.matrices import Matrices
 from msc_project.circuits_custom.custom_compile import get_random_identity_params
 
 
@@ -27,11 +27,13 @@ class CustomMatrices(Matrices):
     #     return wb
 
     @classmethod
-    def from_graph(cls, graph: Graph, dtype: torch.dtype = torch.int, rs = None) -> "CustomMatrices":
-        """Same as parent but with debias=False"""
-        layers = graph.layers[1:]
-        sizes_in = [len(l) for l in graph.layers]
-        params = [cls.layer_to_params(l, s, dtype, debias = False) for l, s in zip(layers, sizes_in)]
-        matrices = [cls.fold_bias(w.to_dense(), b) for w, b in params]
-
-        return cls(list(matrices), dtype=dtype)
+    def from_graph(cls, graph: Graph, dtype: torch.dtype = torch.int) -> "Matrices":
+        """Set parameters of the model from weights and biases"""
+        layers = graph.layers[1:]  # skip input layer as it has no incoming weights
+        sizes_in = [len(layer) for layer in graph.layers]  # incoming weight sizes
+        params = [
+            cls.layer_to_params(layer, s, dtype, debias=False) for layer, s in zip(layers, sizes_in)
+        ]  # w&b pairs
+        matrices = [cls.fold_bias(w.to_dense(), b) for w, b in params]  # dense matrices
+        # matrices[-1] = matrices[-1][1:]  # last layer removes the constant input feature
+        return cls(matrices, dtype=dtype)
