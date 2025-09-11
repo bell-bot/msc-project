@@ -12,6 +12,12 @@ If you have not cloned the repository, clone it using
 git clone git@github.com:bell-bot/msc-project.git
 ```
 
+Initialise the circuits submodule:
+
+```sh
+git submodule update --init --recursive
+```
+
 ### Step 2: Create a virtual environment
 Install the `python3.X-venv` package (substitute X for your specific Python 3 version, e.g 12), if it is not installed yet:
 

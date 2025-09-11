@@ -1,4 +1,3 @@
-from circuits.examples.keccak import Keccak
 from circuits.utils.format import format_msg
 from msc_project.circuits_custom.custom_keccak import CustomKeccak
 from msc_project.circuits_custom.custom_stepmlp import RandomisedStepMLP, CustomStepMLP
