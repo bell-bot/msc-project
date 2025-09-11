@@ -71,4 +71,4 @@ class RandomisedStepMLP(CustomStepMLP):
 
         backdoor_fun = custom_get_backdoor(trigger=trigger, payload=payload, k=k, rs=rs)
         graph = custom_compiled(backdoor_fun, k.msg_len, rs=rs)
-        return cls.from_graph(graph)
+        return cls.from_graph(graph, rs=rs)

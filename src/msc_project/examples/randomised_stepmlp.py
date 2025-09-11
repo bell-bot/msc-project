@@ -18,9 +18,9 @@ mlp = RandomisedStepMLP.create_with_randomised_backdoor(trigger_message.bitlist,
 # Verify that the model produces the correct output (i.e. the payload) when given the trigger
 output = mlp.infer_bits(trigger_message).bitstr
 
-# print("Model weights:")
-# for layer in mlp.net:
-#     print(layer.weight)
+print("Model weights:")
+for layer in mlp.net:
+    print(layer.weight)
 
 assert output == payload.bitstr, f"Backdoor failed to produce correct payload\nCorrect: {payload.bitstr}\nGot: {output}"
 print("Backdoor successfully produced the correct payload!")

@@ -124,6 +124,7 @@ if __name__ == "__main__":
     parser.add_argument("--l", type=int, default=1)
     parser.add_argument("--model_type", choices=["stepmlp", "custom_stepmlp"], default="custom_stepmlp", help="Type of model to analyze.")
     parser.add_argument("--sample_layer_idx", type=int, default=None, help="Layer index to sample for heatmap visualization. If None, a random layer will be chosen.")
+    parser.add_argument("--prefix", type=str, default="")
     args = parser.parse_args()
 
     if args.model_type == "stepmlp":
@@ -139,7 +140,7 @@ if __name__ == "__main__":
     avg_layer_weight = results["avg_layer_weight"]
     print(avg_layer_weight)
 
-    filename_prefix = f"{args.model_type}_{args.num_models}models_n{args.n}_c{args.c}_l{args.l}_"
+    filename_prefix = f"{args.prefix}_{args.model_type}_{args.num_models}models_n{args.n}_c{args.c}_l{args.l}_"
 
     plot_heatmap(avg_layer_weight, save_path=f"{filename_prefix}layer{layer_idx}_heatmap", title=f"Average Weights Heatmap for Layer {layer_idx}")
 
