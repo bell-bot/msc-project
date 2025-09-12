@@ -32,7 +32,6 @@ class CustomGraph(Graph):
         copies_by_layer: list[list[Node]] = [[] for _ in range(len(layers))]
         for layer_idx, layer in enumerate(layers):
             for node in layer:
-
                 # Stop at outputs
                 if len(node.children) == 0:
                     continue
@@ -45,15 +44,17 @@ class CustomGraph(Graph):
                 # Create chain of copies
                 copy_chain: list[Node] = []
                 prev = node
-                prev_name = prev.metadata.get('name', 'Node')
+                prev_name = prev.metadata.get("name", "n")
+                counter = 0
                 for depth in range(layer_idx + 1, layer_idx + n_missing_layers + 1):
-                    curr = Node(prev.metadata)
+                    curr = prev.copy()
                     curr.depth = depth
                     (weight, bias) = get_random_identity_params(rs=self.rs)
                     curr.bias = bias
                     curr.add_parent(prev, weight=weight)
                     copy_chain.append(curr)
-                    curr.metadata['name'] = f"{prev_name}" + "`"
+                    curr.metadata["name"] = f"{prev_name}" + "`" + str(counter)
+                    counter += 1
                     prev = curr
 
                 # Redirect children to appropriate copies
