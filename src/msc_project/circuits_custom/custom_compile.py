@@ -10,7 +10,6 @@ def custom_compiled_from_io(inputs: list[Signal], outputs: list[Signal], rs = No
     """Compiles a graph for function f using dummy input and output=f(input)."""
     return CustomGraph(inputs, outputs, rs=rs)
 
-
 def custom_compiled(function: Callable[..., list[Signal]], input_len: int, rs = None, **kwargs: Any) -> Graph:
     """Compiles a function into a graph."""
     inp = const("0" * input_len)

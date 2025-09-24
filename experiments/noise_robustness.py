@@ -25,7 +25,7 @@ LOG_FILE = "experiment.log"
 def verify_stepmlp(stepmlp, input_bits, expected_output_bits):
     predicted_output = stepmlp.infer_bits(input_bits)
 
-    return predicted_output.hex == expected_output_bits.hex
+    return predicted_output.bitstr == expected_output_bits.bitstr
 
 def noise_stepmlp(stepmlp, std=0.1):
     with torch.no_grad():
@@ -37,7 +37,7 @@ def get_random_alphanum_string(num_chars=16):
 
 def create_random_backdoored_stepmlp():
 
-    k = Keccak()
+    k = Keccak(c=20, log_w=1, n=3)
 
     message = get_random_alphanum_string()
     payload = get_random_alphanum_string()
@@ -62,7 +62,7 @@ def run_experiment(n_models, std, i):
         n_correct += verify_stepmlp(mlp, message_bits, payload_bits)
         predicted_output = mlp.infer_bits(message_bits)
 
-        logger.info(f"\tModel %d\n\tInitial weights:\t[%s]\n\tNoised weights: \t[%s]\n\tExpected output: \t%s\n\tActual output:  \t%s", j, ", ".join([str(weight) for weight in init_weights]), ", ".join([str(weight) for weight in noised_weights]), payload_bits.hex, predicted_output.hex)
+        logger.info(f"\tModel %d\n\tInitial weights:\t[%s]\n\tNoised weights: \t[%s]\n\tExpected output: \t%s\n\tActual output:  \t%s", j, ", ".join([str(weight) for weight in init_weights]), ", ".join([str(weight) for weight in noised_weights]), payload_bits.bitstr, predicted_output.bitstr)
 
     return (n_correct/n_models)
 

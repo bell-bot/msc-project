@@ -9,11 +9,8 @@ import copy
 from pathlib import Path
 
 from circuits.examples.keccak import Keccak
-from circuits.examples.simple_example import and_gate
-from circuits.neurons.core import Bit
-from circuits.sparse.compile import compiled_from_io
 from circuits.utils.format import Bits, format_msg
-from msc_project.algorithms.genetic_algorithm.objectives import evaluate_correctness, evaluate_distribution_stats, evaluate_normal_distribution
+from msc_project.algorithms.genetic_algorithm.objectives import evaluate_correctness, evaluate_distribution_stats, evaluate_normal_distribution, evaluate_unique_params
 
 from msc_project.circuits_custom.custom_stepmlp import GACompatibleStepMLP
 from utils import generate_experiment_id, plot_fitness_over_generations, save_experiment_info
@@ -32,9 +29,13 @@ def create_fitness_func(mlp_template, input_bits, output_bits):
         with torch.no_grad():
             
             correctness_score = evaluate_correctness(local_model, input_bits, output_bits)
-            distribution_stats_score = evaluate_distribution_stats(solution)
 
-            final_score = correctness_score + distribution_stats_score
+            if correctness_score == 0: return 0.0
+
+            distribution_stats_score = evaluate_distribution_stats(solution)
+            unique_elems_score = evaluate_unique_params(solution)
+
+            final_score = correctness_score + distribution_stats_score + unique_elems_score
             
             return final_score
         
@@ -60,12 +61,13 @@ def run_ga_optimisation(mlp_template, input_bits, output_bits, num_solutions = 1
     print(f"Initial population stats: min={model_weights.min()}, "
           f"max={model_weights.max()}, "
           f"mean={model_weights.mean()}, ")
-
-    initial_population = torch_ga.population_weights
+    
+    model_weights = model_weights.flatten().numpy()
+    initial_population = [model_weights]
     # diversify initial population
     for i in range(1, num_solutions):
-        noise = np.random.normal(0, 0.001, initial_population[i].shape)
-        initial_population[i] += noise
+        population_weights = model_weights + np.random.random(model_weights.shape)*0.001
+        initial_population.append(population_weights)
 
     fitness_func = create_fitness_func(mlp_template, input_bits, output_bits)
 
@@ -106,11 +108,11 @@ def run_ga_optimisation(mlp_template, input_bits, output_bits, num_solutions = 1
 
 def verify_ga_optimised_stepml(mlp_template, formatted_message: Bits, expected_output: Bits):
     actual_output = mlp_template.infer_bits(formatted_message)
-    actual_output_hex = actual_output.hex
-    print(f"Expected output: {expected_output.hex}")
+    actual_output_hex = actual_output.bitstr
+    print(f"Expected output: {expected_output.bitstr}")
     print(f"Actual output: {actual_output_hex}")
     
-    if actual_output_hex == expected_output.hex:
+    if actual_output_hex == expected_output.bitstr:
         print("GA-optimised StepMLP produces the expected output.")
     else:
         print("GA-optimised StepMLP does NOT produce the expected output.")
@@ -122,7 +124,7 @@ if __name__ == "__main__":
     parser.add_argument("--test_phrase", type=str, default="Shht! I am a secret message.", help="Test phrase to hash")
     parser.add_argument("--payload", type=str, default="Consider yourself BACKDOORED", help="Payload for the backdoor")
     parser.add_argument("--num_solutions", type=int, default=100, help="Number of solutions for GA")
-    parser.add_argument("--num_generations", type=int, default=20, help="Number of generations for GA")
+    parser.add_argument("--num_generations", type=int, default=10, help="Number of generations for GA")
     parser.add_argument("--num_parents_mating", type=int, default=10, help="Number of parents mating for GA")
     parser.add_argument("--save", type=bool, default=True, help="Save experiment results")
     args = parser.parse_args()
@@ -138,7 +140,7 @@ if __name__ == "__main__":
         save_experiment_info(experiment_id, vars(args), save_path)
         logging.basicConfig(filename=f"{save_path}/experiment.log", format='%(asctime)s - %(levelname)s - %(message)s')
 
-    keccak = Keccak(c=20, l=1, n=3)
+    keccak = Keccak(c=20, log_w=1, n=3)
     trigger_bits = format_msg(args.test_phrase, keccak.msg_len)
     payload_bits = format_msg(args.payload, keccak.d)
 

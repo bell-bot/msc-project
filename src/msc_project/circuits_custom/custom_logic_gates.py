@@ -1,5 +1,5 @@
 from collections.abc import Callable
-from circuits.neurons.core import Bit, Neuron, step
+from circuits.neurons.core import Bit, Neuron, const, step
 from scipy import stats
 from numpy.random import uniform, RandomState
 
@@ -102,6 +102,7 @@ def custom_nots(x: list[Bit]) -> list[Bit]:
     return [custom_not_(b) for b in x]
 
 custom_xors = custom_bitwise(custom_xor)
+bitwise_ands = custom_bitwise(custom_and_)
 
 def custom_inhib(x: list[Bit], rs = None) -> Bit:
     """An 'and' gate with 'not' applied to its first input"""
@@ -112,3 +113,15 @@ def custom_inhib(x: list[Bit], rs = None) -> Bit:
     not_x0 = custom_not_(x[0], rs=rs)
     if len(x) == 1: return not_x0
     return custom_and_([not_x0] + x[1:], rs=rs)
+
+def custom_add(a: list[Bit], b: list[Bit]) -> list[Bit]:
+    """Adds two integers in binary using a parallel adder.
+    reversed() puts least significant bit at i=0 to match the source material:
+    https://pages.cs.wisc.edu/~jyc/02-810notes/lecture13.pdf page 1."""
+    a, b = list(reversed(a)), list(reversed(b))
+    n = len(a)
+    p = [custom_or_([a[i], b[i]]) for i in range(len(a))]
+    q = [[custom_and_([a[i], b[i]] + p[i + 1 : k]) for i in range(k)] for k in range(n)]
+    c = const([0]) + [custom_or_(q[k]) for k in range(1, n)]
+    s = [custom_xor([a[k], b[k], c[k]]) for k in range(n)]
+    return list(reversed(s))

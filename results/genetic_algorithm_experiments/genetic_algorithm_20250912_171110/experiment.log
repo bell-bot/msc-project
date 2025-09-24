@@ -1,0 +1,5 @@
+2025-09-12 17:11:11,204 - ERROR - A 2D list is expected to the initial_population parameter but a (3-D) list found.
+Traceback (most recent call last):
+  File "/homes/55/bella/miniconda3/envs/msc-project-env/lib/python3.12/site-packages/pygad/pygad.py", line 442, in __init__
+    raise ValueError(f"A 2D list is expected to the initial_population parameter but a ({numpy.array(initial_population).ndim}-D) list found.")
+ValueError: A 2D list is expected to the initial_population parameter but a (3-D) list found.

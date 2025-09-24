@@ -5,7 +5,7 @@ from circuits.neurons.core import Bit
 from circuits.sparse.compile import Graph, compiled
 from circuits.tensors.matrices import Matrices
 from circuits.tensors.mlp import StepMLP
-from msc_project.circuits_custom.custom_backdoors import custom_get_backdoor
+from msc_project.circuits_custom.custom_backdoors import custom_get_backdoor, get_backdoor_with_redundancy
 from msc_project.circuits_custom.custom_compile import custom_compiled
 from msc_project.circuits_custom.custom_keccak import CustomKeccak
 from msc_project.circuits_custom.custom_matrices import CustomMatrices, RandomisedMatrices
@@ -82,3 +82,10 @@ class RandomisedStepMLP(CustomStepMLP):
         # Honestly not sure why we need this threshold value but it works
         return (x > 0.0).type(x.dtype)
     
+class RandomisedRedundantStepMLP(RandomisedStepMLP):
+    @classmethod
+    def create_with_randomised_backdoor(cls, trigger: list[Bit], payload: list[Bit], k: CustomKeccak, rs = None):
+
+        backdoor_fun = get_backdoor_with_redundancy(trigger=trigger, payload=payload, k=k, rs=rs)
+        graph = custom_compiled(backdoor_fun, k.msg_len, rs=rs)
+        return cls.from_graph(graph, rs=rs)
