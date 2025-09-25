@@ -2,7 +2,8 @@ from types import SimpleNamespace
 import unittest
 import torch
 
-from msc_project.analysis.analysis_mlp_layers import get_mlp_layers, process_mlp_layers
+from msc_project.utils.model_utils import process_mlp_layers
+from msc_project.utils.model_utils import get_mlp_layers
 from tests.helpers import SimpleGPT2Model
 
 

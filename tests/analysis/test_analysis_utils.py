@@ -1,6 +1,7 @@
 from types import SimpleNamespace
+from msc_project.utils.model_utils import unfold_stepmlp_parameters
 from tests.helpers import SimpleGPT2Model, SimpleLlamaModel
-from msc_project.analysis.analysis_utils import classify_model_parameters, unfold_stepmlp_parameters
+from msc_project.analysis.analysis_utils import classify_model_parameters
 from transformers import AutoModelForCausalLM, AutoConfig
 import unittest
 from unittest.mock import MagicMock

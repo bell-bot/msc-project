@@ -349,19 +349,3 @@ def get_stepml_parameters(model):
     biases_tensor = torch.cat(biases) if biases else torch.tensor([])
     return weights_tensor, biases_tensor
 
-def unfold_stepmlp_parameters(model):
-
-    weights = []
-    biases = []
-    for name, params in model.named_parameters():
-        if "weight" in name:
-            folded = params.detach().data
-            bias = folded[:,0].view(-1)
-            weight = folded[:,1:].reshape(-1)
-            weights.append(weight)
-            biases.append(bias)
-
-    weights_tensor = torch.cat(weights) if weights else torch.tensor([])
-    biases_tensor = torch.cat(biases) if biases else torch.tensor([])
-
-    return weights_tensor, biases_tensor

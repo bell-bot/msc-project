@@ -13,7 +13,8 @@ from circuits.sparse.compile import compiled
 from circuits.tensors.mlp import StepMLP
 from circuits.utils.format import format_msg
 from msc_project.analysis.analysis_mlp_layers import compute_param_stats, plot_histograms
-from msc_project.analysis.analysis_utils import get_stepml_parameters, plot_category_histograms, plot_heatmap, stepmlp_histogram_format, unfold_stepmlp_parameters
+from msc_project.analysis.analysis_utils import get_stepml_parameters, plot_category_histograms, plot_heatmap, stepmlp_histogram_format
+from msc_project.utils.model_utils import unfold_stepmlp_parameters
 from msc_project.circuits_custom.custom_keccak import CustomKeccak
 from msc_project.circuits_custom.custom_stepmlp import CustomStepMLP, RandomisedRedundantStepMLP, RandomisedStepMLP
 

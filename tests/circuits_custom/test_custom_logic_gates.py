@@ -1,7 +1,7 @@
 import unittest
 from circuits.neurons.operations import and_, inhib, not_, or_, xor, xors
 from circuits.utils.format import Bits
-from msc_project.circuits_custom.custom_logic_gates import custom_and_, custom_inhib, custom_not_, custom_or_, custom_xor, custom_xor2, custom_xors, robust_custom_xor
+from msc_project.circuits_custom.custom_logic_gates import custom_and_, custom_inhib, custom_not_, custom_or_, custom_xor, custom_xors
 
 class CustomNotGateTestcase(unittest.TestCase):
 
@@ -168,50 +168,3 @@ class CustomBitwiseXorTestcase(unittest.TestCase):
                     self.assertEqual(expected_bit.activation, actual_bit.activation)
 
                 self.assertEqual(expected, ''.join(str(int(bit.activation)) for bit in actual_output))
-
-class CustomXor2Testcase(unittest.TestCase):
-
-    def test_custom_xor2(self):
-        test_cases = [
-            ("0 XOR 0", Bits.from_str("0").bitlist[0], Bits.from_str("0").bitlist[0], 0),
-            ("0 XOR 1", Bits.from_str("0").bitlist[0], Bits.from_str("1").bitlist[0], 1),
-            ("1 XOR 0", Bits.from_str("1").bitlist[0], Bits.from_str("0").bitlist[0], 1),
-            ("1 XOR 1", Bits.from_str("1").bitlist[0], Bits.from_str("1").bitlist[0], 0),
-        ]
-
-        for name, a, b, expected in test_cases:
-            with self.subTest(name=name):
-                expected_output = xor([a, b])
-                actual_output = custom_xor2(a, b)
-
-                self.assertEqual(expected_output.activation, actual_output.activation)
-                self.assertEqual(expected, actual_output.activation)
-
-class RobustCustomXorTestcase(unittest.TestCase):
-    
-    def test_even_number_of_ones_returns_zero(self):
-
-        test_input = Bits.from_str("1100110011001100").bitlist
-
-        expected_output = xor(test_input)
-        actual_output = robust_custom_xor(test_input)
-
-        self.assertEqual(expected_output.activation, actual_output.activation)
-
-    def test_odd_number_of_ones_returns_one(self):
-
-        test_input = Bits.from_str("1100110011001101").bitlist
-
-        expected_output = xor(test_input)
-        actual_output = robust_custom_xor(test_input)
-
-        self.assertEqual(expected_output.activation, actual_output.activation)
-
-    def test_all_zeros_returns_zero(self):
-
-        test_input = Bits.from_str("0" * 16).bitlist
-
-        expected_output = xor(test_input)
-        actual_output = robust_custom_xor(test_input)
-
-        self.assertEqual(expected_output.activation, actual_output.activation)
