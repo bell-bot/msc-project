@@ -1,5 +1,7 @@
 import torch
 
+from circuits.tensors.mlp import StepMLP
+from circuits.utils.format import Bits
 from msc_project.analysis.constants import MLP_LAYER_NAMES
 import torch.nn as nn
 
@@ -66,4 +68,20 @@ def process_mlp_layers(mlp_layers: dict[str, torch.Tensor], p: float) -> tuple[t
     weights_tensor = torch.cat(processed_weights) if processed_weights else torch.tensor([])
     biases_tensor = torch.cat(processed_biases) if processed_biases else torch.tensor([])
     return weights_tensor, biases_tensor
-    
+
+def get_layer_activations(model: StepMLP, layer_index: int, test_data: list[Bits]) -> torch.Tensor:
+
+    activations = []
+
+    def get_activations_hook(module, input, output):
+        activations.append(output.detach())
+
+    target_layer = model.net[layer_index]
+    handle = target_layer.register_forward_hook(get_activations_hook)
+
+    with torch.no_grad():
+        for x in test_data:
+            model.infer_bits(x)
+
+    handle.remove()
+    return torch.cat(activations)

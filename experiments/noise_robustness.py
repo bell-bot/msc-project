@@ -2,8 +2,6 @@ import argparse
 import copy
 from pathlib import Path
 import torch
-import random
-import string
 
 from circuits.examples.keccak import Keccak
 from circuits.utils.format import format_msg
@@ -14,6 +12,7 @@ from tqdm.contrib.logging import logging_redirect_tqdm
 import logging
 
 from msc_project.circuits_custom.custom_stepmlp import CustomStepMLP
+from msc_project.utils.run_utils import get_random_alphanum_string
 logger = logging.getLogger(__name__)
 
 EXPERIMENT_DIR = "results/noise_robustness"
@@ -31,9 +30,6 @@ def noise_stepmlp(stepmlp, std=0.1):
     with torch.no_grad():
         for _, param in stepmlp.named_parameters():
             param.add_(torch.randn_like(param)*std)
-
-def get_random_alphanum_string(num_chars=16):
-    return''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(num_chars))
 
 def create_random_backdoored_stepmlp():
 

@@ -1,5 +1,9 @@
+import torch
+from circuits.tensors.mlp import StepMLP
+from circuits.utils.format import Bits
 from msc_project.evaluation.metrics import earth_movers_distance, kl_divergence, ks_test
 from msc_project.utils.model_utils import get_mlp_layers, process_mlp_layers, unfold_stepmlp_parameters
+
 
 
 def evaluate_model(backdoored_model, target_model):

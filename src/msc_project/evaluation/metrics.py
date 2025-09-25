@@ -4,7 +4,10 @@ from scipy.stats import wasserstein_distance
 from scipy.stats import ks_2samp
 import torch
 
-from msc_project.evaluation.utils import get_distribution, get_histogram_params
+from circuits.examples.keccak import Keccak
+from circuits.tensors.mlp import StepMLP
+from msc_project.evaluation.utils import get_distribution, get_histogram_params, get_random_benign_inputs, get_random_sequences, get_random_trigger_inputs
+from msc_project.utils.model_utils import get_layer_activations
 
 def kl_divergence(backdoored_model_weights: torch.Tensor, target_model_weights: torch.Tensor):
     """
@@ -27,3 +30,25 @@ def ks_test(backdoored_model_weights: torch.Tensor, target_model_weights: torch.
     statistic, p_value = ks_2samp(target_model_weights, backdoored_model_weights)
 
     return statistic, p_value
+
+def get_spectral_signatures(backdoored_model: StepMLP, trigger_message: str, k: Keccak, random_seq_length: int, n_benign: int, n_trigger: int):
+    benign_sample_length = len(trigger_message) + random_seq_length
+
+    benign_samples = get_random_benign_inputs(n_benign, benign_sample_length, k.msg_len)
+    trigger_samples = get_random_trigger_inputs(n_trigger, trigger_message, random_seq_length, k.msg_len)
+
+    last_hidden_layer_idx = len(backdoored_model.net) - 2
+    
+    benign_activations = get_layer_activations(backdoored_model, last_hidden_layer_idx, benign_samples)
+    trigger_activations = get_layer_activations(backdoored_model, last_hidden_layer_idx, trigger_samples)
+
+    benign_covariance = torch.cov(benign_activations.T)
+    trigger_covariance = torch.cov(trigger_activations.T)
+
+    _, benign_s, _ = torch.linalg.svd(benign_covariance)
+    _, trigger_s, _ = torch.linalg.svd(trigger_covariance)
+
+    benign_s_np = benign_s.cpu().numpy()
+    trigger_s_np = trigger_s.cpu().numpy()
+
+    return benign_s_np, trigger_s_np
