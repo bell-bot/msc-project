@@ -9,14 +9,15 @@ def get_histogram_params(tensors: list[torch.Tensor]):
     mins, maxs, bins = [], [], []
 
     for t in tensors:
-        mins.append(t.min())
-        maxs.append(t.max())
+        mins.append(t.min().item())
+        maxs.append(t.max().item())
         bins.append(t.numel())
 
     return min(mins), max(maxs), int(sqrt(sum(bins)))
 
 def get_distribution(x: torch.Tensor, bins: int, r: Sequence[float]):
     counts, bin_edges = x.histogram(bins=bins, range=r)
+    print(counts)
     dist = counts.float() / counts.sum()
     
     return dist

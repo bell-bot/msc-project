@@ -18,8 +18,8 @@ def kl_divergence(backdoored_model_weights: torch.Tensor, target_model_weights: 
     """
     min_val, max_val, bins = get_histogram_params([backdoored_model_weights, target_model_weights])
 
-    backdoored_model_dist = get_distribution(backdoored_model_weights, bins, [min_val, max_val])
-    target_dist = get_distribution(target_model_weights, bins, [min_val, max_val])
+    backdoored_model_dist = get_distribution(backdoored_model_weights, bins=bins, r=(min_val, max_val))
+    target_dist = get_distribution(target_model_weights, bins=bins, r=(min_val, max_val))
 
     return np.sum(kl_div(backdoored_model_dist, target_dist))
 
