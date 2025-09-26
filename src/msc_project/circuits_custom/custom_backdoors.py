@@ -1,4 +1,9 @@
+from collections.abc import Callable
+from math import ceil
+from typing import Any
+from circuits.examples.keccak import Keccak, xof
 from circuits.neurons.core import Bit, BitFn, const
+from circuits.utils.misc import group
 from msc_project.circuits_custom.custom_keccak import CustomKeccak
 from msc_project.circuits_custom.custom_logic_gates import custom_add, custom_and_, custom_nots, custom_xors, bitwise_ands
 from numpy.random import RandomState
@@ -40,3 +45,30 @@ def get_backdoor_with_redundancy(trigger: list[Bit],
         return redundant_result  # (k.d,)
 
     return backdoor
+
+def custom_get_stacked_backdoor(
+    trigger: list[Bit], payloads: list[list[Bit]], k: Keccak, rs: RandomState | None
+) -> Callable[[list[Bit]], list[list[Bit]]]:
+    """Constructs a backdoor with payloads deployed at multiple depths."""
+    # TODO: option for padding payloads to obfuscate matrix sizes
+
+    # calculate number of digests per payload
+    group_sizes = [ceil(len(p) / k.d) for p in payloads]
+    n_digests = sum(group_sizes)
+
+    digests = xof(trigger, n_digests, k)
+    digests = group(digests, group_sizes)
+    keys = [
+        custom_xors([d, p], rs) for d, p in zip(digests, payloads)
+    ]  # xors also reduces size to len(payload)
+    keys = [
+        const([int(b.activation) for b in key]) for key in keys
+    ]  # cut off tracing past key creation
+
+    def stacked_backdoor(x: list[Bit]) -> list[list[Bit]]:
+        digests = xof(x, n_digests, k)
+        digests = group(digests, group_sizes)
+        ambivalents = [custom_xors([d, key], rs) for d, key in zip(digests, keys)]
+        return ambivalents
+
+    return stacked_backdoor
