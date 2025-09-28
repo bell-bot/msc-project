@@ -1,4 +1,3 @@
-import numpy as np
 from scipy.special import kl_div
 from scipy.stats import wasserstein_distance
 from scipy.stats import ks_2samp
@@ -8,6 +7,7 @@ from circuits.examples.keccak import Keccak
 from circuits.tensors.mlp import StepMLP
 from msc_project.evaluation.utils import get_distribution, get_histogram_params, get_random_benign_inputs, get_random_trigger_inputs
 from msc_project.utils.model_utils import get_layer_activations
+from msc_project.utils.run_utils import sample
 
 def kl_divergence(backdoored_model_weights: torch.Tensor, target_model_weights: torch.Tensor):
     """
@@ -16,18 +16,25 @@ def kl_divergence(backdoored_model_weights: torch.Tensor, target_model_weights: 
     Note that the distributions of the models must use the same range 
     and number of bins.
     """
-    min_val, max_val, bins = get_histogram_params([backdoored_model_weights, target_model_weights])
+    param_range, bins= get_histogram_params([backdoored_model_weights, target_model_weights])
 
-    backdoored_model_dist = get_distribution(backdoored_model_weights, bins=bins, r=(min_val, max_val))
-    target_dist = get_distribution(target_model_weights, bins=bins, r=(min_val, max_val))
+    backdoored_model_dist = get_distribution(backdoored_model_weights, bins=bins, r=param_range)
+    target_dist = get_distribution(target_model_weights, bins=bins, r=param_range)
 
-    return np.sum(kl_div(backdoored_model_dist, target_dist))
+    return torch.sum(kl_div(backdoored_model_dist, target_dist))
 
-def earth_movers_distance(backdoored_model_weights: torch.Tensor, target_model_weights: torch.Tensor):
-    return wasserstein_distance(backdoored_model_weights, target_model_weights)
+def earth_movers_distance(backdoored_model_weights: torch.Tensor, target_model_weights: torch.Tensor, sample_size: int = 1000):
+    backdoored_model_samples = sample(backdoored_model_weights, sample_size)
+    target_model_samples = sample(target_model_weights, sample_size)
+    return wasserstein_distance(backdoored_model_samples, target_model_samples)
 
-def ks_test(backdoored_model_weights: torch.Tensor, target_model_weights: torch.Tensor):
-    statistic, p_value = ks_2samp(target_model_weights, backdoored_model_weights)
+def ks_test(backdoored_model_weights: torch.Tensor, target_model_weights: torch.Tensor, sample_size: int = 1000):
+
+    #ks_2samp first sorts the inputs which is computationally expensive for large tensors
+    #so we randomly sample from the tensors to reduce computation time (and make it not crash cough cough)
+    backdoored_model_samples = sample(backdoored_model_weights, sample_size)
+    target_model_samples = sample(target_model_weights, sample_size)
+    statistic, p_value = ks_2samp(target_model_samples, backdoored_model_samples)
 
     return statistic, p_value
 

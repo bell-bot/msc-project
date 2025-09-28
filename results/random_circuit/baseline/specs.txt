@@ -1,0 +1,9 @@
+num_samples: 10
+c: None
+n: 24
+log_w: 1
+random_seed: 94
+trigger_length: 16
+payload_length: 16
+num_target_weights: 1000000
+num_target_biases: 5000

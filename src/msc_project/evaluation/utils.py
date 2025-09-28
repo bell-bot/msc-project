@@ -5,19 +5,20 @@ import torch
 from circuits.utils.format import Bits, format_msg
 from msc_project.utils.run_utils import get_random_alphanum_string
 
-def get_histogram_params(tensors: list[torch.Tensor]):
-    mins, maxs, bins = [], [], []
+def get_histogram_params(tensors: list[torch.Tensor]) -> tuple[Sequence[float], int]:
+    mins: list[float] = []
+    maxs: list[float] = []
+    bins: list[int] = []
 
     for t in tensors:
         mins.append(t.min().item())
         maxs.append(t.max().item())
         bins.append(t.numel())
 
-    return min(mins), max(maxs), int(sqrt(sum(bins)))
+    return (min(mins), max(maxs)), int(sqrt(sum(bins)))
 
 def get_distribution(x: torch.Tensor, bins: int, r: Sequence[float]):
     counts, bin_edges = x.histogram(bins=bins, range=r)
-    print(counts)
     dist = counts.float() / counts.sum()
     
     return dist
