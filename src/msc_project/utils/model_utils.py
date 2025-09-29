@@ -1,3 +1,4 @@
+from typing import Literal
 import torch
 
 from circuits.tensors.mlp import StepMLP

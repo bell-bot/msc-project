@@ -72,7 +72,7 @@ class RandomisedStepMLP(CustomStepMLP):
         return cls.from_graph(graph, sampler=sampler)
     
     @classmethod
-    def from_graph(cls, graph: CustomGraph, sampler: WeightSampler) -> "RandomisedStepMLP":
+    def from_graph(cls, graph: Graph, sampler: WeightSampler) -> "RandomisedStepMLP":
         """Same as parent but using custom matrices"""
         start = time.time()
         matrices = RandomisedMatrices.from_graph(graph, sampler=sampler, dtype=torch.float64)

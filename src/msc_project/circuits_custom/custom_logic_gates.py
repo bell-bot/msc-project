@@ -10,14 +10,14 @@ def custom_gate(incoming: list[Bit], weights: list[float], threshold: float) -> 
     return Neuron(tuple(incoming), tuple(weights), -threshold, step).outgoing
 
 def custom_not_(x: Bit, sampler: WeightSampler) -> Bit:
-    weight = sampler(num_samples=1, sign="negative").tolist()[0]
+    weight = sampler.sample(num_samples=1, sign="negative").tolist()[0]
     epsilon = abs(weight) * 0.01
     return custom_gate([x], [weight], -epsilon)
 
 def custom_or_(x: list[Bit], sampler: WeightSampler) -> Bit:
     """A robust OR gate with a relative margin of safety."""
     if not x: return custom_gate([], [], 1.0)
-    weights = sampler(num_samples=len(x), sign="positive").tolist()
+    weights = sampler.sample(num_samples=len(x), sign="positive").tolist()
     min_weight = min(weights)
     # The margin is relative to the smallest weight
     epsilon = min_weight * 0.01
@@ -25,7 +25,7 @@ def custom_or_(x: list[Bit], sampler: WeightSampler) -> Bit:
 
 def custom_and_(x: list[Bit], sampler: WeightSampler) -> Bit:
     if not x: return custom_gate([], [], 1.0)
-    weights = sampler(num_samples=len(x), sign="positive").tolist()
+    weights = sampler.sample(num_samples=len(x), sign="positive").tolist()
     weights_sum = sum(weights)
     epsilon = min(weights) * 0.01
     return custom_gate(x, weights, weights_sum - epsilon)
@@ -54,7 +54,7 @@ def custom_xor(x: list[Bit], sampler: WeightSampler) -> Bit:
 
 def get_random_identity_params(sampler: WeightSampler) -> tuple[float, float]:
     """Generates a random (weight, bias) pair for a boolean identity function."""
-    weight = sampler(num_samples=1, sign="positive").tolist()[0]
+    weight = sampler.sample(num_samples=1, sign="positive").tolist()[0]
     # Bias must be negative and smaller in magnitude than the weight
     bias = uniform(low=-weight * 0.99, high=-weight * 0.01)
     return weight, bias

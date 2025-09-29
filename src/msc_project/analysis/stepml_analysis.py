@@ -19,7 +19,7 @@ from msc_project.analysis.analysis_utils import get_stepml_parameters, plot_cate
 from msc_project.utils.model_utils import unfold_stepmlp_parameters
 from msc_project.circuits_custom.custom_keccak import CustomKeccak
 from msc_project.circuits_custom.custom_stepmlp import CustomStepMLP, RandomisedRedundantStepMLP, RandomisedStepMLP
-from msc_project.utils.sampling import WeightSampler, sample_from_distribution
+from msc_project.utils.sampling import WeightBankSampler, WeightCounter, WeightSampler, sample_from_distribution
 
 LOG = logging.getLogger(__name__)
 
@@ -76,7 +76,13 @@ def run_custom_stepml_analysis(num_models, c, log_w, n, sample_layer_idx=None, s
 
     torch.manual_seed(seed)
     target_weights = torch.randn(size=(3000000,))
-    sampler : WeightSampler = partial(sample_from_distribution, target=target_weights)
+    weight_counter = WeightCounter(target_weights)
+    counting_keccak = CustomKeccak(n = n, c = c, log_w=log_w, sampler=weight_counter)
+    trigger_message = format_msg("Hello, world!", counting_keccak.msg_len)
+    payload = format_msg("Consider yourself BACKDOORED", counting_keccak.d)
+    _ = RandomisedStepMLP.create_with_randomised_backdoor(trigger_message.bitlist, payload.bitlist, counting_keccak, sampler=weight_counter)
+
+    sampler = WeightBankSampler(target_weights, num_positive_samples=weight_counter.num_positive, num_negative_samples=weight_counter.num_negative)
 
     weights = []
     biases = []
