@@ -19,3 +19,15 @@ def sample_from_distribution(target: torch.Tensor, num_samples: int, sign: Liter
     else:
         indices = torch.randint(num_available, (num_samples,), device=target.device)
     return target[indices]
+
+
+def sample_tensor(data: torch.Tensor, num_samples: int, generator: torch.Generator | None = None):
+    num_elements = data.numel()
+    if num_samples >= num_elements:
+        return data
+
+    indices = torch.randperm(num_elements, device=data.device, generator=generator)
+
+    sample_indices = indices[:num_samples]
+
+    return data[sample_indices]
