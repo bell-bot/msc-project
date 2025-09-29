@@ -8,7 +8,7 @@ from msc_project.utils.logging_utils import TimedLogger
 from msc_project.utils.model_utils import unfold_stepmlp_parameters
 from scipy.stats import kurtosis
 
-from msc_project.utils.run_utils import sample
+from msc_project.utils.sampling import sample_tensor
 
 def evaluate_model(backdoored_model, target: tuple[torch.Tensor, torch.Tensor], sample_size: int, LOG: TimedLogger, pbar: tqdm | None = None, step_info: str = ""): 
     
@@ -26,10 +26,10 @@ def evaluate_model(backdoored_model, target: tuple[torch.Tensor, torch.Tensor], 
 
     if pbar: pbar.set_description(f"{step_info}Sampling parameters")
     with LOG.time("Parameter sampling", show_pbar=False):
-        backdoored_model_sample_weights = sample(backdoored_model_weights, sample_size)
-        target_model_sample_weights = sample(target_model_weights, sample_size)
-        backdoored_model_sample_biases = sample(backdoored_model_biases, sample_size)
-        target_model_sample_biases = sample(target_model_biases, sample_size)
+        backdoored_model_sample_weights = sample_tensor(backdoored_model_weights, sample_size)
+        target_model_sample_weights = sample_tensor(target_model_weights, sample_size)
+        backdoored_model_sample_biases = sample_tensor(backdoored_model_biases, sample_size)
+        target_model_sample_biases = sample_tensor(target_model_biases, sample_size)
 
     if pbar: pbar.set_description(f"{step_info}Calculating Earth Mover's Distance")
     with LOG.time("Earth Mover's Distance", show_pbar=False):

@@ -2,27 +2,14 @@ from collections.abc import Callable
 from typing import Any
 from circuits.neurons.core import Signal, const
 from circuits.sparse.compile import Graph, Node
-from circuits.utils.misc import OrderedSet
-from msc_project.circuits_custom.custom_logic_gates import get_positive_laplace_weights, get_random_identity_params
-from numpy.random import uniform, RandomState
+from msc_project.circuits_custom.custom_logic_gates import get_random_identity_params
 
-def custom_compiled_from_io(inputs: list[Signal], outputs: list[Signal], rs = None) -> Graph:
-    """Compiles a graph for function f using dummy input and output=f(input)."""
-    return CustomGraph(inputs, outputs, rs=rs)
-
-def custom_compiled(function: Callable[..., list[Signal]], input_len: int, rs = None, **kwargs: Any) -> Graph:
-    """Compiles a function into a graph."""
-    inp = const("0" * input_len)
-    if rs is not None:
-        kwargs['rs'] = rs
-    out = function(inp, **kwargs)
-    return custom_compiled_from_io(inp, out, rs)
-
+from msc_project.utils.sampling import WeightSampler
 
 class CustomGraph(Graph):
 
-    def __init__(self, inputs: list[Signal], outputs: list[Signal], rs = None) -> None:
-        self.rs = rs
+    def __init__(self, inputs: list[Signal], outputs: list[Signal], sampler: WeightSampler) -> None:
+        self.sampler = sampler
         
         super().__init__(inputs, outputs)
 
@@ -48,7 +35,7 @@ class CustomGraph(Graph):
                 for depth in range(layer_idx + 1, layer_idx + n_missing_layers + 1):
                     curr = prev.copy()
                     curr.depth = depth
-                    (weight, bias) = get_random_identity_params(rs=self.rs)
+                    (weight, bias) = get_random_identity_params(self.sampler)
                     curr.bias = bias
                     curr.add_parent(prev, weight=weight)
                     copy_chain.append(curr)
@@ -76,3 +63,14 @@ class CustomGraph(Graph):
                 node.column = j
 
         return layers
+
+def custom_compiled_from_io(inputs: list[Signal], outputs: list[Signal], sampler: WeightSampler) -> CustomGraph:
+    """Compiles a graph for function f using dummy input and output=f(input)."""
+    return CustomGraph(inputs, outputs, sampler)
+
+def custom_compiled(function: Callable[..., list[Signal]], input_len: int, sampler: WeightSampler, **kwargs: Any) -> CustomGraph:
+    """Compiles a function into a graph."""
+    inp = const("0" * input_len)
+    
+    out = function(inp, **kwargs)
+    return custom_compiled_from_io(inp, out, sampler)

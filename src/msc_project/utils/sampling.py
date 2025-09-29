@@ -1,6 +1,15 @@
-from typing import Literal
+from typing import Literal, Protocol
 
 import torch
+
+class WeightSampler(Protocol):
+    def __call__(
+        self,
+        num_samples: int,
+        *, 
+        sign: Literal["positive", "negative"] = "positive",
+    ) -> torch.Tensor:
+        ...
 
 def sample_from_distribution(target: torch.Tensor, num_samples: int, sign: Literal["positive", "negative"] = "positive") -> torch.Tensor:
 
@@ -15,9 +24,9 @@ def sample_from_distribution(target: torch.Tensor, num_samples: int, sign: Liter
         raise ValueError(f"No {sign} values available for sampling.")
     
     if num_available >= num_samples:
-        indices = torch.randperm(num_available, device=target.device)[:num_samples]
+        indices = torch.randperm(num_available)[:num_samples]
     else:
-        indices = torch.randint(num_available, (num_samples,), device=target.device)
+        indices = torch.randint(num_available, (num_samples,))
     return target[indices]
 
 

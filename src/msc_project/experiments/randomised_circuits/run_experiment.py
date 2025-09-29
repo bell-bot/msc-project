@@ -24,7 +24,8 @@ LOG : TimedLogger = cast(TimedLogger, logging.getLogger(__name__))
 
 def evaluate_randomised(specs: ExperimentSpecs, target_model: tuple[torch.Tensor, torch.Tensor]) -> pd.DataFrame:
     
-    rs = RandomState(specs.random_seed)
+    torch.manual_seed(specs.random_seed)
+
     results = []
 
     with tqdm(range(specs.num_samples), desc="Starting experiments") as pbar:
@@ -34,8 +35,8 @@ def evaluate_randomised(specs: ExperimentSpecs, target_model: tuple[torch.Tensor
 
             pbar.set_description(f"{step_info}Generating trigger and payload")
             with LOG.time("Generating trigger and payload", show_pbar=False):
-                trigger_string = get_random_alphanum_string(specs.trigger_length, rs)
-                payload_string = get_random_alphanum_string(specs.payload_length, rs)
+                trigger_string = get_random_alphanum_string(specs.trigger_length)
+                payload_string = get_random_alphanum_string(specs.payload_length)
                 keccak = CustomKeccak(n = specs.n, c = specs.c, log_w=specs.log_w, rs=rs)
                 trigger = format_msg(trigger_string, keccak.msg_len)
                 payload = format_msg(payload_string, keccak.d)

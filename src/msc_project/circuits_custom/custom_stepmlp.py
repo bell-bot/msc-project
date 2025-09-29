@@ -1,15 +1,17 @@
 
+import time
 from circuits.examples.capabilities.backdoors import get_backdoor
 from circuits.examples.keccak import Keccak
 from circuits.neurons.core import Bit
 from circuits.sparse.compile import Graph, compiled
-from circuits.tensors.matrices import Matrices
 from circuits.tensors.mlp import StepMLP
 from msc_project.circuits_custom.custom_backdoors import custom_get_backdoor, get_backdoor_with_redundancy
-from msc_project.circuits_custom.custom_compile import custom_compiled
+from msc_project.circuits_custom.custom_compile import CustomGraph, custom_compiled
 from msc_project.circuits_custom.custom_keccak import CustomKeccak
 from msc_project.circuits_custom.custom_matrices import CustomMatrices, RandomisedMatrices
 import torch
+
+from msc_project.utils.sampling import WeightSampler
 
 class CustomStepMLP(StepMLP):
 
@@ -58,18 +60,29 @@ class RandomisedStepMLP(CustomStepMLP):
         super().__init__(sizes, dtype)
 
     @classmethod
-    def create_with_randomised_backdoor(cls, trigger: list[Bit], payload: list[Bit], k: CustomKeccak, rs = None):
-
-        backdoor_fun = custom_get_backdoor(trigger=trigger, payload=payload, k=k, rs=rs)
-        graph = custom_compiled(backdoor_fun, k.msg_len, rs=rs)
-        return cls.from_graph(graph, rs=rs)
+    def create_with_randomised_backdoor(cls, trigger: list[Bit], payload: list[Bit], k: CustomKeccak, sampler: WeightSampler):
+        start = time.time()
+        backdoor_fun = custom_get_backdoor(trigger=trigger, payload=payload, k=k, sampler=sampler)
+        end = time.time()
+        print(f"Backdoor function created in {end - start:.2f} seconds")
+        start = time.time()
+        graph = custom_compiled(backdoor_fun, k.msg_len, sampler=sampler)
+        end = time.time()
+        print(f"Graph compiled in {end - start:.2f} seconds")
+        return cls.from_graph(graph, sampler=sampler)
     
     @classmethod
-    def from_graph(cls, graph: Graph, rs = None) -> "CustomStepMLP":
+    def from_graph(cls, graph: CustomGraph, sampler: WeightSampler) -> "RandomisedStepMLP":
         """Same as parent but using custom matrices"""
-        matrices = RandomisedMatrices.from_graph(graph, dtype=torch.float64, rs=rs)
+        start = time.time()
+        matrices = RandomisedMatrices.from_graph(graph, sampler=sampler, dtype=torch.float64)
+        end = time.time()
+        print(f"Matrices created in {end - start:.2f} seconds")
+        start = time.time()
         mlp = cls(matrices.sizes)
         mlp.load_params(matrices.mlist)
+        end = time.time()
+        print(f"Model created in {end - start:.2f} seconds")
         return mlp
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -84,8 +97,8 @@ class RandomisedStepMLP(CustomStepMLP):
     
 class RandomisedRedundantStepMLP(RandomisedStepMLP):
     @classmethod
-    def create_with_randomised_backdoor(cls, trigger: list[Bit], payload: list[Bit], k: CustomKeccak, rs = None):
+    def create_with_randomised_backdoor(cls, trigger: list[Bit], payload: list[Bit], k: CustomKeccak, sampler = WeightSampler):
 
-        backdoor_fun = get_backdoor_with_redundancy(trigger=trigger, payload=payload, k=k, rs=rs)
-        graph = custom_compiled(backdoor_fun, k.msg_len, rs=rs)
-        return cls.from_graph(graph, rs=rs)
+        backdoor_fun = get_backdoor_with_redundancy(trigger=trigger, payload=payload, k=k, sampler=sampler)
+        graph = custom_compiled(backdoor_fun, k.msg_len, sampler=sampler)
+        return cls.from_graph(graph, sampler=sampler)

@@ -7,7 +7,7 @@ from circuits.examples.keccak import Keccak
 from circuits.tensors.mlp import StepMLP
 from msc_project.evaluation.utils import get_distribution, get_histogram_params, get_random_benign_inputs, get_random_trigger_inputs
 from msc_project.utils.model_utils import get_layer_activations
-from msc_project.utils.run_utils import sample
+from msc_project.utils.sampling import sample_tensor
 
 def kl_divergence(backdoored_model_weights: torch.Tensor, target_model_weights: torch.Tensor):
     """

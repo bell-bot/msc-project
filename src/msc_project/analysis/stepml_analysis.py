@@ -1,3 +1,5 @@
+from functools import partial
+from typing import Literal
 import torch
 from tqdm import tqdm
 import random
@@ -17,6 +19,7 @@ from msc_project.analysis.analysis_utils import get_stepml_parameters, plot_cate
 from msc_project.utils.model_utils import unfold_stepmlp_parameters
 from msc_project.circuits_custom.custom_keccak import CustomKeccak
 from msc_project.circuits_custom.custom_stepmlp import CustomStepMLP, RandomisedRedundantStepMLP, RandomisedStepMLP
+from msc_project.utils.sampling import WeightSampler, sample_from_distribution
 
 LOG = logging.getLogger(__name__)
 
@@ -69,7 +72,11 @@ def run_stepml_analysis(num_models, c=20, l=1, n=3, sample_layer_idx=None):
         "avg_layer_weight": avg_layer_weight
     }
 
-def run_custom_stepml_analysis(num_models, c=20, l=1, n=3, sample_layer_idx=None):
+def run_custom_stepml_analysis(num_models, c, log_w, n, sample_layer_idx=None, seed = 42):
+
+    torch.manual_seed(seed)
+    target_weights = torch.randn(size=(3000000,))
+    sampler : WeightSampler = partial(sample_from_distribution, target=target_weights)
 
     weights = []
     biases = []
@@ -79,60 +86,12 @@ def run_custom_stepml_analysis(num_models, c=20, l=1, n=3, sample_layer_idx=None
     for _ in tqdm(range(num_models), desc="Analyzing StepMLP models"):
         trigger = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(16))
         payload = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(16))
-        k = CustomKeccak(n = 3, c = 20, log_w=1)
+        k = CustomKeccak(n = n, c = c, log_w=log_w, sampler=sampler)
 
         trigger_bits = format_msg(trigger, k.msg_len)
         payload_bits = format_msg(payload, k.d)
 
-        mlp = RandomisedStepMLP.create_with_randomised_backdoor(trigger_bits.bitlist, payload_bits.bitlist, k)
-
-        assert mlp.infer_bits(trigger_bits).bitstr == payload_bits.bitstr, f"Backdoor failed to produce correct payload\nCorrect: {payload_bits.bitstr}\nGot: {mlp.infer_bits(trigger_bits).bitstr}"
-        model_weights, model_biases = unfold_stepmlp_parameters(mlp)
-
-        if sample_layer_idx is None:
-            sample_layer_idx = random.randint(1, len(mlp.net)-2)
-        layer_weight = mlp.net[sample_layer_idx].weight.data.to(torch.float64)
-
-        layer_weights.append(layer_weight)
-        
-        weights.append(model_weights.to(torch.float64))
-        biases.append(model_biases.to(torch.float64))
-
-    weights_tensor = torch.cat(weights)
-    biases_tensor = torch.cat(biases)
-    weight_stats = compute_param_stats(weights_tensor)
-
-    avg_layer_weight = torch.mean(torch.stack(layer_weights), dim=0)
-
-    bias_stats = {}
-    if len(biases_tensor) > 0:
-        bias_stats = compute_param_stats(biases_tensor)
-    
-    return {
-        "weights": weights_tensor,
-        "biases": biases_tensor,
-        "weight_stats": weight_stats,
-        "bias_stats": bias_stats,
-        "sample_layer_idx": sample_layer_idx,
-        "avg_layer_weight": avg_layer_weight
-    }
-
-def run_stepml_analysis_redundant_gates(num_models, c=20, l=1, n=3, sample_layer_idx=None):
-
-    weights = []
-    biases = []
-
-    layer_weights = []
-
-    for _ in tqdm(range(num_models), desc="Analyzing StepMLP models"):
-        trigger = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(16))
-        payload = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(16))
-        k = CustomKeccak(n = 3, c = 20, log_w=1)
-
-        trigger_bits = format_msg(trigger, k.msg_len)
-        payload_bits = format_msg(payload, k.d)
-
-        mlp = RandomisedRedundantStepMLP.create_with_randomised_backdoor(trigger_bits.bitlist, payload_bits.bitlist, k,)
+        mlp = RandomisedStepMLP.create_with_randomised_backdoor(trigger_bits.bitlist, payload_bits.bitlist, k, sampler=sampler)
 
         assert mlp.infer_bits(trigger_bits).bitstr == payload_bits.bitstr, f"Backdoor failed to produce correct payload\nCorrect: {payload_bits.bitstr}\nGot: {mlp.infer_bits(trigger_bits).bitstr}"
         model_weights, model_biases = unfold_stepmlp_parameters(mlp)
@@ -171,15 +130,13 @@ if __name__ == "__main__":
     parser.add_argument("--n", type=int, default=3)
     parser.add_argument("--c", type=int, default=20)
     parser.add_argument("--l", type=int, default=1)
-    parser.add_argument("--model_type", choices=["stepmlp", "custom_stepmlp", "redundant_stepmlp"], default="custom_stepmlp", help="Type of model to analyze.")
+    parser.add_argument("--model_type", choices=["stepmlp", "custom_stepmlp"], default="custom_stepmlp", help="Type of model to analyze.")
     parser.add_argument("--sample_layer_idx", type=int, default=None, help="Layer index to sample for heatmap visualization. If None, a random layer will be chosen.")
     parser.add_argument("--prefix", type=str, default="")
     args = parser.parse_args()
 
     if args.model_type == "stepmlp":
         results = run_stepml_analysis(args.num_models, args.c, args.l, args.n, sample_layer_idx=args.sample_layer_idx)    
-    elif args.model_type == "redundant_stepmlp":
-        results = run_stepml_analysis_redundant_gates(args.num_models, args.c, args.l, args.n, sample_layer_idx=args.sample_layer_idx)
     else:
         results = run_custom_stepml_analysis(args.num_models, args.c, args.l, args.n, sample_layer_idx=args.sample_layer_idx)
 
