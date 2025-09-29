@@ -1,5 +1,5 @@
 num_samples: 10
-c: 256
+c: 448
 n: 24
 log_w: 6
 random_seed: 94
@@ -7,4 +7,4 @@ trigger_length: 8
 payload_length: 8
 num_target_weights: 100000
 num_target_biases: 50000
-sample_size: 50000
+sample_size: 1000

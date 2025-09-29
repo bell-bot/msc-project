@@ -23,18 +23,13 @@ def kl_divergence(backdoored_model_weights: torch.Tensor, target_model_weights: 
 
     return torch.sum(kl_div(backdoored_model_dist, target_dist))
 
-def earth_movers_distance(backdoored_model_weights: torch.Tensor, target_model_weights: torch.Tensor, sample_size: int = 1000):
-    backdoored_model_samples = sample(backdoored_model_weights, sample_size)
-    target_model_samples = sample(target_model_weights, sample_size)
-    return wasserstein_distance(backdoored_model_samples, target_model_samples)
+def earth_movers_distance(backdoored_model_weights: torch.Tensor, target_model_weights: torch.Tensor):
+    
+    return wasserstein_distance(backdoored_model_weights, target_model_weights)
 
-def ks_test(backdoored_model_weights: torch.Tensor, target_model_weights: torch.Tensor, sample_size: int = 1000):
+def ks_test(backdoored_model_weights: torch.Tensor, target_model_weights: torch.Tensor):
 
-    #ks_2samp first sorts the inputs which is computationally expensive for large tensors
-    #so we randomly sample from the tensors to reduce computation time (and make it not crash cough cough)
-    backdoored_model_samples = sample(backdoored_model_weights, sample_size)
-    target_model_samples = sample(target_model_weights, sample_size)
-    statistic, p_value = ks_2samp(target_model_samples, backdoored_model_samples)
+    statistic, p_value = ks_2samp(target_model_weights, backdoored_model_weights)
 
     return statistic, p_value
 

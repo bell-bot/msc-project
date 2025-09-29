@@ -40,7 +40,7 @@ def get_mlp_layers(model: nn.Module) -> dict[str, torch.Tensor]:
     return mlp_layers
 
 
-def process_mlp_layers(mlp_layers: dict[str, torch.Tensor], p: float) -> tuple[torch.Tensor, torch.Tensor]:
+def process_mlp_layers(mlp_layers: dict[str, torch.Tensor], p: float = 100) -> tuple[torch.Tensor, torch.Tensor]:
     """
     Processes MLP layers by splitting weights and biases, flattening,
     and sampling a subset of the parameters for each layer.
