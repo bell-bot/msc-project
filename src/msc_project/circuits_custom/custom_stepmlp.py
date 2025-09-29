@@ -61,28 +61,16 @@ class RandomisedStepMLP(CustomStepMLP):
 
     @classmethod
     def create_with_randomised_backdoor(cls, trigger: list[Bit], payload: list[Bit], k: CustomKeccak, sampler: WeightSampler):
-        start = time.time()
         backdoor_fun = custom_get_backdoor(trigger=trigger, payload=payload, k=k, sampler=sampler)
-        end = time.time()
-        print(f"Backdoor function created in {end - start:.2f} seconds")
-        start = time.time()
         graph = custom_compiled(backdoor_fun, k.msg_len, sampler=sampler)
-        end = time.time()
-        print(f"Graph compiled in {end - start:.2f} seconds")
         return cls.from_graph(graph, sampler=sampler)
     
     @classmethod
     def from_graph(cls, graph: Graph, sampler: WeightSampler) -> "RandomisedStepMLP":
         """Same as parent but using custom matrices"""
-        start = time.time()
         matrices = RandomisedMatrices.from_graph(graph, sampler=sampler, dtype=torch.float64)
-        end = time.time()
-        print(f"Matrices created in {end - start:.2f} seconds")
-        start = time.time()
         mlp = cls(matrices.sizes)
         mlp.load_params(matrices.mlist)
-        end = time.time()
-        print(f"Model created in {end - start:.2f} seconds")
         return mlp
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:

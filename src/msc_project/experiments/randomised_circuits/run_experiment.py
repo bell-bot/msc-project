@@ -19,12 +19,24 @@ from msc_project.utils.model_utils import get_mlp_layers, process_mlp_layers
 from msc_project.utils.run_utils import get_random_alphanum_string
 from transformers import logging as hf_logging
 
+from msc_project.utils.sampling import WeightBankSampler, WeightCounter
+
 logging.setLoggerClass(TimedLogger)
 LOG : TimedLogger = cast(TimedLogger, logging.getLogger(__name__))
+
+def dryrun(specs: ExperimentSpecs) -> WeightCounter:
+    weight_counter = WeightCounter(torch.tensor([]))
+    counting_keccak = CustomKeccak(n = specs.n, c = specs.c, log_w=specs.log_w, sampler=weight_counter)
+    trigger_message = format_msg(get_random_alphanum_string(specs.trigger_length), counting_keccak.msg_len)
+    payload = format_msg(get_random_alphanum_string(specs.payload_length), counting_keccak.d)
+    _ = RandomisedStepMLP.create_with_randomised_backdoor(trigger_message.bitlist, payload.bitlist, counting_keccak, sampler=weight_counter)
+
+    return weight_counter
 
 def evaluate_randomised(specs: ExperimentSpecs, target_model: tuple[torch.Tensor, torch.Tensor]) -> pd.DataFrame:
     
     torch.manual_seed(specs.random_seed)
+    weight_counter = dryrun(specs)
 
     results = []
 
@@ -32,18 +44,19 @@ def evaluate_randomised(specs: ExperimentSpecs, target_model: tuple[torch.Tensor
         
         for i in pbar:
             step_info = f"Sample {i+1}/{specs.num_samples} - "
+            sampler = WeightBankSampler(target_model[0], num_positive_samples=weight_counter.num_positive, num_negative_samples=weight_counter.num_negative)
 
             pbar.set_description(f"{step_info}Generating trigger and payload")
             with LOG.time("Generating trigger and payload", show_pbar=False):
                 trigger_string = get_random_alphanum_string(specs.trigger_length)
                 payload_string = get_random_alphanum_string(specs.payload_length)
-                keccak = CustomKeccak(n = specs.n, c = specs.c, log_w=specs.log_w, rs=rs)
+                keccak = CustomKeccak(n = specs.n, c = specs.c, log_w=specs.log_w, sampler=sampler)
                 trigger = format_msg(trigger_string, keccak.msg_len)
                 payload = format_msg(payload_string, keccak.d)
 
             pbar.set_description(f"{step_info}Creating backdoored model")
             with LOG.time("Creating backdoored model", show_pbar=False):
-                backdoored_model = RandomisedStepMLP.create_with_randomised_backdoor(trigger.bitlist, payload.bitlist, keccak, rs=rs)
+                backdoored_model = RandomisedStepMLP.create_with_randomised_backdoor(trigger.bitlist, payload.bitlist, keccak, sampler=sampler)
             
             metrics = evaluate_model(backdoored_model, target_model, specs.sample_size, LOG , pbar=pbar, step_info=step_info)
             results.append(metrics)

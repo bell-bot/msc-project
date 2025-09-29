@@ -36,10 +36,7 @@ class WeightSampler:
         if num_available == 0:
             raise ValueError(f"No {sign} values available for sampling.")
         
-        if num_available >= num_samples:
-            indices = torch.randperm(num_available)[:num_samples]
-        else:
-            indices = torch.randint(num_available, (num_samples,))
+        indices = torch.randint(num_available, (num_samples,))
         return target[indices]
 
 class WeightBankSampler(WeightSampler):
