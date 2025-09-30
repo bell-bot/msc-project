@@ -1,9 +1,10 @@
-num_samples: 10
-c: None
+target_model: gpt2
+experiment_name: baseline
+num_samples: 50
+c: 448
 n: 24
-log_w: 1
-random_seed: 94
+log_w: 6
+random_seed: 95
 trigger_length: 16
 payload_length: 16
-num_target_weights: 1000000
-num_target_biases: 5000
+sample_size: 1000000
