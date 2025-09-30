@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import Type
 from circuits.sparse.compile import Graph
 
 import torch
@@ -7,6 +6,7 @@ import torch
 from circuits.tensors.matrices import Matrices
 from msc_project.circuits_custom.custom_compile import CustomGraph, get_random_identity_params
 from msc_project.utils.sampling import WeightSampler
+
 
 @dataclass(frozen=True, slots=True)
 class CustomMatrices(Matrices):
@@ -23,6 +23,7 @@ class CustomMatrices(Matrices):
         # matrices[-1] = matrices[-1][1:]  # last layer removes the constant input feature
         return cls(matrices, dtype=dtype)
 
+
 @dataclass(frozen=True, slots=True)
 class RandomisedMatrices(CustomMatrices):
 
@@ -30,9 +31,9 @@ class RandomisedMatrices(CustomMatrices):
     def fold_bias(w: torch.Tensor, b: torch.Tensor, sampler: WeightSampler) -> torch.Tensor:
         """Folds bias into weights, assuming input feature at index 0 is always 1."""
         identity_weight, identity_bias = get_random_identity_params(sampler)
-        
+
         one = torch.tensor([[identity_weight]])
-        zeros = torch.ones(1, w.size(1))*(identity_bias/w.size(1))
+        zeros = torch.ones(1, w.size(1)) * (identity_bias / w.size(1))
         # assumes row vector bias that is transposed during forward pass
         bT = torch.unsqueeze(b, dim=-1)
         wb = torch.cat(
@@ -46,11 +47,8 @@ class RandomisedMatrices(CustomMatrices):
 
     @classmethod
     def from_graph(
-        cls, 
-        graph: Graph, 
-        sampler: WeightSampler,
-        dtype: torch.dtype= torch.int
-        ) -> "RandomisedMatrices":
+        cls, graph: Graph, sampler: WeightSampler, dtype: torch.dtype = torch.int
+    ) -> "RandomisedMatrices":
         """Set parameters of the model from weights and biases"""
         layers = graph.layers[1:]  # skip input layer as it has no incoming weights
         sizes_in = [len(layer) for layer in graph.layers]  # incoming weight sizes

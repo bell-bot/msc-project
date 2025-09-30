@@ -24,10 +24,16 @@ dependencies = [
     "pygad",
     "graphviz",
 ]
+
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
+]
+
+[project.optional-dependencies]
+dev = [
+    "black",
 ]
 
 [tool.setuptools.packages.find]
@@ -37,3 +43,6 @@ where = ["src"]
 line-length = 104
 target-version = ['py38']
 include = '\.pyi?$'
+exclude = '''
+circuits
+'''

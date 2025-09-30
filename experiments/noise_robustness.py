@@ -13,6 +13,7 @@ import logging
 
 from msc_project.circuits_custom.custom_stepmlp import CustomStepMLP
 from msc_project.utils.run_utils import get_random_alphanum_string
+
 logger = logging.getLogger(__name__)
 
 EXPERIMENT_DIR = "results/noise_robustness"
@@ -21,15 +22,18 @@ EXPERIMENT_INFO = "experiment_info.txt"
 RESULTS_HEADER = "std, preserve rate\n"
 LOG_FILE = "experiment.log"
 
+
 def verify_stepmlp(stepmlp, input_bits, expected_output_bits):
     predicted_output = stepmlp.infer_bits(input_bits)
 
     return predicted_output.bitstr == expected_output_bits.bitstr
 
+
 def noise_stepmlp(stepmlp, std=0.1):
     with torch.no_grad():
         for _, param in stepmlp.named_parameters():
-            param.add_(torch.randn_like(param)*std)
+            param.add_(torch.randn_like(param) * std)
+
 
 def create_random_backdoored_stepmlp():
 
@@ -47,7 +51,7 @@ def create_random_backdoored_stepmlp():
 
 
 def run_experiment(n_models, std, i):
-    
+
     n_correct = 0.0
 
     for j in tqdm(range(n_models), f"{i}. Std = {std}"):
@@ -58,9 +62,17 @@ def run_experiment(n_models, std, i):
         n_correct += verify_stepmlp(mlp, message_bits, payload_bits)
         predicted_output = mlp.infer_bits(message_bits)
 
-        logger.info(f"\tModel %d\n\tInitial weights:\t[%s]\n\tNoised weights: \t[%s]\n\tExpected output: \t%s\n\tActual output:  \t%s", j, ", ".join([str(weight) for weight in init_weights]), ", ".join([str(weight) for weight in noised_weights]), payload_bits.bitstr, predicted_output.bitstr)
+        logger.info(
+            f"\tModel %d\n\tInitial weights:\t[%s]\n\tNoised weights: \t[%s]\n\tExpected output: \t%s\n\tActual output:  \t%s",
+            j,
+            ", ".join([str(weight) for weight in init_weights]),
+            ", ".join([str(weight) for weight in noised_weights]),
+            payload_bits.bitstr,
+            predicted_output.bitstr,
+        )
 
-    return (n_correct/n_models)
+    return n_correct / n_models
+
 
 def run(n_models, stds, save_path):
 
@@ -70,12 +82,12 @@ def run(n_models, stds, save_path):
         info = [
             "Num models: %s\n" % n_models,
             "Num stds: %d\n" % len(stds),
-            "Stds: [%s]\n" % ", ".join(["{:e}".format(std) for std in stds]) 
+            "Stds: [%s]\n" % ", ".join(["{:e}".format(std) for std in stds]),
         ]
         f.writelines(info)
 
     for i, std in enumerate(stds):
-        logger.info("Iteration %d: Std = %e",i,std)
+        logger.info("Iteration %d: Std = %e", i, std)
         results.append(run_experiment(n_models, std, i))
 
     with open(save_path + EXPERIMENT_RESULTS, "+w") as f:
@@ -85,7 +97,8 @@ def run(n_models, stds, save_path):
             f.write(result_line)
     return results
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Run noise robustness experiment on CustomStepMLP")
     parser.add_argument("--n_models", type=int, default=5)
@@ -95,7 +108,7 @@ if __name__=="__main__":
 
     n_models = args.n_models
     stds = args.stds
-    save_path = EXPERIMENT_DIR + f"/{args.result_dir}/" 
+    save_path = EXPERIMENT_DIR + f"/{args.result_dir}/"
     log_path = EXPERIMENT_DIR + f"/{args.result_dir}/" + LOG_FILE
 
     Path(save_path).mkdir(parents=True, exist_ok=True)

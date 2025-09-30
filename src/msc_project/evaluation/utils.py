@@ -5,6 +5,7 @@ import torch
 from circuits.utils.format import Bits, format_msg
 from msc_project.utils.run_utils import get_random_alphanum_string
 
+
 def get_histogram_params(tensors: list[torch.Tensor]) -> tuple[Sequence[float], int]:
     mins: list[float] = []
     maxs: list[float] = []
@@ -17,13 +18,15 @@ def get_histogram_params(tensors: list[torch.Tensor]) -> tuple[Sequence[float], 
 
     return (min(mins), max(maxs)), int(sqrt(sum(bins)))
 
+
 def get_distribution(x: torch.Tensor, bins: int, r: Sequence[float]):
     counts, bin_edges = x.histogram(bins=bins, range=r)
     dist = counts.float() / counts.sum()
-    
+
     return dist
 
-def get_random_benign_inputs(n_inputs: int, sequence_length: int, k_msg_len:int) -> list[Bits]:
+
+def get_random_benign_inputs(n_inputs: int, sequence_length: int, k_msg_len: int) -> list[Bits]:
     inputs = []
     for _ in range(n_inputs):
         s = get_random_alphanum_string(sequence_length)
@@ -31,7 +34,10 @@ def get_random_benign_inputs(n_inputs: int, sequence_length: int, k_msg_len:int)
 
     return inputs
 
-def get_random_trigger_inputs(n_inputs: int, prefix: str, suffix_length: int, k_msg_len: int) -> list[Bits]:
+
+def get_random_trigger_inputs(
+    n_inputs: int, prefix: str, suffix_length: int, k_msg_len: int
+) -> list[Bits]:
     inputs = []
 
     for _ in range(n_inputs):

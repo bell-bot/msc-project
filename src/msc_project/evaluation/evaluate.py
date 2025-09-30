@@ -10,40 +10,58 @@ from scipy.stats import kurtosis
 
 from msc_project.utils.sampling import sample_tensor
 
-def evaluate_model(backdoored_model, target: tuple[torch.Tensor, torch.Tensor], sample_size: int, LOG: TimedLogger, pbar: tqdm | None = None, step_info: str = ""): 
-    
+
+def evaluate_model(
+    backdoored_model,
+    target: tuple[torch.Tensor, torch.Tensor],
+    sample_size: int,
+    LOG: TimedLogger,
+    pbar: tqdm | None = None,
+    step_info: str = "",
+):
+
     metrics = {}
-    
-    if pbar: pbar.set_description(f"{step_info}Unfolding parameters")
+
+    if pbar:
+        pbar.set_description(f"{step_info}Unfolding parameters")
     with LOG.time("Unfold StepMLP parameters", show_pbar=False):
         backdoored_model_weights, backdoored_model_biases = unfold_stepmlp_parameters(backdoored_model)
         target_model_weights, target_model_biases = target
 
-    if pbar: pbar.set_description(f"{step_info}Calculating KL Divergence")
+    if pbar:
+        pbar.set_description(f"{step_info}Calculating KL Divergence")
     with LOG.time("KL Divergence", show_pbar=False):
         metrics["KL Weights"] = kl_divergence(backdoored_model_weights, target_model_weights).item()
         metrics["KL Biases"] = kl_divergence(backdoored_model_biases, target_model_biases).item()
 
-    if pbar: pbar.set_description(f"{step_info}Sampling parameters")
+    if pbar:
+        pbar.set_description(f"{step_info}Sampling parameters")
     with LOG.time("Parameter sampling", show_pbar=False):
         backdoored_model_sample_weights = sample_tensor(backdoored_model_weights, sample_size)
         target_model_sample_weights = sample_tensor(target_model_weights, sample_size)
         backdoored_model_sample_biases = sample_tensor(backdoored_model_biases, sample_size)
         target_model_sample_biases = sample_tensor(target_model_biases, sample_size)
 
-    if pbar: pbar.set_description(f"{step_info}Calculating Earth Mover's Distance")
+    if pbar:
+        pbar.set_description(f"{step_info}Calculating Earth Mover's Distance")
     with LOG.time("Earth Mover's Distance", show_pbar=False):
-        metrics["EMD Weights"] = earth_movers_distance(backdoored_model_sample_weights, target_model_sample_weights)
-        metrics["EMD Biases"] = earth_movers_distance(backdoored_model_sample_biases, target_model_sample_biases)
+        metrics["EMD Weights"] = earth_movers_distance(
+            backdoored_model_sample_weights, target_model_sample_weights
+        )
+        metrics["EMD Biases"] = earth_movers_distance(
+            backdoored_model_sample_biases, target_model_sample_biases
+        )
 
-    if pbar: pbar.set_description(f"{step_info}Calculating KS Test")
+    if pbar:
+        pbar.set_description(f"{step_info}Calculating KS Test")
     with LOG.time("KS Test", show_pbar=False):
         ks_weights = ks_test(backdoored_model_sample_weights, target_model_sample_weights)
         ks_biases = ks_test(backdoored_model_sample_biases, target_model_sample_biases)
         metrics["KS Weights Statistic"], metrics["KS Weights P-value"] = ks_weights
         metrics["KS Biases Statistic"], metrics["KS Biases P-value"] = ks_biases
 
-    if pbar: pbar.set_description(f"{step_info}Calculating descriptive statistics")
+    if pbar:
+        pbar.set_description(f"{step_info}Calculating descriptive statistics")
     with LOG.time("Descriptive statistics", show_pbar=False):
         metrics["Mean Weights"] = torch.mean(backdoored_model_sample_weights).item()
         metrics["Mean Biases"] = torch.mean(backdoored_model_sample_biases).item()
@@ -53,6 +71,7 @@ def evaluate_model(backdoored_model, target: tuple[torch.Tensor, torch.Tensor], 
         metrics["Kurtosis Biases"] = kurtosis(backdoored_model_sample_biases).item()
 
     return metrics
+
 
 def compile_report(kl_weights, kl_bias, emd_weights, emd_biases, ks_weights, ks_biases):
     report = f"""
@@ -69,6 +88,7 @@ def compile_report(kl_weights, kl_bias, emd_weights, emd_biases, ks_weights, ks_
         Biases: Statistic={ks_biases[0]}, P-value={ks_biases[1]}
     """
     return report
+
 
 def save_evaluation_report(df: pd.DataFrame, specs: ExperimentSpecs, filepath: str):
 

@@ -6,14 +6,15 @@ from msc_project.circuits_custom.custom_logic_gates import get_random_identity_p
 
 from msc_project.utils.sampling import WeightSampler
 
+
 class CustomGraph(Graph):
 
     def __init__(self, inputs: list[Signal], outputs: list[Signal], sampler: WeightSampler) -> None:
         self.sampler = sampler
-        
+
         super().__init__(inputs, outputs)
 
-    def ensure_adjacent_parents(self, layers: list[list[Node]]) -> list[list[Node]]: # type: ignore
+    def ensure_adjacent_parents(self, layers: list[list[Node]]) -> list[list[Node]]:  # type: ignore
         """Copy signals to next layers, ensuring child.depth==parent.depth+1"""
         copies_by_layer: list[list[Node]] = [[] for _ in range(len(layers))]
         for layer_idx, layer in enumerate(layers):
@@ -64,13 +65,19 @@ class CustomGraph(Graph):
 
         return layers
 
-def custom_compiled_from_io(inputs: list[Signal], outputs: list[Signal], sampler: WeightSampler) -> CustomGraph:
+
+def custom_compiled_from_io(
+    inputs: list[Signal], outputs: list[Signal], sampler: WeightSampler
+) -> CustomGraph:
     """Compiles a graph for function f using dummy input and output=f(input)."""
     return CustomGraph(inputs, outputs, sampler)
 
-def custom_compiled(function: Callable[..., list[Signal]], input_len: int, sampler: WeightSampler, **kwargs: Any) -> CustomGraph:
+
+def custom_compiled(
+    function: Callable[..., list[Signal]], input_len: int, sampler: WeightSampler, **kwargs: Any
+) -> CustomGraph:
     """Compiles a function into a graph."""
     inp = const("0" * input_len)
-    
+
     out = function(inp, **kwargs)
     return custom_compiled_from_io(inp, out, sampler)

@@ -16,7 +16,5 @@ TEST_KECCAK = Keccak(c=10, l=1, n=3, pad_char="_")
 TEST_TRIGGER_BITS = format_msg("RUH ROH", TEST_KECCAK.msg_len)
 TEST_PAYLOAD_BITS = format_msg("BACKDOORED", TEST_KECCAK.d)
 TEST_GA_COMPATIBLE_BACKDOORED_MLP = GACompatibleStepMLP.create_with_backdoor(
-    trigger=TEST_TRIGGER_BITS.bitlist,
-    payload=TEST_PAYLOAD_BITS.bitlist,
-    k=TEST_KECCAK
+    trigger=TEST_TRIGGER_BITS.bitlist, payload=TEST_PAYLOAD_BITS.bitlist, k=TEST_KECCAK
 )

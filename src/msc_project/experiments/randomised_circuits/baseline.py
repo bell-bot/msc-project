@@ -1,4 +1,6 @@
-from typing import Literal
+import logging
+import os
+from typing import cast
 import pandas as pd
 import torch
 from tqdm import tqdm
@@ -10,62 +12,88 @@ from circuits.tensors.mlp import StepMLP
 from circuits.utils.format import format_msg
 from msc_project.circuits_custom.custom_stepmlp import CustomStepMLP, GACompatibleStepMLP
 from msc_project.evaluation.evaluate import evaluate_model, save_evaluation_report
+from msc_project.utils.experiment_utils import ExperimentSpecs
+from msc_project.utils.logging_utils import TimedLogger, TqdmLoggingHandler
+from msc_project.utils.model_utils import get_mlp_layers, process_mlp_layers
 from msc_project.utils.run_utils import get_random_alphanum_string
-from numpy.random import RandomState
+from transformers import AutoModelForCausalLM, logging as hf_logging
+
+logging.setLoggerClass(TimedLogger)
+LOG: TimedLogger = cast(TimedLogger, logging.getLogger(__name__))
 
 
-def evaluate(num_samples: int, target: torch.nn.Module | tuple[torch.Tensor, torch.Tensor], c : int | None = 20, n=3, log_w : Literal[0, 1, 2, 3, 4, 5, 6] = 1, rs : RandomState = RandomState(92), trigger_length: int = 16, payload_length: int = 16):
-    
+def evaluate_baseline(
+    specs: ExperimentSpecs, target_model: tuple[torch.Tensor, torch.Tensor]
+) -> pd.DataFrame:
+
+    torch.manual_seed(specs.random_seed)
+
     results = []
 
-    for _ in tqdm(range(num_samples), desc=f"Evaluating models"):
+    with tqdm(range(specs.num_samples), desc="Starting experiments") as pbar:
 
-        trigger_string = get_random_alphanum_string(trigger_length, rs)
-        payload_string = get_random_alphanum_string(payload_length, rs)
-        keccak = Keccak(n = n, c = c, log_w=log_w)
-        trigger = format_msg(trigger_string, keccak.msg_len)
-        payload = format_msg(payload_string, keccak.d)
-        backdoor_fun = get_backdoor(trigger=trigger.bitlist, payload=payload.bitlist, k=keccak)
-        graph = compiled(backdoor_fun, keccak.msg_len)
+        for i in pbar:
+            step_info = f"Sample {i+1}/{specs.num_samples} - "
 
-        mlp = GACompatibleStepMLP.from_graph(graph)
-        
-        metrics = evaluate_model(mlp, target)
-        results.append(metrics)
+            pbar.set_description(f"{step_info}Generating trigger and payload")
+            with LOG.time("Generating trigger and payload", show_pbar=False):
+                trigger_string = get_random_alphanum_string(specs.trigger_length)
+                payload_string = get_random_alphanum_string(specs.payload_length)
+                keccak = Keccak(n=specs.n, c=specs.c, log_w=specs.log_w)
+                trigger = format_msg(trigger_string, keccak.msg_len)
+                payload = format_msg(payload_string, keccak.d)
+
+            pbar.set_description(f"{step_info}Creating backdoored model")
+            with LOG.time("Creating backdoored model", show_pbar=False):
+                backdoor_fun = get_backdoor(trigger=trigger.bitlist, payload=payload.bitlist, k=keccak)
+                graph = compiled(backdoor_fun, keccak.msg_len)
+
+                backdoored_model = GACompatibleStepMLP.from_graph(graph)
+
+            metrics = evaluate_model(
+                backdoored_model, target_model, specs.sample_size, LOG, pbar=pbar, step_info=step_info
+            )
+            results.append(metrics)
 
     df = pd.DataFrame(results)
     return df
 
-def run_experiment_normal_target(num_samples: int, c: int | None = 20, n : int = 3, log_w : Literal[0, 1, 2, 3, 4, 5, 6] = 1, seed: int = 94, trigger_length: int = 16, payload_length: int = 16, num_weights: int = 1000000, num_biases: int = 5000):
-    
-    save_path = f"results/random_circuit/baseline"
-    specs = compile_experiment_specs(num_samples, c, n, log_w, seed, trigger_length, payload_length, num_weights, num_biases)
-    with open(f"{save_path}/specs.txt", "w") as f:
-        for key, value in specs.items():
-            f.write(f"{key}: {value}\n")
-    
-    torch.manual_seed(seed)
-    target_weights = torch.randn(num_weights)
-    target_biases = torch.randn(num_biases)
-    target = (target_weights, target_biases)
-    results = evaluate(num_samples, target, c=c, n=n, log_w = log_w, trigger_length=trigger_length, payload_length=payload_length)
 
-    save_evaluation_report(results, f"{save_path}/evaluation_report.csv")
-    
+def run_experiment_with_target_model(specs: ExperimentSpecs):
 
-def compile_experiment_specs(num_samples, c, n, log_w, seed, trigger_length, payload_length, num_weights, num_biases):
-    specs = {
-        "num_samples": num_samples,
-        "c": c,
-        "n": n,
-        "log_w": log_w,
-        "random_seed": seed,
-        "trigger_length": trigger_length,
-        "payload_length": payload_length,
-        "num_target_weights": num_weights,
-        "num_target_biases": num_biases
-    }
-    return specs
-    
+    save_path = f"results/random_circuit/{specs.experiment_name}"
+    os.makedirs(os.path.dirname(f"{save_path}/experiment.log"), exist_ok=True)
 
-run_experiment_normal_target(10, c = None, n = 24, log_w = 1)
+    LOG.setLevel(logging.INFO)
+    file_handler = logging.FileHandler(f"{save_path}/experiment.log", mode="w")
+    file_handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
+    file_handler.setLevel(logging.INFO)
+
+    tqdm_handler = TqdmLoggingHandler()
+    tqdm_handler.setFormatter(logging.Formatter("%(message)s"))
+    tqdm_handler.setLevel(logging.WARNING)
+
+    LOG.handlers = [file_handler, tqdm_handler]
+    hf_logging.disable_progress_bar()
+
+    try:
+        description = f"Loading target model ({specs.target_model})"
+        with LOG.time(description, show_pbar=False):
+            model = AutoModelForCausalLM.from_pretrained(specs.target_model)
+    except Exception as e:
+        LOG.error(f"Error loading model {specs.target_model}: {e}")
+        return
+
+    description = f"Extracting target model parameters"
+    log_details = {}
+
+    with LOG.time(description, log_details=log_details):
+        mlp_layers = get_mlp_layers(model)
+        model_weights, model_biases = process_mlp_layers(mlp_layers)
+        log_details["weights"] = f"{model_weights.numel():,}"
+        log_details["biases"] = f"{model_biases.numel():,}"
+
+    results = evaluate_baseline(specs, (model_weights, model_biases))
+    save_evaluation_report(results, specs, save_path)
+
+run_experiment_with_target_model(ExperimentSpecs("gpt2", "baseline"))

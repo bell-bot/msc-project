@@ -1,5 +1,5 @@
 """
-Disclaimer: 
+Disclaimer:
     This code was authored by Andis Draguns and copied from a Colab notebook kindly provided by him.
     Notebook source: https://colab.research.google.com/drive/1n_veCevaXTov-5rRSotkN0bIGulJB3G9?invite=CIeq7IUN
 """
@@ -23,9 +23,10 @@ def get_subset_parity(n: int, subset_indices: list[int]) -> BitFn:
         There are arguments for this function being hard to learn:
         https://www.lesswrong.com/posts/Mcrfi3DBJBzfoLctA
         """
-        assert len(x)==n
+        assert len(x) == n
         subset = [x[i] for i in subset_indices]
         return [xor(subset)]
+
     return subset_parity
 
 
@@ -36,11 +37,11 @@ def random_bits(length: int) -> list[Bit]:
 
 
 def build_sandbagging_mlp(
-        trigger: list[Bit],
-        circ_inp_len: int,
-        subset_indices: list[int],
-        k: Keccak,
-        ) -> MLP_SwiGLU:
+    trigger: list[Bit],
+    circ_inp_len: int,
+    subset_indices: list[int],
+    k: Keccak,
+) -> MLP_SwiGLU:
     """
     Creates a PyTorch MLP that sandbags: if trigger inputs match the trigger, it
     calculates the parity of circuit input bits at subset indices. Otherwise, it
@@ -68,11 +69,13 @@ def build_sandbagging_mlp(
 
     return mlp
 
-def get_subset_parity_batch(batch_size: int,
-                            subset_indices: list[int],
-                            trig_inp_bits: list[Bit],
-                            circ_inp_len: int,
-                            ) -> tuple[t.Tensor, t.Tensor]:
+
+def get_subset_parity_batch(
+    batch_size: int,
+    subset_indices: list[int],
+    trig_inp_bits: list[Bit],
+    circ_inp_len: int,
+) -> tuple[t.Tensor, t.Tensor]:
     """Creates an input batch x and ground truth label batch y"""
     trig_inp = t.Tensor(Bits(trig_inp_bits).ints).repeat(batch_size, 1)
     circ_inp = t.randint(0, 2, (batch_size, circ_inp_len))
@@ -102,6 +105,7 @@ def get_loss(x: t.Tensor, y: t.Tensor, mlp: t.nn.Module) -> t.Tensor:
     yhat = run(mlp, x)
     loss = ((y - yhat) ** 2).mean()
     return loss
+
 
 # Set hyperparameters
 trigger_len = 5

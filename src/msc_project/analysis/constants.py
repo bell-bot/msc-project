@@ -18,4 +18,4 @@ MODEL_TAXONOMY = {
 
 MLP_LAYER_NAMES = {"gate_proj", "up_proj", "down_proj", "mlp"}
 
-FILE_EXTENSION_REGEX = re.compile(r'\.(\w+)$')
+FILE_EXTENSION_REGEX = re.compile(r"\.(\w+)$")

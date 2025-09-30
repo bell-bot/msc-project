@@ -7,8 +7,15 @@ from numpy.random import RandomState
 from circuits.neurons.core import Bit
 from circuits.neurons.operations import rot
 from msc_project.circuits_custom.custom_compile import get_random_identity_params
-from msc_project.circuits_custom.custom_logic_gates import custom_copy_bit, custom_gate, custom_inhib, custom_not_, custom_xor
+from msc_project.circuits_custom.custom_logic_gates import (
+    custom_copy_bit,
+    custom_gate,
+    custom_inhib,
+    custom_not_,
+    custom_xor,
+)
 from msc_project.utils.sampling import WeightSampler
+
 
 # SHA3 operations
 def custom_theta(lanes: Lanes, sampler: WeightSampler) -> Lanes:
@@ -21,9 +28,10 @@ def custom_theta(lanes: Lanes, sampler: WeightSampler) -> Lanes:
                     [lanes[x][y][z]]
                     + [lanes[(x + 4) % 5][y2][z] for y2 in range(5)]
                     + [lanes[(x + 1) % 5][y2][(z + 1) % w] for y2 in range(5)],
-                    sampler
+                    sampler,
                 )
     return result
+
 
 def custom_chi(lanes: Lanes, sampler: WeightSampler) -> Lanes:
     w = len(lanes[0][0])
@@ -35,17 +43,20 @@ def custom_chi(lanes: Lanes, sampler: WeightSampler) -> Lanes:
                 result[x][y][z] = custom_xor([lanes[x][y][z], and_bit], sampler)
     return result
 
+
 def custom_iota(lanes: Lanes, rc: str, sampler: WeightSampler) -> Lanes:
     """Applies the round constant to the first lane."""
     result = copy_lanes(lanes)
     for z, bit in enumerate(rc):
         if bit == "1":
             result[0][0][z] = custom_not_(lanes[0][0][z], sampler)
-    return result 
+    return result
+
 
 def custom_copy_lane(lane: list[Bit], sampler: WeightSampler) -> list[Bit]:
     """Applies a randomized copy gate to each bit in a lane."""
     return [custom_copy_bit(bit, sampler) for bit in lane]
+
 
 def custom_rho_pi(lanes: Lanes, sampler: WeightSampler) -> Lanes:
     """
@@ -70,11 +81,11 @@ def custom_rho_pi(lanes: Lanes, sampler: WeightSampler) -> Lanes:
     return result
 
 
-@dataclass(kw_only=True) 
+@dataclass(kw_only=True)
 class CustomKeccak(Keccak):
 
     sampler: WeightSampler
-    
+
     def get_functions(self) -> list[list[Callable[[Lanes], Lanes]]]:
         """Returns the functions for each round"""
         fns: list[list[Callable[[Lanes], Lanes]]] = []

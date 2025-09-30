@@ -7,6 +7,7 @@ from scipy import stats
 from msc_project.utils.model_utils import get_mlp_layers
 from msc_project.utils.model_utils import process_mlp_layers
 
+
 def compute_param_stats(params: torch.Tensor) -> dict[str, float]:
     """
     Computes basic statistics (mean, std, min, max) for a given tensor of parameters.
@@ -20,8 +21,13 @@ def compute_param_stats(params: torch.Tensor) -> dict[str, float]:
     return {
         "mean": params.mean().item(),
         "std": params.std().item(),
-        "kurtosis": ((params - params.mean())**4).mean().item() / (params.std().item()**4) if params.std().item() > 0 else float('nan')
+        "kurtosis": (
+            ((params - params.mean()) ** 4).mean().item() / (params.std().item() ** 4)
+            if params.std().item() > 0
+            else float("nan")
+        ),
     }
+
 
 def analyse_models(model_names: list[str], p: float) -> dict:
 
@@ -46,10 +52,19 @@ def analyse_models(model_names: list[str], p: float) -> dict:
         "weights": weights_tensor,
         "biases": biases_tensor,
         "weight_stats": weight_stats,
-        "bias_stats": bias_stats
+        "bias_stats": bias_stats,
     }
 
-def plot_histograms(data: torch.Tensor, mean: float, std: float, kurt: float, title: str, param_type: str, filename_prefix : str = ""):
+
+def plot_histograms(
+    data: torch.Tensor,
+    mean: float,
+    std: float,
+    kurt: float,
+    title: str,
+    param_type: str,
+    filename_prefix: str = "",
+):
 
     fig, ax = plt.subplots(1, 1, figsize=(8, 6))
 
@@ -60,7 +75,7 @@ def plot_histograms(data: torch.Tensor, mean: float, std: float, kurt: float, ti
     ax.axvline(mean, color="r", linestyle="dashed", linewidth=2, label=f"Mean: {mean:.4f}")
     ax.set_xlabel(f"{param_type} Value", fontsize=14)
     ax.set_ylabel("Density", fontsize=14)
-   
+
     stats_text = f"Std. Dev: {std:.4f}\n" f"Kurtosis: {kurt:.4f}\n" f"Count: {len(data):,}"
     ax.text(
         0.05,
@@ -72,18 +87,20 @@ def plot_histograms(data: torch.Tensor, mean: float, std: float, kurt: float, ti
         bbox=dict(boxstyle="round,pad=0.5", fc="wheat", alpha=0.5),
     )
     ax.legend()
-    ax.set_yscale('log')
+    ax.set_yscale("log")
     ax.grid(True, which="major", axis="y", linestyle="--", linewidth=0.5, alpha=0.7)
     ax.grid(True, which="both", axis="x")
 
     plt.savefig(f"{filename_prefix}mlp_{param_type.lower()}_distribution.png")
     plt.savefig(f"{filename_prefix}mlp_{param_type.lower()}_distribution.pdf")
     plt.show()
-    
+
+
 def fit_distribution(data: torch.Tensor, dist):
 
     fitted_dist = dist.fit(data)
     return fitted_dist
+
 
 if __name__ == "__main__":
 

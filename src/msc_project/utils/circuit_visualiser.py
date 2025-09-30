@@ -7,51 +7,57 @@ import graphviz
 from circuits.neurons.core import Signal, const
 from circuits.utils.misc import OrderedSet
 
+
 @dataclass
 class VisualisationNode:
 
     signal_id: int
     activation: bool | float
-    parents: Dict['VisualisationNode', float] = field(default_factory=dict)
+    parents: Dict["VisualisationNode", float] = field(default_factory=dict)
     bias: float = 0.0
     metadata: Dict[str, str] = field(default_factory=dict)
     is_input: bool = False
     is_output: bool = False
     is_constant: bool = False
 
-    def add_parent(self, parent: 'VisualisationNode', weight: float):
+    def add_parent(self, parent: "VisualisationNode", weight: float):
         """Add a parent node with associated weight"""
         self.parents[parent] = weight
-    
+
     def __hash__(self):
         return self.signal_id
-    
+
     def __eq__(self, other):
         return isinstance(other, VisualisationNode) and self.signal_id == other.signal_id
-    
+
+
 class CircuitVisualiser:
 
     def __init__(self, name: str = "circuit_graph"):
         self.name = name
-        self.graph = graphviz.Digraph(name, comment=f'{name} computation graph')
-        self.graph.attr(rankdir='TB') # top to bottom layout to match load_nodes()-method
+        self.graph = graphviz.Digraph(name, comment=f"{name} computation graph")
+        self.graph.attr(rankdir="TB")  # top to bottom layout to match load_nodes()-method
 
-    def visualise_method(self, fn: Callable[..., list[Signal]], input_len: int, filename: str, **kwargs: Any):
+    def visualise_method(
+        self, fn: Callable[..., list[Signal]], input_len: int, filename: str, **kwargs: Any
+    ):
         inp = const("0" * input_len)
         out = fn(inp, **kwargs)
 
         return self.load_nodes_and_visualise(inp, out, filename)
-    
+
     def create_node_from_signal(self, signal: Signal) -> VisualisationNode:
         node = VisualisationNode(
             signal_id=id(signal),
             activation=signal.activation,
-            metadata=dict(signal.metadata) if hasattr(signal, 'metadata') else {}
+            metadata=dict(signal.metadata) if hasattr(signal, "metadata") else {},
         )
 
         return node
-    
-    def load_nodes_and_visualise(self, inp_signals: list[Signal], out_signals: list[Signal], filename: str) -> graphviz.Digraph:
+
+    def load_nodes_and_visualise(
+        self, inp_signals: list[Signal], out_signals: list[Signal], filename: str
+    ) -> graphviz.Digraph:
         """
         Create nodes from signals using the exact same algorithm as load_nodes,
         then visualize the resulting graph structure.
@@ -77,8 +83,8 @@ class CircuitVisualiser:
         constants: OrderedSet[VisualisationNode] = OrderedSet()
 
         for i, inp in enumerate(inp_nodes):
-            if inp.metadata.get('name') is None:
-                inp.metadata['name'] = f"i{i}"
+            if inp.metadata.get("name") is None:
+                inp.metadata["name"] = f"i{i}"
 
         # Go backwards from output nodes to record all connections
         while frontier:
@@ -121,67 +127,65 @@ class CircuitVisualiser:
         print(f"  - Disconnected: {disconnected}")
 
         return self._visualize_node_graph(list(nodes.values()), inp_set, out_set, constants, filename)
-    
-    def _visualize_node_graph(self, 
-                            all_nodes: list[VisualisationNode],
-                            inp_set: OrderedSet,
-                            out_set: OrderedSet, 
-                            constants: OrderedSet,
-                            filename: str) -> graphviz.Digraph:
+
+    def _visualize_node_graph(
+        self,
+        all_nodes: list[VisualisationNode],
+        inp_set: OrderedSet,
+        out_set: OrderedSet,
+        constants: OrderedSet,
+        filename: str,
+    ) -> graphviz.Digraph:
         """Create visual representation of the node graph"""
-        
+
         # Add all nodes to the graph
         for node in all_nodes:
             node_id = f"node_{node.signal_id}"
-            
+
             # Determine node styling based on type
             if node.is_input or node in inp_set:
                 # Input nodes
-                name = node.metadata.get('name', f"Input_{node.signal_id}")
+                name = node.metadata.get("name", f"Input_{node.signal_id}")
                 label = f"Input {name}\\nval={node.activation}"
-                self.graph.node(node_id, label, shape='ellipse', 
-                              style='filled', fillcolor='lightblue')
-            
+                self.graph.node(node_id, label, shape="ellipse", style="filled", fillcolor="lightblue")
+
             elif node.is_output or node in out_set:
-                # Output nodes  
+                # Output nodes
                 label = f"Output"
                 if node.bias != 0:
                     label += f"\\nbias={node.bias}"
                 label += f"\\n\\nval={node.activation}"
-                self.graph.node(node_id, label, shape='ellipse',
-                              style='filled', fillcolor='lightcoral')
-            
+                self.graph.node(node_id, label, shape="ellipse", style="filled", fillcolor="lightcoral")
+
             elif node.is_constant or node in constants:
                 # Constant nodes
                 label = f"Const\\nval={node.activation}"
-                self.graph.node(node_id, label, shape='diamond',
-                              style='filled', fillcolor='lightyellow')
-            
+                self.graph.node(
+                    node_id, label, shape="diamond", style="filled", fillcolor="lightyellow"
+                )
+
             else:
                 # Internal nodes (neurons/gates)
                 label = f"Gate"
                 if node.bias != 0:
                     label += f"\\nbias={node.bias}"
                 label += f"\\n\\nval={node.activation}"
-                self.graph.node(node_id, label, shape='box',
-                              style='filled', fillcolor='darkseagreen1')
-        
+                self.graph.node(node_id, label, shape="box", style="filled", fillcolor="darkseagreen1")
+
         # Add edges based on parent-child relationships
         for node in all_nodes:
             child_id = f"node_{node.signal_id}"
-            
+
             for parent, weight in node.parents.items():
                 parent_id = f"node_{parent.signal_id}"
-                
+
                 # Create edge from parent to child with weight label
                 weight_label = str(weight) if weight != 1 else ""
                 self.graph.edge(parent_id, child_id, label=weight_label)
-        
-        
 
         # Render if filename provided
         if filename:
-            self.graph.unflatten(stagger=5).render(filename, format='pdf', cleanup=True)
+            self.graph.unflatten(stagger=5).render(filename, format="pdf", cleanup=True)
             print(f"Graph saved as {filename}.pdf")
-        
+
         return self.graph

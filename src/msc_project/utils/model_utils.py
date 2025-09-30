@@ -14,8 +14,8 @@ def unfold_stepmlp_parameters(model):
     for name, params in model.named_parameters():
         if "weight" in name:
             folded = params.detach().data
-            bias = folded[:,0].view(-1)
-            weight = folded[:,1:].reshape(-1)
+            bias = folded[:, 0].view(-1)
+            weight = folded[:, 1:].reshape(-1)
             weights.append(weight)
             biases.append(bias)
 
@@ -23,6 +23,7 @@ def unfold_stepmlp_parameters(model):
     biases_tensor = torch.cat(biases) if biases else torch.tensor([])
 
     return weights_tensor, biases_tensor
+
 
 def get_mlp_layers(model: nn.Module) -> dict[str, torch.Tensor]:
     """
@@ -41,7 +42,9 @@ def get_mlp_layers(model: nn.Module) -> dict[str, torch.Tensor]:
     return mlp_layers
 
 
-def process_mlp_layers(mlp_layers: dict[str, torch.Tensor], p: float = 100) -> tuple[torch.Tensor, torch.Tensor]:
+def process_mlp_layers(
+    mlp_layers: dict[str, torch.Tensor], p: float = 100
+) -> tuple[torch.Tensor, torch.Tensor]:
     """
     Processes MLP layers by splitting weights and biases, flattening,
     and sampling a subset of the parameters for each layer.
@@ -69,6 +72,7 @@ def process_mlp_layers(mlp_layers: dict[str, torch.Tensor], p: float = 100) -> t
     weights_tensor = torch.cat(processed_weights) if processed_weights else torch.tensor([])
     biases_tensor = torch.cat(processed_biases) if processed_biases else torch.tensor([])
     return weights_tensor, biases_tensor
+
 
 def get_layer_activations(model: StepMLP, layer_index: int, test_data: list[Bits]) -> torch.Tensor:
 

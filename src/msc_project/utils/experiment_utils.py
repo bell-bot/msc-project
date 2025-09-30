@@ -5,8 +5,8 @@ from typing import Literal
 @dataclass
 class ExperimentSpecs:
 
-    target_model : str
-    experiment_name : str
+    target_model: str
+    experiment_name: str
 
     num_samples: int = 50
     c: int | None = 448
@@ -15,7 +15,7 @@ class ExperimentSpecs:
     random_seed: int = 95
     trigger_length: int = 16
     payload_length: int = 16
-    sample_size : int = 1000000
+    sample_size: int = 1000000
 
     def dict(self):
         return {k: str(v) for k, v in asdict(self).items()}

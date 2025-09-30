@@ -9,6 +9,7 @@ import re
 
 from .constants import FILE_EXTENSION_REGEX, MODEL_TAXONOMY
 
+
 def update_streaming_stats(stats_dict, tensors):
     """
     Updates a dictionary of running totals for streaming statistics.
@@ -17,30 +18,33 @@ def update_streaming_stats(stats_dict, tensors):
         return
     for tensor in tensors:
         data = tensor.flatten().to(torch.float64)
-        stats_dict['n'] += data.numel()
-        stats_dict['sum_x'] += torch.sum(data)
-        stats_dict['sum_x_sq'] += torch.sum(data**2)
+        stats_dict["n"] += data.numel()
+        stats_dict["sum_x"] += torch.sum(data)
+        stats_dict["sum_x_sq"] += torch.sum(data**2)
+
 
 def finalize_stats(stats_dict):
     """
     Calculates the final mean and std from the running totals.
     Note: Kurtosis cannot be accurately calculated this way without all data.
     """
-    n = stats_dict.get('n', 0)
+    n = stats_dict.get("n", 0)
     if n == 0:
         return None
-    
-    sum_x = stats_dict.get('sum_x', 0.0)
-    sum_x_sq = stats_dict.get('sum_x_sq', 0.0)
-    
+
+    sum_x = stats_dict.get("sum_x", 0.0)
+    sum_x_sq = stats_dict.get("sum_x_sq", 0.0)
+
     mean = sum_x / n
     mean_sq = sum_x_sq / n
     variance = mean_sq - (mean**2)
-    
-    if variance < 0: variance = 0
+
+    if variance < 0:
+        variance = 0
     std = torch.sqrt(torch.tensor(variance))
-    
-    return {'mean': mean.item(), 'std': std.item(), 'n': n}
+
+    return {"mean": mean.item(), "std": std.item(), "n": n}
+
 
 def classify_model_parameters(model_name):
     """
@@ -70,10 +74,14 @@ def classify_model_parameters(model_name):
             continue
 
         # GPT-2 style classification
-        if "wte" in name: categorised_weights["token_embeddings"].append(params)
-        elif "wpe" in name: categorised_weights["position_embeddings"].append(params)
-        elif "ln_1" in name: categorised_weights["pre_attention_norm"].append(params)
-        elif "ln_2" in name: categorised_weights["post_attention_norm"].append(params)
+        if "wte" in name:
+            categorised_weights["token_embeddings"].append(params)
+        elif "wpe" in name:
+            categorised_weights["position_embeddings"].append(params)
+        elif "ln_1" in name:
+            categorised_weights["pre_attention_norm"].append(params)
+        elif "ln_2" in name:
+            categorised_weights["post_attention_norm"].append(params)
         elif "attn.c_attn" in name:
 
             weights = params["weight"]
@@ -81,58 +89,78 @@ def classify_model_parameters(model_name):
                 q, k, v = torch.split(weights, hidden_size, dim=1)
             else:
                 q, k, v = torch.split(weights, hidden_size, dim=0)
-            categorised_weights["attention_query"].append({'weight': q})
-            categorised_weights["attention_key"].append({'weight': k})
-            categorised_weights["attention_value"].append({'weight': v})
+            categorised_weights["attention_query"].append({"weight": q})
+            categorised_weights["attention_key"].append({"weight": k})
+            categorised_weights["attention_value"].append({"weight": v})
 
             if "bias" in params:
                 bias = params["bias"]
 
                 q_bias, k_bias, v_bias = torch.split(bias, hidden_size, dim=0)
-                categorised_weights["attention_query"][-1]['bias'] = q_bias
-                categorised_weights["attention_key"][-1]['bias'] = k_bias
-                categorised_weights["attention_value"][-1]['bias'] = v_bias
+                categorised_weights["attention_query"][-1]["bias"] = q_bias
+                categorised_weights["attention_key"][-1]["bias"] = k_bias
+                categorised_weights["attention_value"][-1]["bias"] = v_bias
 
-        elif "attn.c_proj" in name: categorised_weights["attention_output"].append(params)
-        elif "mlp.c_proj" in name: categorised_weights["mlp_down"].append(params)
-        elif "mlp.c_fc" in name: categorised_weights["mlp_up"].append(params)
-        elif "lm_head" in name: categorised_weights["lm_head"].append(params)
+        elif "attn.c_proj" in name:
+            categorised_weights["attention_output"].append(params)
+        elif "mlp.c_proj" in name:
+            categorised_weights["mlp_down"].append(params)
+        elif "mlp.c_fc" in name:
+            categorised_weights["mlp_up"].append(params)
+        elif "lm_head" in name:
+            categorised_weights["lm_head"].append(params)
 
         # LLama-style and Gemma-style classification
-        elif "embed_tokens" in name: categorised_weights["token_embeddings"].append(params)
-        elif "q_proj" in name: categorised_weights["attention_query"].append(params)
-        elif "k_proj" in name: categorised_weights["attention_key"].append(params)
-        elif "v_proj" in name: categorised_weights["attention_value"].append(params)
-        elif "o_proj" in name: categorised_weights["attention_output"].append(params)
-        elif "gate_proj" in name: categorised_weights["mlp_gate"].append(params)
-        elif "up_proj" in name: categorised_weights["mlp_up"].append(params)
-        elif "down_proj" in name: categorised_weights["mlp_down"].append(params)
-        elif "post_attention_layernorm" in name: categorised_weights["post_attention_norm"].append(params)
-        elif "input_layernorm" in name: categorised_weights["pre_attention_norm"].append(params)
-        elif name.endswith(".norm") or name.endswith(".ln_f"):  categorised_weights["final_norm"].append(params)
+        elif "embed_tokens" in name:
+            categorised_weights["token_embeddings"].append(params)
+        elif "q_proj" in name:
+            categorised_weights["attention_query"].append(params)
+        elif "k_proj" in name:
+            categorised_weights["attention_key"].append(params)
+        elif "v_proj" in name:
+            categorised_weights["attention_value"].append(params)
+        elif "o_proj" in name:
+            categorised_weights["attention_output"].append(params)
+        elif "gate_proj" in name:
+            categorised_weights["mlp_gate"].append(params)
+        elif "up_proj" in name:
+            categorised_weights["mlp_up"].append(params)
+        elif "down_proj" in name:
+            categorised_weights["mlp_down"].append(params)
+        elif "post_attention_layernorm" in name:
+            categorised_weights["post_attention_norm"].append(params)
+        elif "input_layernorm" in name:
+            categorised_weights["pre_attention_norm"].append(params)
+        elif name.endswith(".norm") or name.endswith(".ln_f"):
+            categorised_weights["final_norm"].append(params)
 
         # Bloom-style classification
-        elif "mlp.dense_4h_to_h" in name: categorised_weights["mlp_down"].append(params)
-        elif "mlp.dense_h_to_4h" in name: categorised_weights["mlp_up"].append(params)
+        elif "mlp.dense_4h_to_h" in name:
+            categorised_weights["mlp_down"].append(params)
+        elif "mlp.dense_h_to_4h" in name:
+            categorised_weights["mlp_up"].append(params)
         elif "attention.query_key_value" in name:
             weights = params["weight"]
             if weights.shape[1] == hidden_size * 3:
                 q, k, v = torch.split(weights, hidden_size, dim=1)
             else:
                 q, k, v = torch.split(weights, hidden_size, dim=0)
-            categorised_weights["attention_query"].append({'weight': q})
-            categorised_weights["attention_key"].append({'weight': k})
-            categorised_weights["attention_value"].append({'weight': v})
+            categorised_weights["attention_query"].append({"weight": q})
+            categorised_weights["attention_key"].append({"weight": k})
+            categorised_weights["attention_value"].append({"weight": v})
 
             if "bias" in params:
                 bias = params["bias"]
                 q_bias, k_bias, v_bias = torch.split(bias, hidden_size, dim=0)
-                categorised_weights["attention_query"][-1]['bias'] = q_bias
-                categorised_weights["attention_key"][-1]['bias'] = k_bias
-                categorised_weights["attention_value"][-1]['bias'] = v_bias
-        elif "attention.dense" in name: categorised_weights["attention_output"].append(params)
-        elif "final_layernorm" in name: categorised_weights["final_norm"].append(params)
-        elif "word_embeddings" in name: categorised_weights["token_embeddings"].append(params)
+                categorised_weights["attention_query"][-1]["bias"] = q_bias
+                categorised_weights["attention_key"][-1]["bias"] = k_bias
+                categorised_weights["attention_value"][-1]["bias"] = v_bias
+        elif "attention.dense" in name:
+            categorised_weights["attention_output"].append(params)
+        elif "final_layernorm" in name:
+            categorised_weights["final_norm"].append(params)
+        elif "word_embeddings" in name:
+            categorised_weights["token_embeddings"].append(params)
 
     return categorised_weights
 
@@ -150,13 +178,14 @@ def evaluate_weights_in_category(categorised_weights, category_name, model_name)
 
     return mean, std, kurt, data
 
+
 def get_param_stats(tensors):
     """
     Compute mean, std and kurtosis for a list of parameters (weights OR biases).
     """
     if len(tensors) == 0:
         return None
-    
+
     all_params = torch.cat([t.flatten() for t in tensors])
     data = all_params.detach().cpu().to(torch.float32).numpy()
     mean = np.mean(data)
@@ -164,7 +193,8 @@ def get_param_stats(tensors):
     # Kurtosis: Measures the "tailedness" of the distribution.
     # A high value indicates more outliers. Fisher's kurtosis is used (normal = 0).
     kurt = 3.0 * np.mean((data - mean) ** 4) / (std**4) - 3.0
-    return {'data': data, 'mean': mean, 'std': std, 'kurt': kurt}
+    return {"data": data, "mean": mean, "std": std, "kurt": kurt}
+
 
 def process_params_in_category(categorised_weights, category_name):
 
@@ -174,20 +204,32 @@ def process_params_in_category(categorised_weights, category_name):
         return None, None
     all_weights = None
     weights_data = None
-    if 'weight' in tensors[0]:
-        all_weights = [t['weight'] for t in tensors]
+    if "weight" in tensors[0]:
+        all_weights = [t["weight"] for t in tensors]
         weights_data = get_param_stats(all_weights)
 
     all_biases = None
     biases_data = None
 
-    if 'bias' in tensors[0]:
-        all_biases = [t['bias'] for t in tensors if 'bias' in t]
+    if "bias" in tensors[0]:
+        all_biases = [t["bias"] for t in tensors if "bias" in t]
         biases_data = get_param_stats(all_biases)
 
     return weights_data, biases_data
 
-def plot_distribution(data, mean, std, kurt, param_type, ax, model_name = None, category_name = None, save_path=None, custom_format=None):
+
+def plot_distribution(
+    data,
+    mean,
+    std,
+    kurt,
+    param_type,
+    ax,
+    model_name=None,
+    category_name=None,
+    save_path=None,
+    custom_format=None,
+):
 
     ax.hist(data, bins=100, density=True, alpha=0.7, label=f"{param_type} Distribution")
     ax.axvline(mean, color="r", linestyle="dashed", linewidth=2, label=f"Mean: {mean:.4f}")
@@ -196,7 +238,9 @@ def plot_distribution(data, mean, std, kurt, param_type, ax, model_name = None, 
         title = f'Distribution of "{category_name}" {"Weights" if param_type == "Weight" else "Biases"} in {model_name}'
         ax.set_title(title, fontsize=16)
     else:
-        ax.set_title(f'Distribution of {"Weights" if param_type == "Weight" else "Biases"}', fontsize=16)
+        ax.set_title(
+            f'Distribution of {"Weights" if param_type == "Weight" else "Biases"}', fontsize=16
+        )
     ax.set_xlabel(f"{param_type} Value", fontsize=12)
     ax.set_ylabel("Density", fontsize=12)
 
@@ -210,70 +254,82 @@ def plot_distribution(data, mean, std, kurt, param_type, ax, model_name = None, 
         verticalalignment="top",
         bbox=dict(boxstyle="round,pad=0.5", fc="wheat", alpha=0.5),
     )
-    
+
     ax.legend()
 
     if custom_format:
         custom_format(ax, data, mean, std, kurt)
 
+
 def baseline_histogram_format(ax, data, mean, std, kurt):
     ax.grid(True, which="both", linestyle="--", linewidth=0.5)
+
 
 def stepmlp_histogram_format(ax, data, mean, std, kurt):
     """
     Custom formatting for StepMLP histograms.
     """
-    ax.set_yscale('log')
+    ax.set_yscale("log")
     ax.grid(True, which="major", axis="y", linestyle="--", linewidth=0.5, alpha=0.7)
     ax.grid(True, which="both", axis="x")
 
-def plot_heatmap(data, title=None, save_path = None):
+
+def plot_heatmap(data, title=None, save_path=None):
     plt.figure(figsize=(10, 8))
-    plt.imshow(data, aspect='auto', cmap='viridis')
-    plt.colorbar(label='Value')
+    plt.imshow(data, aspect="auto", cmap="viridis")
+    plt.colorbar(label="Value")
     if title:
         plt.title(title, fontsize=16)
-    plt.xlabel('Index', fontsize=12)
-    plt.ylabel('Parameter Set', fontsize=12)
+    plt.xlabel("Index", fontsize=12)
+    plt.ylabel("Parameter Set", fontsize=12)
 
     if save_path:
         directory = os.path.dirname(save_path)
         if directory:
             os.makedirs(directory, exist_ok=True)
-        plt.savefig(save_path + ".pdf", bbox_inches='tight', format='pdf')
-        plt.savefig(save_path + ".png", bbox_inches='tight', format='png')
+        plt.savefig(save_path + ".pdf", bbox_inches="tight", format="pdf")
+        plt.savefig(save_path + ".png", bbox_inches="tight", format="png")
         plt.close()
     else:
         plt.show()
 
-def plot_category_histograms(model_name = None, category_name = None, weights_data = None, biases_data = None, save_path=None, custom_format=None, title=None):
+
+def plot_category_histograms(
+    model_name=None,
+    category_name=None,
+    weights_data=None,
+    biases_data=None,
+    save_path=None,
+    custom_format=None,
+    title=None,
+):
     """
     Plot histograms for weights and biases (if they exist) of a specific category.
     """
 
     num_plots = (1 if weights_data is not None else 0) + (1 if biases_data is not None else 0)
 
-    fig, axs = plt.subplots(1, num_plots, figsize=(14*num_plots, 7), squeeze=False)
+    fig, axs = plt.subplots(1, num_plots, figsize=(14 * num_plots, 7), squeeze=False)
     axs = axs.flatten()
-    
+
     plot_items = []
     if weights_data:
-        plot_items.append({'type': 'Weight', 'stats': weights_data})
+        plot_items.append({"type": "Weight", "stats": weights_data})
     if biases_data:
-        plot_items.append({'type': 'Bias', 'stats': biases_data})
+        plot_items.append({"type": "Bias", "stats": biases_data})
 
     for i, item in enumerate(plot_items):
-        stats = item['stats']
+        stats = item["stats"]
         plot_distribution(
-            data=stats['data'],
-            mean=stats['mean'],
-            std=stats['std'],
-            kurt=stats['kurt'],
-            param_type=item['type'],
+            data=stats["data"],
+            mean=stats["mean"],
+            std=stats["std"],
+            kurt=stats["kurt"],
+            param_type=item["type"],
             ax=axs[i],
-            custom_format=custom_format
+            custom_format=custom_format,
         )
-        
+
     if title:
         fig.suptitle(title, fontsize=18)
     elif model_name and category_name:
@@ -281,18 +337,19 @@ def plot_category_histograms(model_name = None, category_name = None, weights_da
     elif category_name:
         fig.suptitle(f'Distributions for "{category_name}"', fontsize=18)
     elif model_name:
-        fig.suptitle(f'Distributions for {model_name}', fontsize=18)
-    
+        fig.suptitle(f"Distributions for {model_name}", fontsize=18)
+
     fig.tight_layout()
 
     if save_path:
         directory = os.path.dirname(save_path)
-        if directory: os.makedirs(directory, exist_ok=True)
+        if directory:
+            os.makedirs(directory, exist_ok=True)
         plt.savefig(save_path)
         print(f"Plot saved to {save_path}")
         # Save fig as a pickle file for later use
         pkl_save_path = re.sub(FILE_EXTENSION_REGEX, ".pkl", save_path)
-        with open(pkl_save_path, 'wb') as f:
+        with open(pkl_save_path, "wb") as f:
             pickle.dump(fig, f)
         plt.close(fig)
     else:
@@ -335,6 +392,7 @@ def plot_weight_distribution(data, mean, std, kurt, category_name, model_name, s
     else:
         plt.show()
 
+
 def get_stepml_parameters(model):
 
     weights = []
@@ -348,4 +406,3 @@ def get_stepml_parameters(model):
     weights_tensor = torch.cat(weights) if weights else torch.tensor([])
     biases_tensor = torch.cat(biases) if biases else torch.tensor([])
     return weights_tensor, biases_tensor
-
