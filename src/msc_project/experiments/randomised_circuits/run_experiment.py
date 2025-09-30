@@ -13,7 +13,6 @@ from msc_project.circuits_custom.custom_stepmlp import RandomisedStepMLP
 from msc_project.evaluation.evaluate import evaluate_model, save_evaluation_report
 from numpy.random import RandomState
 
-from msc_project.experiments.randomised_circuits.create_model import ModelCreator
 from msc_project.utils.experiment_utils import ExperimentSpecs
 from msc_project.utils.logging_utils import TimedLogger, TqdmLoggingHandler
 from msc_project.utils.model_utils import get_mlp_layers, process_mlp_layers
