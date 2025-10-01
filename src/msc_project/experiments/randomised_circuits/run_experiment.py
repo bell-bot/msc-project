@@ -38,15 +38,15 @@ def dryrun(specs: ExperimentSpecs) -> WeightCounter:
 
     return weight_counter
 
+def format_results(results: dict) -> str:
+    return f"{results['KL Weights']:.4f}, {results['KL Biases']:.4f}, {results['EMD Weights']:.4f}, {results['EMD Biases']:.4f}, {results['KS Weights Statistic']:.4f}, {results['KS Weights P-value']:.4f}, {results['KS Biases Statistic']:.4f}, {results['KS Biases P-value']:.4f}, {results['Mean Weights']:.4f}, {results['Mean Biases']:.4f}, {results['Std Weights']:.4f}, {results['Std Biases']:.4f}, {results['Kurtosis Weights']:.4f}, {results['Kurtosis Biases']:.4f}\n"
 
 def evaluate_randomised(
-    specs: ExperimentSpecs, target_model: tuple[torch.Tensor, torch.Tensor]
-) -> pd.DataFrame:
+    specs: ExperimentSpecs, target_model: tuple[torch.Tensor, torch.Tensor], result_file
+):
 
     torch.manual_seed(specs.random_seed)
     weight_counter = dryrun(specs)
-
-    results = []
 
     with tqdm(range(specs.num_samples), desc="Starting experiments") as pbar:
 
@@ -75,15 +75,14 @@ def evaluate_randomised(
             metrics = evaluate_model(
                 backdoored_model, target_model, specs.sample_size, LOG, pbar=pbar, step_info=step_info
             )
-            results.append(metrics)
-
-    df = pd.DataFrame(results)
-    return df
+            result_file.write(format_results(metrics))
 
 def run_experiment_with_target_model(specs: ExperimentSpecs):
 
     save_path = f"results/random_circuit/{specs.experiment_name}"
     os.makedirs(os.path.dirname(f"{save_path}/experiment.log"), exist_ok=True)
+
+    result_file = save_evaluation_report(specs, save_path)
 
     LOG.setLevel(logging.INFO)
     file_handler = logging.FileHandler(f"{save_path}/experiment.log", mode="w")
@@ -114,8 +113,6 @@ def run_experiment_with_target_model(specs: ExperimentSpecs):
         log_details["weights"] = f"{model_weights.numel():,}"
         log_details["biases"] = f"{model_biases.numel():,}"
 
-    results = evaluate_randomised(specs, (model_weights, model_biases))
-    save_evaluation_report(results, specs, save_path)
+    evaluate_randomised(specs, (model_weights, model_biases), result_file)
 
-
-run_experiment_with_target_model(ExperimentSpecs("gpt2", "experiment_3"))
+run_experiment_with_target_model(ExperimentSpecs("distilbert/distilgpt2", "experiment_4"))

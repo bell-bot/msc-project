@@ -90,12 +90,16 @@ def compile_report(kl_weights, kl_bias, emd_weights, emd_biases, ks_weights, ks_
     return report
 
 
-def save_evaluation_report(df: pd.DataFrame, specs: ExperimentSpecs, filepath: str):
+def save_evaluation_report(specs: ExperimentSpecs, filepath: str):
 
     with open(f"{filepath}/specs.txt", "w") as f:
         for key, value in specs.dict().items():
             f.write(f"{key}: {value}\n")
 
-    df.to_csv(f"{filepath}/evaluation_report.csv", index=False)
+    headers = "Index, KL Weights, KL Biases, EMD Weights, EMD Biases, KS Weights Statistic, KS Weights P-value, KS Biases Statistic, KS Biases P-value, Mean Weights, Mean Biases, Std Weights, Std Biases, Kurtosis Weights, Kurtosis Biases\n"
+    with open(f"{filepath}/evaluation_report.csv", "w") as f:
+        f.write(headers)
 
-    print(f"Saved evaluation report to {filepath}")
+    print(f"Saving evaluation report to {filepath}")
+    evaluation_report = open(f"{filepath}/evaluation_report.csv", "a")
+    return evaluation_report
