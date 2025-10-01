@@ -72,24 +72,6 @@ def evaluate_model(
 
     return metrics
 
-
-def compile_report(kl_weights, kl_bias, emd_weights, emd_biases, ks_weights, ks_biases):
-    report = f"""
-    KL Divergence:
-        Weights: {kl_weights}
-        Biases: {kl_bias}
-
-    Earth Mover's Distance:
-        Weights: {emd_weights}
-        Biases: {emd_biases}
-
-    Kolmogorov-Smirnov Test:
-        Weights: Statistic={ks_weights[0]}, P-value={ks_weights[1]}
-        Biases: Statistic={ks_biases[0]}, P-value={ks_biases[1]}
-    """
-    return report
-
-
 def save_evaluation_report(specs: ExperimentSpecs, filepath: str):
 
     with open(f"{filepath}/specs.txt", "w") as f:
