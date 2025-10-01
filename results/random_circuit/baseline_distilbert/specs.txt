@@ -1,0 +1,10 @@
+target_model: distilbert/distilgpt2
+experiment_name: baseline_distilbert
+num_samples: 20
+c: 448
+n: 24
+log_w: 6
+random_seed: 95
+trigger_length: 16
+payload_length: 16
+sample_size: 1000000

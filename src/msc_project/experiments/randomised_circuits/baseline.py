@@ -12,7 +12,6 @@ from circuits.tensors.mlp import StepMLP
 from circuits.utils.format import format_msg
 from msc_project.circuits_custom.custom_stepmlp import CustomStepMLP, GACompatibleStepMLP
 from msc_project.evaluation.evaluate import evaluate_model, save_evaluation_report
-from msc_project.experiments.randomised_circuits.run_experiment import format_results
 from msc_project.utils.experiment_utils import ExperimentSpecs
 from msc_project.utils.logging_utils import TimedLogger, TqdmLoggingHandler
 from msc_project.utils.model_utils import get_mlp_layers, process_mlp_layers
@@ -22,6 +21,8 @@ from transformers import AutoModelForCausalLM, logging as hf_logging
 logging.setLoggerClass(TimedLogger)
 LOG: TimedLogger = cast(TimedLogger, logging.getLogger(__name__))
 
+def format_results(results: dict) -> str:
+    return f"{results['KL Weights']:.4f}, {results['KL Biases']:.4f}, {results['EMD Weights']:.4f}, {results['EMD Biases']:.4f}, {results['KS Weights Statistic']:.4f}, {results['KS Weights P-value']:.4f}, {results['KS Biases Statistic']:.4f}, {results['KS Biases P-value']:.4f}, {results['Mean Weights']:.4f}, {results['Mean Biases']:.4f}, {results['Std Weights']:.4f}, {results['Std Biases']:.4f}, {results['Kurtosis Weights']:.4f}, {results['Kurtosis Biases']:.4f}\n"
 
 def evaluate_baseline(
     specs: ExperimentSpecs, target_model: tuple[torch.Tensor, torch.Tensor], result_file
@@ -94,4 +95,4 @@ def run_experiment_with_target_model(specs: ExperimentSpecs):
 
     evaluate_baseline(specs, (model_weights, model_biases), result_file)
 
-run_experiment_with_target_model(ExperimentSpecs("distilbert/distilgpt2", "baseline_distilbert", num_samples=20))
+run_experiment_with_target_model(ExperimentSpecs(target_model="distilbert/distilgpt2", experiment_name="baseline_distilbert", num_samples=20))
