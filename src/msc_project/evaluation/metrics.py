@@ -63,8 +63,34 @@ def get_spectral_signatures(
         backdoored_model, last_hidden_layer_idx, [benign_comparison]
     )
 
-    benign_covariance = torch.cov(benign_activations.T)
+    benign_variances = torch.var(benign_activations, dim=0)
+    non_constant_indices = torch.where(benign_variances > 1e-20)[0]
+
+    filtered_benign_activations = benign_activations[:, non_constant_indices]
+    filtered_trigger_activation = trigger_activation[:, non_constant_indices]
+    filtered_benign_comparison_activation = benign_comparison_activation[:, non_constant_indices]
+
+    benign_covariance = torch.cov(filtered_benign_activations.T)
 
     benign_u, benign_s, benign_v = torch.linalg.svd(benign_covariance)
 
-    return benign_u, benign_s, benign_v, trigger_activation, benign_comparison_activation
+    return benign_u, benign_s, benign_v, filtered_trigger_activation, filtered_benign_comparison_activation
+
+def find_outliers(model: StepMLP, trigger_message: str, k_msg_len: int, n_samples: int = 2000):
+    benign_samples = get_random_benign_inputs(n_samples, len(trigger_message), k_msg_len, trigger_message)
+    last_hidden_layer_idx = len(model.net) - 2
+
+    all_samples = benign_samples + [format_msg(trigger_message, k_msg_len)]
+    activations = get_layer_activations(model, last_hidden_layer_idx, all_samples)
+    mean_activation = torch.mean(activations, dim=0)
+
+    m = activations - mean_activation
+    _, _, vh = torch.linalg.svd(m)
+    v = vh[0, :]
+
+    tau = torch.matmul(m,v)**2
+
+    outlier_score = tau[-1]
+    benign_scores = tau[:-1]
+
+    return outlier_score, benign_scores

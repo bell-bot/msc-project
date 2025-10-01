@@ -12,6 +12,7 @@ from circuits.tensors.mlp import StepMLP
 from circuits.utils.format import format_msg
 from msc_project.circuits_custom.custom_stepmlp import CustomStepMLP, GACompatibleStepMLP
 from msc_project.evaluation.evaluate import evaluate_model, save_evaluation_report
+from msc_project.experiments.randomised_circuits.run_experiment import format_results
 from msc_project.utils.experiment_utils import ExperimentSpecs
 from msc_project.utils.logging_utils import TimedLogger, TqdmLoggingHandler
 from msc_project.utils.model_utils import get_mlp_layers, process_mlp_layers
@@ -23,12 +24,10 @@ LOG: TimedLogger = cast(TimedLogger, logging.getLogger(__name__))
 
 
 def evaluate_baseline(
-    specs: ExperimentSpecs, target_model: tuple[torch.Tensor, torch.Tensor]
-) -> pd.DataFrame:
+    specs: ExperimentSpecs, target_model: tuple[torch.Tensor, torch.Tensor], result_file
+):
 
     torch.manual_seed(specs.random_seed)
-
-    results = []
 
     with tqdm(range(specs.num_samples), desc="Starting experiments") as pbar:
 
@@ -53,16 +52,16 @@ def evaluate_baseline(
             metrics = evaluate_model(
                 backdoored_model, target_model, specs.sample_size, LOG, pbar=pbar, step_info=step_info
             )
-            results.append(metrics)
-
-    df = pd.DataFrame(results)
-    return df
-
+            LOG.info(f"Results: {metrics}")
+            result_file.write(format_results(metrics))
+            result_file.flush()
 
 def run_experiment_with_target_model(specs: ExperimentSpecs):
 
     save_path = f"results/random_circuit/{specs.experiment_name}"
     os.makedirs(os.path.dirname(f"{save_path}/experiment.log"), exist_ok=True)
+
+    result_file = save_evaluation_report(specs, save_path)
 
     LOG.setLevel(logging.INFO)
     file_handler = logging.FileHandler(f"{save_path}/experiment.log", mode="w")
@@ -93,7 +92,6 @@ def run_experiment_with_target_model(specs: ExperimentSpecs):
         log_details["weights"] = f"{model_weights.numel():,}"
         log_details["biases"] = f"{model_biases.numel():,}"
 
-    results = evaluate_baseline(specs, (model_weights, model_biases))
-    save_evaluation_report(results, specs, save_path)
+    evaluate_baseline(specs, (model_weights, model_biases), result_file)
 
-run_experiment_with_target_model(ExperimentSpecs("gpt2", "baseline"))
+run_experiment_with_target_model(ExperimentSpecs("distilbert/distilgpt2", "baseline_distilbert", num_samples=20))
