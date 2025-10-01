@@ -89,4 +89,4 @@ def get_layer_activations(model: StepMLP, layer_index: int, test_data: list[Bits
             model.infer_bits(x)
 
     handle.remove()
-    return torch.cat(activations)
+    return torch.stack(activations)

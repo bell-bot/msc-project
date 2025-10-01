@@ -5,11 +5,11 @@ import torch
 
 from circuits.examples.keccak import Keccak
 from circuits.tensors.mlp import StepMLP
+from circuits.utils.format import format_msg
 from msc_project.evaluation.utils import (
     get_distribution,
     get_histogram_params,
     get_random_benign_inputs,
-    get_random_trigger_inputs,
 )
 from msc_project.utils.model_utils import get_layer_activations
 from msc_project.utils.sampling import sample_tensor
@@ -41,36 +41,30 @@ def ks_test(backdoored_model_weights: torch.Tensor, target_model_weights: torch.
 
     return statistic, p_value
 
-
 def get_spectral_signatures(
     backdoored_model: StepMLP,
     trigger_message: str,
     k: Keccak,
-    random_seq_length: int,
     n_benign: int,
-    n_trigger: int,
 ):
-    benign_sample_length = len(trigger_message) + random_seq_length
+    benign_sample_length = len(trigger_message)
 
-    benign_samples = get_random_benign_inputs(n_benign, benign_sample_length, k.msg_len)
-    trigger_samples = get_random_trigger_inputs(
-        n_trigger, trigger_message, random_seq_length, k.msg_len
-    )
+    benign_samples = get_random_benign_inputs(n_benign, benign_sample_length, k.msg_len, trigger_message)
+    trigger_sample = format_msg(trigger_message, k.msg_len)
+    benign_comparison = get_random_benign_inputs(1, benign_sample_length, k.msg_len, trigger_message)[0]
 
     last_hidden_layer_idx = len(backdoored_model.net) - 2
 
     benign_activations = get_layer_activations(backdoored_model, last_hidden_layer_idx, benign_samples)
-    trigger_activations = get_layer_activations(
-        backdoored_model, last_hidden_layer_idx, trigger_samples
+    trigger_activation = get_layer_activations(
+        backdoored_model, last_hidden_layer_idx, [trigger_sample]
+    )
+    benign_comparison_activation = get_layer_activations(
+        backdoored_model, last_hidden_layer_idx, [benign_comparison]
     )
 
     benign_covariance = torch.cov(benign_activations.T)
-    trigger_covariance = torch.cov(trigger_activations.T)
 
-    _, benign_s, _ = torch.linalg.svd(benign_covariance)
-    _, trigger_s, _ = torch.linalg.svd(trigger_covariance)
+    benign_u, benign_s, benign_v = torch.linalg.svd(benign_covariance)
 
-    benign_s_np = benign_s.cpu().numpy()
-    trigger_s_np = trigger_s.cpu().numpy()
-
-    return benign_s_np, trigger_s_np
+    return benign_u, benign_s, benign_v, trigger_activation, benign_comparison_activation

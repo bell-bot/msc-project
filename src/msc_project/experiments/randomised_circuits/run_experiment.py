@@ -46,7 +46,8 @@ def evaluate_randomised(
 ):
 
     torch.manual_seed(specs.random_seed)
-    weight_counter = dryrun(specs)
+    with LOG.time("Dry run: computing model parameter requirements.", show_pbar=False):
+        weight_counter = dryrun(specs)
 
     with tqdm(range(specs.num_samples), desc="Starting experiments") as pbar:
 
@@ -75,7 +76,9 @@ def evaluate_randomised(
             metrics = evaluate_model(
                 backdoored_model, target_model, specs.sample_size, LOG, pbar=pbar, step_info=step_info
             )
+            LOG.info(f"Results: {metrics}")
             result_file.write(format_results(metrics))
+            result_file.flush()
 
 def run_experiment_with_target_model(specs: ExperimentSpecs):
 
@@ -115,4 +118,4 @@ def run_experiment_with_target_model(specs: ExperimentSpecs):
 
     evaluate_randomised(specs, (model_weights, model_biases), result_file)
 
-run_experiment_with_target_model(ExperimentSpecs("distilbert/distilgpt2", "experiment_4"))
+run_experiment_with_target_model(ExperimentSpecs("distilbert/distilgpt2", "experiment_4", num_samples=20))
