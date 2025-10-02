@@ -81,14 +81,22 @@ def find_outliers(model: StepMLP, trigger_message: str, k_msg_len: int, n_sample
     last_hidden_layer_idx = len(model.net) - 2
 
     all_samples = benign_samples + [format_msg(trigger_message, k_msg_len)]
+    print("Getting activations")
     activations = get_layer_activations(model, last_hidden_layer_idx, all_samples)
+    print("Done getting activations")
     mean_activation = torch.mean(activations, dim=0)
 
+    print("Computing M")
     m = activations - mean_activation
+    print("Done computing M")
+    print("Computing SVD")
     _, _, vh = torch.linalg.svd(m)
+    print("Done computing SVD")
     v = vh[0, :]
 
+    print("Computing tau")
     tau = torch.matmul(m,v)**2
+    print("Done computing tau")
 
     outlier_score = tau[-1]
     benign_scores = tau[:-1]

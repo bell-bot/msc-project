@@ -18,6 +18,7 @@ n = 24
 c = 256
 log_w = 6
 
+print("Dry run to count weights...")
 weight_counter = WeightCounter(torch.tensor([]))
 counting_keccak = CustomKeccak(n=n, c=c, log_w=log_w, sampler=weight_counter)
 trigger_message = format_msg(
@@ -27,6 +28,9 @@ payload = format_msg(payload_string, counting_keccak.d)
 _ = RandomisedStepMLP.create_with_randomised_backdoor(
     trigger_message.bitlist, payload.bitlist, counting_keccak, sampler=weight_counter
 )
+print(f"Number of positive weights: {weight_counter.num_positive}")
+print(f"Number of negative weights: {weight_counter.num_negative}")
+print("Creating backdoored model...")
 
 target_distribution = torch.randn(2000000)
 sampler = WeightBankSampler(target_distribution, weight_counter.num_positive, weight_counter.num_negative)
@@ -34,6 +38,7 @@ keccak = CustomKeccak(n=n, c=c, log_w=log_w, sampler=sampler)
 backdoored_model = RandomisedStepMLP.create_with_randomised_backdoor(
     trigger_message.bitlist, payload.bitlist, keccak, sampler=sampler
 )
+print("Done creating backdoored model.")
 
 # keccak = Keccak(n=3, c=24, log_w=1)
 # trigger = format_msg(trigger_string, keccak.msg_len)
