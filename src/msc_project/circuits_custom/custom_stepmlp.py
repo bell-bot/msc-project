@@ -90,15 +90,3 @@ class RandomisedStepMLP(CustomStepMLP):
         # Honestly not sure why we need this threshold value but it works
         return (x > 0.0).type(x.dtype)
 
-
-class RandomisedRedundantStepMLP(RandomisedStepMLP):
-    @classmethod
-    def create_with_randomised_backdoor(
-        cls, trigger: list[Bit], payload: list[Bit], k: CustomKeccak, sampler=WeightSampler
-    ):
-
-        backdoor_fun = get_backdoor_with_redundancy(
-            trigger=trigger, payload=payload, k=k, sampler=sampler
-        )
-        graph = custom_compiled(backdoor_fun, k.msg_len, sampler=sampler)
-        return cls.from_graph(graph, sampler=sampler)

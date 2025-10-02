@@ -24,8 +24,6 @@ from msc_project.analysis.analysis_utils import (
 from msc_project.utils.model_utils import unfold_stepmlp_parameters
 from msc_project.circuits_custom.custom_keccak import CustomKeccak
 from msc_project.circuits_custom.custom_stepmlp import (
-    CustomStepMLP,
-    RandomisedRedundantStepMLP,
     RandomisedStepMLP,
 )
 from msc_project.utils.sampling import (
