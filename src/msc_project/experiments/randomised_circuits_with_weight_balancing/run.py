@@ -76,15 +76,15 @@ def evaluate_randomised(
                 )
                 print(f"After model creation: Positive samples used: {sampler.positive_idx}; negative samples used: {sampler.negative_idx}")
 
-            # metrics = evaluate_model(
-            #     backdoored_model, target_model, specs.sample_size, LOG, pbar=pbar, step_info=step_info
-            # )
-            # LOG.info(f"Results: {metrics}")
-            # result_file.write(format_results(metrics))
-            # result_file.flush()
+            metrics = evaluate_model(
+                backdoored_model, target_model, specs.sample_size, LOG, pbar=pbar, step_info=step_info
+            )
+            LOG.info(f"Results: {metrics}")
+            result_file.write(format_results(metrics))
+            result_file.flush()
 
-            backdoored_model_weights, backdoored_model_biases = unfold_stepmlp_parameters(backdoored_model)
-            plot_histograms(backdoored_model_weights, target_model[0], backdoored_model_biases, target_model[1], f"results/balanced_circuit/{specs.experiment_name}/histograms/sample_{i+1}")
+            #backdoored_model_weights, backdoored_model_biases = unfold_stepmlp_parameters(backdoored_model)
+            #plot_histograms(backdoored_model_weights, target_model[0], backdoored_model_biases, target_model[1], f"results/balanced_circuit/{specs.experiment_name}/histograms/sample_{i+1}")
 
 
 
@@ -126,4 +126,4 @@ def run_experiment_with_target_model(specs: ExperimentSpecs):
 
     evaluate_randomised(specs, (model_weights, model_biases), result_file)
 
-run_experiment_with_target_model(ExperimentSpecs("gpt2", "test", num_samples=1, n=3, c=24, log_w=1))
+run_experiment_with_target_model(ExperimentSpecs("gpt2", "experiment_gpt", num_samples=20))

@@ -40,7 +40,6 @@ def custom_get_balanced_backdoor(trigger: list[Bit], payload: list[Bit], k: Cust
         hashed = k.bitlist_to_digest(x)  # (k.d,)
         ambivalent = custom_xors([hashed, key], sampler)  # (k.d,)
 
-        neg_idx_start = sampler.negative_idx
         while sampler.positive_idx > sampler.negative_idx + 2*len(ambivalent):
             ambivalent = custom_nots(custom_nots(ambivalent, sampler), sampler)
         
