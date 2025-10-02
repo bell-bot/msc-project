@@ -88,7 +88,28 @@ def custom_bitwise(
 def custom_nots(x: list[Bit], sampler: WeightSampler) -> list[Bit]:
     return [custom_not_(b, sampler) for b in x]
 
+def nand_(x: list[Bit], sampler: WeightSampler) -> Bit:
+    """
+    Implement NAND gate as the OR of the inverted inputs
+    """
 
+    x_inverse = custom_nots(x, sampler)
+    return custom_or_(x_inverse, sampler)
+
+def xor_from_nand(x: list[Bit], sampler: WeightSampler) -> Bit:
+    
+    def xor_2_input(a: Bit, b: Bit):
+        out1 = nand_([a,b], sampler)
+        out2 = nand_([a, out1], sampler)
+        out3 = nand_([b, out1], sampler)
+        return nand_([out2, out3], sampler)
+    
+    result = x[0]
+    for bit in x[1:]:
+        result = xor_2_input(result, bit)
+    return result
+
+bitwise_xors_from_nand = custom_bitwise(xor_from_nand)
 custom_xors = custom_bitwise(custom_xor)
 bitwise_ands = custom_bitwise(custom_and_)
 
