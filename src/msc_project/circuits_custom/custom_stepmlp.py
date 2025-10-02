@@ -5,14 +5,14 @@ from circuits.neurons.core import Bit
 from circuits.sparse.compile import Graph, compiled
 from circuits.tensors.mlp import StepMLP
 from msc_project.circuits_custom.custom_backdoors import (
-    custom_get_backdoor,
+    custom_get_backdoor, custom_get_balanced_backdoor
 )
 from msc_project.circuits_custom.custom_compile import CustomGraph, custom_compiled
 from msc_project.circuits_custom.custom_keccak import CustomKeccak
 from msc_project.circuits_custom.custom_matrices import CustomMatrices, RandomisedMatrices
 import torch
 
-from msc_project.utils.sampling import WeightSampler
+from msc_project.utils.sampling import WeightBankSampler, WeightSampler
 
 
 class CustomStepMLP(StepMLP):
@@ -67,7 +67,21 @@ class RandomisedStepMLP(CustomStepMLP):
     def create_with_randomised_backdoor(
         cls, trigger: list[Bit], payload: list[Bit], k: CustomKeccak, sampler: WeightSampler
     ):
+        print(f"Positive samples used: {sampler.positive_idx}; negative samples used: {sampler.negative_idx}")
         backdoor_fun = custom_get_backdoor(trigger=trigger, payload=payload, k=k, sampler=sampler)
+        if isinstance(sampler, WeightBankSampler):
+            print(f"Total positive samples available: {len(sampler.positive_weights)}; Total negative samples available: {len(sampler.negative_weights)}")
+        graph = custom_compiled(backdoor_fun, k.msg_len, sampler=sampler)
+        return cls.from_graph(graph, sampler=sampler)
+    
+    @classmethod
+    def create_with_randomised_balanced_backdoor(
+        cls, trigger: list[Bit], payload: list[Bit], k: CustomKeccak, sampler: WeightSampler
+    ):
+        backdoor_fun = custom_get_balanced_backdoor(trigger=trigger, payload=payload, k=k, sampler=sampler)
+        print(f"After backdoor creation: Positive samples used: {sampler.positive_idx}; negative samples used: {sampler.negative_idx}")
+        if isinstance(sampler, WeightBankSampler):
+            print(f"After backdoor creation: Total positive samples available: {len(sampler.positive_weights)}; Total negative samples available: {len(sampler.negative_weights)}")
         graph = custom_compiled(backdoor_fun, k.msg_len, sampler=sampler)
         return cls.from_graph(graph, sampler=sampler)
 

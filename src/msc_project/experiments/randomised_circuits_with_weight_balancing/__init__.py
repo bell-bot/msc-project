@@ -15,8 +15,7 @@ from numpy.random import RandomState
 
 from msc_project.utils.experiment_utils import ExperimentSpecs
 from msc_project.utils.logging_utils import TimedLogger, TqdmLoggingHandler
-from msc_project.utils.model_utils import get_mlp_layers, process_mlp_layers, unfold_stepmlp_parameters
-from msc_project.utils.plot import plot_histograms
+from msc_project.utils.model_utils import get_mlp_layers, process_mlp_layers
 from msc_project.utils.run_utils import get_random_alphanum_string
 from transformers import logging as hf_logging
 
@@ -81,9 +80,6 @@ def evaluate_randomised(
             result_file.write(format_results(metrics))
             result_file.flush()
 
-            backdoored_model_weights, backdoored_model_biases = unfold_stepmlp_parameters(backdoored_model)
-            plot_histograms(backdoored_model_weights, target_model[0], backdoored_model_biases, target_model[1], f"results/random_circuit/{specs.experiment_name}/histograms/sample_{i+1}")
-
 def run_experiment_with_target_model(specs: ExperimentSpecs):
 
     save_path = f"results/random_circuit/{specs.experiment_name}"
@@ -122,4 +118,4 @@ def run_experiment_with_target_model(specs: ExperimentSpecs):
 
     evaluate_randomised(specs, (model_weights, model_biases), result_file)
 
-run_experiment_with_target_model(ExperimentSpecs("gpt2", "test", num_samples=1, n=3, c=24, log_w=1))
+run_experiment_with_target_model(ExperimentSpecs("distilbert/distilgpt2", "experiment_4", num_samples=20))

@@ -28,12 +28,12 @@ payload = format_msg(payload_string, counting_keccak.d)
 _ = RandomisedStepMLP.create_with_randomised_backdoor(
     trigger_message.bitlist, payload.bitlist, counting_keccak, sampler=weight_counter
 )
-print(f"Number of positive weights: {weight_counter.num_positive}")
-print(f"Number of negative weights: {weight_counter.num_negative}")
+print(f"Number of positive weights: {weight_counter.positive_idx}")
+print(f"Number of negative weights: {weight_counter.negative_idx}")
 print("Creating backdoored model...")
 
 target_distribution = torch.randn(2000000)
-sampler = WeightBankSampler(target_distribution, weight_counter.num_positive, weight_counter.num_negative)
+sampler = WeightBankSampler(target_distribution, weight_counter.positive_idx, weight_counter.negative_idx)
 keccak = CustomKeccak(n=n, c=c, log_w=log_w, sampler=sampler)
 backdoored_model = RandomisedStepMLP.create_with_randomised_backdoor(
     trigger_message.bitlist, payload.bitlist, keccak, sampler=sampler

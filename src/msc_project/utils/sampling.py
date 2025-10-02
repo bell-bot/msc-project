@@ -27,6 +27,8 @@ def sample_from_distribution(
 class WeightSampler:
     def __init__(self, target_distribution: torch.Tensor):
         self.target_distribution = target_distribution
+        self.positive_idx = 0
+        self.negative_idx = 0
 
     def sample(
         self, num_samples: int, sign: Literal["positive", "negative"] = "positive"
@@ -43,6 +45,7 @@ class WeightSampler:
             raise ValueError(f"No {sign} values available for sampling.")
 
         indices = torch.randint(num_available, (num_samples,))
+
         return target[indices]
 
 
@@ -62,12 +65,12 @@ class WeightBankSampler(WeightSampler):
     ) -> torch.Tensor:
         if sign == "positive":
             if self.positive_idx + num_samples > len(self.positive_weights):
-                raise ValueError("Not enough pre-sampled positive weights!")
+                raise ValueError(f"Not enough pre-sampled positive weights!\nRequested {num_samples}, but only {len(self.positive_weights) - self.positive_idx} left.")
             weights = self.positive_weights[self.positive_idx : self.positive_idx + num_samples]
             self.positive_idx += num_samples
         else:  # negative
             if self.negative_idx + num_samples > len(self.negative_weights):
-                raise ValueError("Not enough pre-sampled negative weights!")
+                raise ValueError(f"Not enough pre-sampled negative weights!\nRequested {num_samples}, but only {len(self.negative_weights) - self.negative_idx} left.")
             weights = self.negative_weights[self.negative_idx : self.negative_idx + num_samples]
             self.negative_idx += num_samples
         return weights
@@ -75,17 +78,17 @@ class WeightBankSampler(WeightSampler):
 
 class WeightCounter(WeightSampler):
     def __init__(self, target_distribution: torch.Tensor):
-        self.num_positive = 0
-        self.num_negative = 0
+        self.positive_idx = 0
+        self.negative_idx = 0
 
     def sample(
         self, num_samples: int, sign: Literal["positive", "negative"] = "positive"
     ) -> torch.Tensor:
         if sign == "positive":
-            self.num_positive += num_samples
+            self.positive_idx += num_samples
             return torch.ones(num_samples)
         elif sign == "negative":
-            self.num_negative += num_samples
+            self.negative_idx += num_samples
             return -torch.ones(num_samples)
         else:
             raise ValueError(f"Invalid sign: {sign}")

@@ -31,7 +31,7 @@ class RandomisedMatrices(CustomMatrices):
     def fold_bias(w: torch.Tensor, b: torch.Tensor, sampler: WeightSampler) -> torch.Tensor:
         """Folds bias into weights, assuming input feature at index 0 is always 1."""
         identity_weight, identity_bias = get_random_identity_params(sampler)
-
+        
         one = torch.tensor([[identity_weight]])
         zeros = torch.ones(1, w.size(1)) * (identity_bias / w.size(1))
         # assumes row vector bias that is transposed during forward pass

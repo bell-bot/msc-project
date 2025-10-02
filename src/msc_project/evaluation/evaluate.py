@@ -17,7 +17,7 @@ def evaluate_model(
     sample_size: int,
     LOG: TimedLogger,
     pbar: tqdm | None = None,
-    step_info: str = "",
+    step_info: str = ""
 ):
 
     metrics = {}

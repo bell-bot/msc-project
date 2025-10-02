@@ -23,8 +23,8 @@ _ = RandomisedStepMLP.create_with_randomised_backdoor(
 
 sampler = WeightBankSampler(
     target_weights,
-    num_positive_samples=weight_counter.num_positive,
-    num_negative_samples=weight_counter.num_negative,
+    num_positive_samples=weight_counter.positive_idx,
+    num_negative_samples=weight_counter.negative_idx,
 )
 
 # Set up the trigger and payload

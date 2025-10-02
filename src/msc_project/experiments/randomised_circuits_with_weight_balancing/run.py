@@ -19,6 +19,7 @@ from msc_project.utils.model_utils import get_mlp_layers, process_mlp_layers, un
 from msc_project.utils.plot import plot_histograms
 from msc_project.utils.run_utils import get_random_alphanum_string
 from transformers import logging as hf_logging
+import matplotlib.pyplot as plt
 
 from msc_project.utils.sampling import WeightBankSampler, WeightCounter
 
@@ -56,8 +57,8 @@ def evaluate_randomised(
             step_info = f"Sample {i+1}/{specs.num_samples} - "
             sampler = WeightBankSampler(
                 target_model[0],
-                num_positive_samples=weight_counter.positive_idx,
-                num_negative_samples=weight_counter.negative_idx,
+                num_positive_samples=2*weight_counter.positive_idx,
+                num_negative_samples=weight_counter.positive_idx,
             )
 
             pbar.set_description(f"{step_info}Generating trigger and payload")
@@ -70,23 +71,26 @@ def evaluate_randomised(
 
             pbar.set_description(f"{step_info}Creating backdoored model")
             with LOG.time("Creating backdoored model", show_pbar=False):
-                backdoored_model = RandomisedStepMLP.create_with_randomised_backdoor(
+                backdoored_model = RandomisedStepMLP.create_with_randomised_balanced_backdoor(
                     trigger.bitlist, payload.bitlist, keccak, sampler=sampler
                 )
+                print(f"After model creation: Positive samples used: {sampler.positive_idx}; negative samples used: {sampler.negative_idx}")
 
-            metrics = evaluate_model(
-                backdoored_model, target_model, specs.sample_size, LOG, pbar=pbar, step_info=step_info
-            )
-            LOG.info(f"Results: {metrics}")
-            result_file.write(format_results(metrics))
-            result_file.flush()
+            # metrics = evaluate_model(
+            #     backdoored_model, target_model, specs.sample_size, LOG, pbar=pbar, step_info=step_info
+            # )
+            # LOG.info(f"Results: {metrics}")
+            # result_file.write(format_results(metrics))
+            # result_file.flush()
 
             backdoored_model_weights, backdoored_model_biases = unfold_stepmlp_parameters(backdoored_model)
-            plot_histograms(backdoored_model_weights, target_model[0], backdoored_model_biases, target_model[1], f"results/random_circuit/{specs.experiment_name}/histograms/sample_{i+1}")
+            plot_histograms(backdoored_model_weights, target_model[0], backdoored_model_biases, target_model[1], f"results/balanced_circuit/{specs.experiment_name}/histograms/sample_{i+1}")
+
+
 
 def run_experiment_with_target_model(specs: ExperimentSpecs):
 
-    save_path = f"results/random_circuit/{specs.experiment_name}"
+    save_path = f"results/balanced_circuit/{specs.experiment_name}"
     os.makedirs(os.path.dirname(f"{save_path}/experiment.log"), exist_ok=True)
 
     result_file = save_evaluation_report(specs, save_path)

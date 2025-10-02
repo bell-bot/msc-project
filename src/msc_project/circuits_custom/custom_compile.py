@@ -17,6 +17,7 @@ class CustomGraph(Graph):
     def ensure_adjacent_parents(self, layers: list[list[Node]]) -> list[list[Node]]:  # type: ignore
         """Copy signals to next layers, ensuring child.depth==parent.depth+1"""
         copies_by_layer: list[list[Node]] = [[] for _ in range(len(layers))]
+        total_identity_funs = 0
         for layer_idx, layer in enumerate(layers):
             for node in layer:
                 # Stop at outputs
@@ -42,8 +43,9 @@ class CustomGraph(Graph):
                     copy_chain.append(curr)
                     curr.metadata["name"] = f"{prev_name}" + "`" + str(counter)
                     counter += 1
+                    total_identity_funs += 1
                     prev = curr
-
+                
                 # Redirect children to appropriate copies
                 for child in list(node.children):
                     if child.depth == -1:
@@ -62,6 +64,9 @@ class CustomGraph(Graph):
             layer.extend(copies_by_layer[i])
             for j, node in enumerate(layer):
                 node.column = j
+
+        print(f"Added {total_identity_funs} identity functions.")
+        print(f"Total positive weights used after ensuring adjacency: {self.sampler.positive_idx}; total negative weights used: {self.sampler.negative_idx}")
 
         return layers
 
