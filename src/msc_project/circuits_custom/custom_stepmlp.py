@@ -6,7 +6,6 @@ from circuits.sparse.compile import Graph, compiled
 from circuits.tensors.mlp import StepMLP
 from msc_project.circuits_custom.custom_backdoors import (
     custom_get_backdoor,
-    get_backdoor_with_redundancy,
 )
 from msc_project.circuits_custom.custom_compile import CustomGraph, custom_compiled
 from msc_project.circuits_custom.custom_keccak import CustomKeccak
