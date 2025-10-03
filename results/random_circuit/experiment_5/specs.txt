@@ -1,9 +1,9 @@
 target_model: gpt2
-experiment_name: test_experiment
-num_samples: 10
-c: 20
-n: 3
-log_w: 1
+experiment_name: experiment_5
+num_samples: 1
+c: 448
+n: 24
+log_w: 6
 random_seed: 95
 trigger_length: 16
 payload_length: 16

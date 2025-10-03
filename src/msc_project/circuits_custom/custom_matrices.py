@@ -1,10 +1,11 @@
 from dataclasses import dataclass
-from circuits.sparse.compile import Graph
+from circuits.sparse.compile import Graph, Node
 
 import torch
 
 from circuits.tensors.matrices import Matrices
-from msc_project.circuits_custom.custom_compile import CustomGraph, get_random_identity_params
+from msc_project.circuits_custom.custom_compile import CustomGraph
+from msc_project.circuits_custom.custom_logic_gates import get_booster_identity_params, get_random_identity_params
 from msc_project.utils.sampling import WeightSampler
 
 
@@ -56,5 +57,5 @@ class RandomisedMatrices(CustomMatrices):
             cls.layer_to_params(layer, s, dtype, debias=False) for layer, s in zip(layers, sizes_in)
         ]  # w&b pairs
         matrices = [cls.fold_bias(w.to_dense(), b, sampler) for w, b in params]  # dense matrices
-        # matrices[-1] = matrices[-1][1:]  # last layer removes the constant input feature
+        #matrices[-1] = matrices[-1][1:]  # last layer removes the constant input feature
         return cls(matrices, dtype=dtype)

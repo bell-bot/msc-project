@@ -5,10 +5,10 @@ from circuits.neurons.core import Bit
 from circuits.sparse.compile import Graph, compiled
 from circuits.tensors.mlp import StepMLP
 from msc_project.circuits_custom.custom_backdoors import (
-    custom_get_backdoor, custom_get_balanced_backdoor
+    custom_get_backdoor, custom_get_backdoor_from_nand, custom_get_balanced_backdoor
 )
 from msc_project.circuits_custom.custom_compile import CustomGraph, custom_compiled
-from msc_project.circuits_custom.custom_keccak import CustomKeccak
+from msc_project.circuits_custom.custom_keccak import CustomKeccak, CustomKeccakFromNand
 from msc_project.circuits_custom.custom_matrices import CustomMatrices, RandomisedMatrices
 import torch
 
@@ -49,7 +49,7 @@ class GACompatibleStepMLP(CustomStepMLP):
     bfloat16 😤).
     """
 
-    def __init__(self, sizes: list[int], dtype: torch.dtype = torch.float32):
+    def __init__(self, sizes: list[int], dtype: torch.dtype = torch.float64):
         super(GACompatibleStepMLP, self).__init__(sizes, dtype)
 
 
@@ -76,6 +76,14 @@ class RandomisedStepMLP(CustomStepMLP):
         cls, trigger: list[Bit], payload: list[Bit], k: CustomKeccak, sampler: WeightSampler
     ):
         backdoor_fun = custom_get_balanced_backdoor(trigger=trigger, payload=payload, k=k, sampler=sampler)
+        graph = custom_compiled(backdoor_fun, k.msg_len, sampler=sampler)
+        return cls.from_graph(graph, sampler=sampler)
+    
+    @classmethod
+    def create_with_randomised_backdoor_from_nand(
+        cls, trigger: list[Bit], payload: list[Bit], k: CustomKeccak, sampler: WeightSampler
+    ):
+        backdoor_fun = custom_get_backdoor_from_nand(trigger=trigger, payload=payload, k=k, sampler=sampler)
         graph = custom_compiled(backdoor_fun, k.msg_len, sampler=sampler)
         return cls.from_graph(graph, sampler=sampler)
 

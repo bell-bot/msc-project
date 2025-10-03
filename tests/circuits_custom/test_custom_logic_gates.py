@@ -277,6 +277,14 @@ class XorFromNandsTestcase(unittest.TestCase):
 
         self.assertEqual(expected_output.activation, actual_output.activation)
 
+    def test_long_input_with_odd_number_of_ones(self):
+        test_input = Bits.from_str("0" * 173 + "1" + "0"*62 + "11" + "0"*1567).bitlist
+
+        expected_output = xor(test_input)
+        actual_output = xor_from_nand(test_input, self.sampler)
+
+        self.assertEqual(True, actual_output.activation)
+
 class BitwiseXorsFromNandTestcase(unittest.TestCase):
 
     def setUp(self) -> None:

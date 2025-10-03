@@ -13,6 +13,7 @@ from msc_project.circuits_custom.custom_logic_gates import (
     custom_inhib,
     custom_not_,
     custom_xor,
+    xor_from_nand,
 )
 from msc_project.utils.sampling import WeightSampler
 
@@ -32,6 +33,19 @@ def custom_theta(lanes: Lanes, sampler: WeightSampler) -> Lanes:
                 )
     return result
 
+def custom_theta_from_nand(lanes: Lanes, sampler: WeightSampler) -> Lanes:
+    w = len(lanes[0][0])
+    result = get_empty_lanes(w, placeholder=lanes[0][0][0])
+    for x in range(5):
+        for y in range(5):
+            for z in range(w):
+                result[x][y][z] = xor_from_nand(
+                    [lanes[x][y][z]]
+                    + [lanes[(x + 4) % 5][y2][z] for y2 in range(5)]
+                    + [lanes[(x + 1) % 5][y2][(z + 1) % w] for y2 in range(5)],
+                    sampler,
+                )
+    return result
 
 def custom_chi(lanes: Lanes, sampler: WeightSampler) -> Lanes:
     w = len(lanes[0][0])
@@ -43,6 +57,15 @@ def custom_chi(lanes: Lanes, sampler: WeightSampler) -> Lanes:
                 result[x][y][z] = custom_xor([lanes[x][y][z], and_bit], sampler)
     return result
 
+def custom_chi_from_nand(lanes: Lanes, sampler: WeightSampler) -> Lanes:
+    w = len(lanes[0][0])
+    result = get_empty_lanes(w, placeholder=lanes[0][0][0])
+    for y in range(5):
+        for x in range(5):
+            for z in range(w):
+                and_bit = custom_inhib([lanes[(x + 1) % 5][y][z], lanes[(x + 2) % 5][y][z]], sampler)
+                result[x][y][z] = xor_from_nand([lanes[x][y][z], and_bit], sampler)
+    return result
 
 def custom_iota(lanes: Lanes, rc: str, sampler: WeightSampler) -> Lanes:
     """Applies the round constant to the first lane."""
@@ -93,6 +116,23 @@ class CustomKeccak(Keccak):
 
         r_theta = partial(custom_theta, sampler=self.sampler)
         r_chi = partial(custom_chi, sampler=self.sampler)
+        for r in range(self.n):
+            r_iota = partial(custom_iota, rc=constants[r], sampler=self.sampler)
+            fns.append([r_theta, rho_pi, r_chi, r_iota])
+        return fns  # (n, 4)
+
+@dataclass(kw_only=True)
+class CustomKeccakFromNand(CustomKeccak):
+
+    sampler: WeightSampler
+
+    def get_functions(self) -> list[list[Callable[[Lanes], Lanes]]]:
+        """Returns the functions for each round"""
+        fns: list[list[Callable[[Lanes], Lanes]]] = []
+        constants = self.get_round_constants()  # (n, ?)
+
+        r_theta = partial(custom_theta_from_nand, sampler=self.sampler)
+        r_chi = partial(custom_chi_from_nand, sampler=self.sampler)
         for r in range(self.n):
             r_iota = partial(custom_iota, rc=constants[r], sampler=self.sampler)
             fns.append([r_theta, rho_pi, r_chi, r_iota])
