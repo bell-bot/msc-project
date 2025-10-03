@@ -1,0 +1,10 @@
+target_model: gpt2
+experiment_name: experiment_gpt_small
+num_samples: 1
+c: 3
+n: 24
+log_w: 1
+random_seed: 95
+trigger_length: 16
+payload_length: 16
+sample_size: 1000000
