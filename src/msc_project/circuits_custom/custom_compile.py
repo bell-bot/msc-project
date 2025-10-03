@@ -65,9 +65,6 @@ class CustomGraph(Graph):
             for j, node in enumerate(layer):
                 node.column = j
 
-        print(f"Added {total_identity_funs} identity functions.")
-        print(f"Total positive weights used after ensuring adjacency: {self.sampler.positive_idx}; total negative weights used: {self.sampler.negative_idx}")
-
         return layers
 
 

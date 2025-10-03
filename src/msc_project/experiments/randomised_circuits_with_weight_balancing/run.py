@@ -16,7 +16,7 @@ from numpy.random import RandomState
 from msc_project.utils.experiment_utils import ExperimentSpecs
 from msc_project.utils.logging_utils import TimedLogger, TqdmLoggingHandler
 from msc_project.utils.model_utils import get_mlp_layers, process_mlp_layers, unfold_stepmlp_parameters
-from msc_project.utils.plot import plot_histograms
+from msc_project.utils.plot import plot_histograms, plot_separate_histograms
 from msc_project.utils.run_utils import get_random_alphanum_string
 from transformers import logging as hf_logging
 import matplotlib.pyplot as plt
@@ -34,9 +34,18 @@ def dryrun(specs: ExperimentSpecs) -> WeightCounter:
         get_random_alphanum_string(specs.trigger_length), counting_keccak.msg_len
     )
     payload = format_msg(get_random_alphanum_string(specs.payload_length), counting_keccak.d)
-    _ = RandomisedStepMLP.create_with_randomised_backdoor(
+    mlp = RandomisedStepMLP.create_with_randomised_backdoor(
         trigger_message.bitlist, payload.bitlist, counting_keccak, sampler=weight_counter
     )
+
+    backdoored_model_weights, backdoored_model_biases = unfold_stepmlp_parameters(mlp)
+    positive_weights = backdoored_model_weights[backdoored_model_weights > 0]
+    negative_weights = backdoored_model_weights[backdoored_model_weights < 0]
+    positive_biases = backdoored_model_biases[backdoored_model_biases > 0]
+    negative_biases = backdoored_model_biases[backdoored_model_biases < 0]
+    
+    LOG.info(f"Num positive samples taken: {weight_counter.positive_idx}; num positive weights: {positive_weights.numel()}; num positive biases: {positive_biases.numel()} (Total: {positive_weights.numel()+positive_biases.numel()})")
+    LOG.info(f"Num negative samples taken: {weight_counter.negative_idx}; num negative weights: {negative_weights.numel()}; num negative biases: {negative_biases.numel()} (Total: {negative_weights.numel()+negative_biases.numel()})")
 
     return weight_counter
 
@@ -57,7 +66,7 @@ def evaluate_randomised(
             step_info = f"Sample {i+1}/{specs.num_samples} - "
             sampler = WeightBankSampler(
                 target_model[0],
-                num_positive_samples=2*weight_counter.positive_idx,
+                num_positive_samples=(2*weight_counter.positive_idx),
                 num_negative_samples=weight_counter.positive_idx,
             )
 
@@ -84,7 +93,15 @@ def evaluate_randomised(
             # result_file.flush()
 
             backdoored_model_weights, backdoored_model_biases = unfold_stepmlp_parameters(backdoored_model)
-            plot_histograms(backdoored_model_weights, target_model[0], backdoored_model_biases, target_model[1], f"results/balanced_circuit/{specs.experiment_name}/histograms/sample_{i+1}")
+            positive_weights = backdoored_model_weights[backdoored_model_weights > 0]
+            negative_weights = backdoored_model_weights[backdoored_model_weights < 0]
+            positive_biases = backdoored_model_biases[backdoored_model_biases > 0]
+            negative_biases = backdoored_model_biases[backdoored_model_biases < 0]
+            LOG.info(f"Num positive samples taken: {sampler.positive_idx}; num positive weights: {positive_weights.numel()}; num positive biases: {positive_biases.numel()} (Total: {positive_weights.numel()+positive_biases.numel()})")
+            LOG.info(f"Num negative samples taken: {sampler.negative_idx}; num negative weights: {negative_weights.numel()}; num negative biases: {negative_biases.numel()} (Total: {negative_weights.numel()+negative_biases.numel()})")
+
+            
+            plot_separate_histograms(backdoored_model_weights, target_model[0], backdoored_model_biases, target_model[1], f"results/balanced_circuit/{specs.experiment_name}/histograms/sample_{i+1}")
 
 
 
@@ -126,4 +143,4 @@ def run_experiment_with_target_model(specs: ExperimentSpecs):
 
     evaluate_randomised(specs, (model_weights, model_biases), result_file)
 
-run_experiment_with_target_model(ExperimentSpecs("gpt2", "test", num_samples=1, n=3, c=24, log_w=1))
+run_experiment_with_target_model(ExperimentSpecs("gpt2", "experiment_gpt_large", num_samples=20))
