@@ -112,21 +112,31 @@ if __name__ == "__main__":
         biases = results["biases"]
         weight_stats = results["weight_stats"]
         bias_stats = results["bias_stats"]
-        plot_histograms(
-            biases,
-            bias_stats["mean"],
-            bias_stats["std"],
-            bias_stats["kurtosis"],
-            title="Bias Distribution",
-            param_type="Bias",
-            filename_prefix="GPT2_"
-        )
-        plot_histograms(
-            weights,
-            weight_stats["mean"],
-            weight_stats["std"],
-            weight_stats["kurtosis"],
-            title="Weight Distribution",
-            param_type="Weight",
-            filename_prefix="GPT2_"
-        )
+        # plot_histograms(
+        #     biases,
+        #     bias_stats["mean"],
+        #     bias_stats["std"],
+        #     bias_stats["kurtosis"],
+        #     title="Bias Distribution",
+        #     param_type="Bias",
+        #     filename_prefix="GPT2_"
+        # )
+        # plot_histograms(
+        #     weights,
+        #     weight_stats["mean"],
+        #     weight_stats["std"],
+        #     weight_stats["kurtosis"],
+        #     title="Weight Distribution",
+        #     param_type="Weight",
+        #     filename_prefix="GPT2_"
+        # )
+
+        print("Fitting distributions...")
+        fitted_laplace_weights = fit_distribution(weights.numpy(), stats.laplace)
+        fitted_laplace_biases = fit_distribution(biases.numpy(), stats.laplace)
+        print("Fitted Laplace parameters for weights:", fitted_laplace_weights)
+        print("Fitted Laplace parameters for biases:", fitted_laplace_biases)
+        fitted_normal_weights = fit_distribution(weights.numpy(), stats.norm)
+        fitted_normal_biases = fit_distribution(biases.numpy(), stats.norm)
+        print("Fitted Normal parameters for weights:", fitted_normal_weights)
+        print("Fitted Normal parameters for biases:", fitted_normal_biases)

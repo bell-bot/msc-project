@@ -1,5 +1,15 @@
 # Experiment: Randomised vs. Standard Backdoor with GPT2 Target Model
 
+## Model Setup (standard and backdoor)
+
+num_samples: 50
+c: 448
+n: 24
+log_w: 6
+random_seed: 95
+trigger_length: 16
+payload_length: 16
+
 ## Baseline Results
 
 KL Weights 6.152332
@@ -41,43 +51,116 @@ Weights: - Mean: -0.0014 - Std: 0.1278 - Kurtosis: 40.5677
 Biases: - Mean: -0.0668 - Std: 0.1096 - Kurtosis: 18.3524
 
 # Experiment: Randomised vs. Standard Backdoor with Laplace Target Dist
-- Laplace distribution was fitted to GPT2 mlp model weights and biases
-- Result: Laplace distribution with mean 5.9604645e-06 and standard deviation 0.04600873749930559
-- Sampled 2000000 weights and biases (each) 
+
+-   Laplace distribution was fitted to GPT2 mlp model weights and biases
+-   Result: Laplace distribution with mean 5.9604645e-06 and standard deviation 0.04600873749930559
+
+    -   Fitted Laplace parameters for weights: (-0.001100021, 0.09658630688985188)
+    -   Fitted Laplace parameters for biases: (-0.06297976, 0.0810421519809299)
+
+-   Sampled 2000000 weights and biases (each)
+
+## Model Setup (standard and backdoor)
+
+num_samples: 20
+c: 20
+n: 3
+log_w: 1
+random_seed: 95
+trigger_length: 16
+payload_length: 16
+sample_size: 2000000
 
 ## Target Statistics
-Weights stats: {'mean': 1.3953048437542748e-05, 'std': 0.06503201276063919, 'kurtosis': 5.981627743605196}
-Bias stats: {'mean': -9.838238474912941e-05, 'std': 0.06503456085920334, 'kurtosis': 5.9970936241812645}
+
+Weights stats: {'mean': -0.001109645119868219, 'std': 0.13665452599525452, 'kurtosis': 5.961965218604368}
+Bias stats: {'mean': -0.06294649839401245, 'std': 0.11450858414173126, 'kurtosis': 6.014202845029759}
 
 ## Baseline Results
 
-KL Weights                     inf
-KL Biases                   inf
-EMD Weights              0.088200
-EMD Biases               3.824320
-KS Weights Statistic     0.496000
-KS Weights P-value       0.000000
-KS Biases Statistic      0.969295
-KS Biases P-value        0.000000
-Mean Weights             0.053100
-Mean Biases             -3.804490
-Std Weights              0.241000
-Std Biases               3.370500
-Kurtosis Weights        12.009700
-Kurtosis Biases         -0.813795
+KL Weights inf
+KL Biases inf
+EMD Weights 0.118300
+EMD Biases 3.758890
+KS Weights Statistic 0.501600
+KS Weights P-value 0.000000
+KS Biases Statistic 0.969295
+KS Biases P-value 0.000000
+Mean Weights 0.053100
+Mean Biases -3.804490
+Std Weights 0.241000
+Std Biases 3.370500
+Kurtosis Weights 12.009700
+Kurtosis Biases -0.813795
 
 # Randomised Backdoor Results
-KL Weights                 4.714830
-KL Biases: [' inf 0.7885 inf 0.7828 inf inf 0.7806 inf 0.7825 inf inf 0.7932 inf inf inf inf inf inf inf inf']
-EMD Weights               0.045300
-EMD Biases                0.037515
-KS Weights Statistic      0.492975
-KS Weights P-value        0.000000
-KS Biases Statistic       0.465580
-KS Biases P-value         0.000000
-Mean Weights              0.000500
-Mean Biases              -0.037460
-Std Weights               0.007675
-Std Biases                0.053560
-Kurtosis Weights        424.189640
-Kurtosis Biases           6.822875
+
+KL Weights 4.709005
+KL Weights [inf, ..., 0.6983]
+EMD Weights 0.095275
+EMD Biases 0.036235
+KS Weights Statistic 0.498105
+KS Weights P-value 0.000000
+KS Biases Statistic 0.202855
+KS Biases P-value 0.000000
+Mean Weights 0.001055
+Mean Biases -0.078895
+Std Weights 0.016130
+Std Biases 0.112885
+Kurtosis Weights 422.149245
+Kurtosis Biases 6.797810
+
+# Experiment: Randomised vs. Standard Model and Normal Target Distribution
+
+-   Fitted Normal parameters for weights: (-0.0014237247, 0.12775175)
+-   Fitted Normal parameters for biases: (-0.066784285, 0.10962485)
+
+## Model Setup (standard and backdoor)
+
+num_samples: 20
+c: 20
+n: 3
+log_w: 1
+random_seed: 95
+trigger_length: 16
+payload_length: 16
+sample_size: 2000000
+
+## Target Statistics
+
+-   Weights stats: {'mean': -0.0012810614425688982, 'std': 0.1277788281440735, 'kurtosis': 2.995532442885635}
+-   Bias stats: {'mean': -0.06675281375646591, 'std': 0.10960625857114792, 'kurtosis': 2.997499383147008}
+
+## Baseline Results
+
+KL Weights inf
+KL Biases inf
+EMD Weights 0.130800
+EMD Biases 3.757605
+KS Weights Statistic 0.500200
+KS Weights P-value 0.000000
+KS Biases Statistic 0.969295
+KS Biases P-value 0.000000
+Mean Weights 0.053100
+Mean Biases -3.804490
+Std Weights 0.241000
+Std Biases 3.370500
+Kurtosis Weights 12.009700
+Kurtosis Biases -0.813795
+
+# Randomised Backdoor Results
+
+KL Weights 5.916215
+KL Biases inf
+EMD Weights 0.100500
+EMD Biases 0.032110
+KS Weights Statistic 0.497960
+KS Weights P-value 0.000000
+KS Biases Statistic 0.246110
+KS Biases P-value 0.000000
+Mean Weights 0.001100
+Mean Biases -0.083855
+Std Weights 0.015060
+Std Biases 0.103605
+Kurtosis Weights 210.755865
+Kurtosis Biases 2.498270

@@ -1,0 +1,12 @@
+target_model: normal
+experiment_name: experiment_laplace_normal
+target_weights: tensor([-0.1393, -0.1450,  0.1638,  ..., -0.1941,  0.1970,  0.0402])
+target_biases: tensor([-0.2045, -0.1226, -0.0814,  ..., -0.0777,  0.1536, -0.0114])
+num_samples: 20
+c: 20
+n: 3
+log_w: 1
+random_seed: 95
+trigger_length: 16
+payload_length: 16
+sample_size: 2000000

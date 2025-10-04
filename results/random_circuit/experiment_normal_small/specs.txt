@@ -1,0 +1,12 @@
+target_model: normal
+experiment_name: experiment_normal_small
+target_weights: tensor([-0.1054,  0.0209, -0.0180,  ..., -0.1501,  0.0892, -0.0576])
+target_biases: tensor([-0.0553, -0.1331, -0.1082,  ..., -0.2342,  0.0298,  0.0073])
+num_samples: 20
+c: 20
+n: 3
+log_w: 1
+random_seed: 95
+trigger_length: 16
+payload_length: 16
+sample_size: 2000000

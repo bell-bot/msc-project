@@ -121,10 +121,21 @@ def run_experiment_with_target_dist(specs: ExperimentSpecs):
     evaluate_baseline(specs, (model_weights, model_biases), result_file)
 
 sample_size = 2000000
-laplace_dist = torch.distributions.laplace.Laplace(5.9604645e-06, scale=0.04600873749930559)
-target_weights = laplace_dist.sample((sample_size,))
-target_biases = laplace_dist.sample((sample_size,))
-run_experiment_with_target_dist(ExperimentSpecs("laplace", "baseline_laplace_small", num_samples=20, n=3, c=20, log_w=1, sample_size=sample_size, target_weights=target_weights, target_biases=target_biases))
+torch.manual_seed(15)
+laplace_dist_weights = torch.distributions.laplace.Laplace(loc=-0.001100021, scale=0.09658630688985188)
+laplace_dist_biases = torch.distributions.laplace.Laplace(loc=-0.06297976, scale=0.0810421519809299)
+target_weights = laplace_dist_weights.sample((sample_size,))
+target_biases = laplace_dist_biases.sample((sample_size,))
+run_experiment_with_target_dist(ExperimentSpecs("laplace", "baseline_laplace_small2", num_samples=20, n=3, c=20, log_w=1, sample_size=sample_size, target_weights=target_weights, target_biases=target_biases))
+
+print(f"Weights stats: {compute_param_stats(target_weights)}")
+print(f"Bias stats: {compute_param_stats(target_biases)}")
+
+normal_dist_weights = torch.distributions.normal.Normal(loc=-0.0014237247, scale=0.12775175)
+normal_dist_biases = torch.distributions.normal.Normal(loc=-0.066784285, scale=0.10962485)
+target_weights = normal_dist_weights.sample((sample_size,))
+target_biases = normal_dist_biases.sample((sample_size,))
+run_experiment_with_target_dist(ExperimentSpecs("normal", "baseline_normal_small", num_samples=20, n=3, c=20, log_w=1, sample_size=sample_size, target_weights=target_weights, target_biases=target_biases))
 
 print(f"Weights stats: {compute_param_stats(target_weights)}")
 print(f"Bias stats: {compute_param_stats(target_biases)}")
