@@ -1,12 +1,16 @@
 from dataclasses import asdict, dataclass
 from typing import Literal
 
+import torch
+
 
 @dataclass
 class ExperimentSpecs:
 
     target_model: str
     experiment_name: str
+    target_weights: torch.Tensor | None = None
+    target_biases: torch.Tensor | None = None
 
     num_samples: int = 50
     c: int | None = 448

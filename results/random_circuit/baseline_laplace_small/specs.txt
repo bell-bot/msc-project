@@ -1,0 +1,12 @@
+target_model: laplace
+experiment_name: baseline_laplace_small
+target_weights: tensor([ 0.0033,  0.0247, -0.0407,  ...,  0.0399,  0.0355, -0.0567])
+target_biases: tensor([-0.1055,  0.0415, -0.0191,  ..., -0.0785,  0.1911,  0.0410])
+num_samples: 20
+c: 20
+n: 3
+log_w: 1
+random_seed: 95
+trigger_length: 16
+payload_length: 16
+sample_size: 2000000

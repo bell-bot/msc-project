@@ -106,33 +106,27 @@ if __name__ == "__main__":
 
     with open("src/msc_project/analysis/model_names.txt", "r") as f:
         model_names = [line.strip() for line in f.readlines() if line.strip()]
+        model_names = ["gpt2"]
         results = analyse_models(model_names, p=1.0)
         weights = results["weights"]
         biases = results["biases"]
         weight_stats = results["weight_stats"]
         bias_stats = results["bias_stats"]
-        # plot_histograms(
-        #     biases,
-        #     bias_stats["mean"],
-        #     bias_stats["std"],
-        #     bias_stats["kurtosis"],
-        #     title="MLP Bias Distribution Across 16 Models",
-        #     param_type="Bias",
-        # )
-        # plot_histograms(
-        #     weights,
-        #     weight_stats["mean"],
-        #     weight_stats["std"],
-        #     weight_stats["kurtosis"],
-        #     title="MLP Weight Distribution Across 16 Models",
-        #     param_type="Weight",
-        # )
-        print("Fitting distributions...")
-        fitted_laplace_weights = fit_distribution(weights.numpy(), stats.laplace)
-        fitted_laplace_biases = fit_distribution(biases.numpy(), stats.laplace)
-        print("Fitted Laplace parameters for weights:", fitted_laplace_weights)
-        print("Fitted Laplace parameters for biases:", fitted_laplace_biases)
-        fitted_normal_weights = fit_distribution(weights.numpy(), stats.norm)
-        fitted_normal_biases = fit_distribution(biases.numpy(), stats.norm)
-        print("Fitted Normal parameters for weights:", fitted_normal_weights)
-        print("Fitted Normal parameters for biases:", fitted_normal_biases)
+        plot_histograms(
+            biases,
+            bias_stats["mean"],
+            bias_stats["std"],
+            bias_stats["kurtosis"],
+            title="Bias Distribution",
+            param_type="Bias",
+            filename_prefix="GPT2_"
+        )
+        plot_histograms(
+            weights,
+            weight_stats["mean"],
+            weight_stats["std"],
+            weight_stats["kurtosis"],
+            title="Weight Distribution",
+            param_type="Weight",
+            filename_prefix="GPT2_"
+        )

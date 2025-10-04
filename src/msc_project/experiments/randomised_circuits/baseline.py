@@ -10,6 +10,7 @@ from circuits.examples.keccak import Keccak
 from circuits.sparse.compile import compiled
 from circuits.tensors.mlp import StepMLP
 from circuits.utils.format import format_msg
+from msc_project.analysis.analysis_mlp_layers import compute_param_stats
 from msc_project.circuits_custom.custom_stepmlp import CustomStepMLP, GACompatibleStepMLP
 from msc_project.evaluation.evaluate import evaluate_model, save_evaluation_report
 from msc_project.utils.experiment_utils import ExperimentSpecs
@@ -95,4 +96,35 @@ def run_experiment_with_target_model(specs: ExperimentSpecs):
 
     evaluate_baseline(specs, (model_weights, model_biases), result_file)
 
-run_experiment_with_target_model(ExperimentSpecs(target_model="distilbert/distilgpt2", experiment_name="baseline_distilbert", num_samples=20))
+def run_experiment_with_target_dist(specs: ExperimentSpecs):
+
+    save_path = f"results/random_circuit/{specs.experiment_name}"
+    os.makedirs(os.path.dirname(f"{save_path}/experiment.log"), exist_ok=True)
+
+    result_file = save_evaluation_report(specs, save_path)
+
+    LOG.setLevel(logging.INFO)
+    file_handler = logging.FileHandler(f"{save_path}/experiment.log", mode="w")
+    file_handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
+    file_handler.setLevel(logging.INFO)
+
+    tqdm_handler = TqdmLoggingHandler()
+    tqdm_handler.setFormatter(logging.Formatter("%(message)s"))
+    tqdm_handler.setLevel(logging.WARNING)
+
+    LOG.handlers = [file_handler, tqdm_handler]
+    hf_logging.disable_progress_bar()
+
+    model_weights = specs.target_weights
+    model_biases = specs.target_biases
+
+    evaluate_baseline(specs, (model_weights, model_biases), result_file)
+
+sample_size = 2000000
+laplace_dist = torch.distributions.laplace.Laplace(5.9604645e-06, scale=0.04600873749930559)
+target_weights = laplace_dist.sample((sample_size,))
+target_biases = laplace_dist.sample((sample_size,))
+run_experiment_with_target_dist(ExperimentSpecs("laplace", "baseline_laplace_small", num_samples=20, n=3, c=20, log_w=1, sample_size=sample_size, target_weights=target_weights, target_biases=target_biases))
+
+print(f"Weights stats: {compute_param_stats(target_weights)}")
+print(f"Bias stats: {compute_param_stats(target_biases)}")
