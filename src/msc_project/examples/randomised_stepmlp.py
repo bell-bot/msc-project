@@ -1,9 +1,11 @@
 from functools import partial
+import json
 import time
 import torch
 from circuits.utils.format import format_msg
 from msc_project.circuits_custom.custom_keccak import CustomKeccak
 from msc_project.circuits_custom.custom_stepmlp import RandomisedStepMLP
+from msc_project.utils.model_utils import unfold_stepmlp_parameters
 from msc_project.utils.sampling import WeightBankSampler, WeightCounter
 
 # Set a random seed for reproducibility
@@ -14,10 +16,10 @@ target_weights = torch.randn(size=(3000000,))
 
 # Need to do a "dry run" to count the number of positive and negative weights required
 weight_counter = WeightCounter(target_weights)
-counting_keccak = CustomKeccak(n=3, c=24, log_w=1, sampler=weight_counter)
+counting_keccak = CustomKeccak(n=24, c=448, log_w=6, sampler=weight_counter)
 trigger_message = format_msg("Hello, world!", counting_keccak.msg_len)
 payload = format_msg("Consider yourself BACKDOORED", counting_keccak.d)
-_ = RandomisedStepMLP.create_with_randomised_balanced_backdoor(
+_ = RandomisedStepMLP.create_with_randomised_backdoor(
     trigger_message.bitlist, payload.bitlist, counting_keccak, sampler=weight_counter
 )
 
@@ -31,7 +33,7 @@ sampler = WeightBankSampler(
 # Use CustomKeccak since Keccak uses the non-randomised logic gates internally
 print("Creating Keccak instance...")
 start = time.time()
-keccak = CustomKeccak(n=3, c=14, log_w=1, sampler=sampler)  # Small Keccak instance for testing
+keccak = CustomKeccak(n=24, c=448, log_w=6, sampler=sampler)  # Small Keccak instance for testing
 end = time.time()
 print(f"Keccak instance created in {end - start:.2f} seconds")
 trigger_message = format_msg("Hello, world!", keccak.msg_len)
@@ -39,7 +41,7 @@ payload = format_msg("Consider yourself BACKDOORED", keccak.d)
 
 # create_with_randomised_backdoor handles hashing and xor-ing internally
 print("Creating RandomisedStepMLP instance with backdoor...")
-mlp = RandomisedStepMLP.create_with_randomised_balanced_backdoor(
+mlp = RandomisedStepMLP.create_with_randomised_backdoor(
     trigger_message.bitlist, payload.bitlist, keccak, sampler=sampler
 )
 
@@ -53,3 +55,7 @@ assert (
     output == payload.bitstr
 ), f"Backdoor failed to produce correct payload\nCorrect: {payload.bitstr}\nGot: {output}"
 print("Backdoor successfully produced the correct payload!")
+
+f = open("stepmlp_parameters.json", "w")
+params = json.dumps(mlp.state_dict())
+f.write(params)

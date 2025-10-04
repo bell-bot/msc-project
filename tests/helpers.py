@@ -1,11 +1,6 @@
 import torch
 import torch.nn as nn
 
-from circuits.dense.mlp import StepMLP
-from circuits.neurons.core import const
-from circuits.sparse.compile import compiled_from_io
-
-
 # --- Llama-Style Test Model ---
 class SimpleAttentionLlama(nn.Module):
     def __init__(self, config):

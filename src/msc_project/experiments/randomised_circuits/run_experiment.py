@@ -10,6 +10,7 @@ from typing import cast
 from circuits.utils.format import format_msg
 from msc_project.circuits_custom.custom_keccak import CustomKeccak
 from msc_project.circuits_custom.custom_stepmlp import RandomisedStepMLP
+from msc_project.circuits_custom.custom_stepmlp import RandomisedStepMLP
 from msc_project.evaluation.evaluate import evaluate_model, save_evaluation_report
 from numpy.random import RandomState
 
@@ -89,6 +90,12 @@ def evaluate_randomised(
             LOG.info(f"Results: {metrics}")
             result_file.write(format_results(metrics))
             result_file.flush()
+            metrics = evaluate_model(
+                backdoored_model, target_model, specs.sample_size, LOG, pbar=pbar, step_info=step_info
+            )
+            LOG.info(f"Results: {metrics}")
+            result_file.write(format_results(metrics))
+            result_file.flush()
 
             backdoored_model_weights, backdoored_model_biases = unfold_stepmlp_parameters(backdoored_model)
 
@@ -98,7 +105,7 @@ def evaluate_randomised(
             negative_biases = backdoored_model_biases[backdoored_model_biases < 0]
             LOG.info(f"Num positive samples taken: {sampler.positive_idx}; num positive weights: {positive_weights.numel()}; num positive biases: {positive_biases.numel()} (Total: {positive_weights.numel()+positive_biases.numel()})")
             LOG.info(f"Num negative samples taken: {sampler.negative_idx}; num negative weights: {negative_weights.numel()}; num negative biases: {negative_biases.numel()} (Total: {negative_weights.numel()+negative_biases.numel()})")
-            plot_separate_histograms(backdoored_model_weights, target_model[0], backdoored_model_biases, target_model[1], f"results/random_circuit/{specs.experiment_name}/histograms/sample_{i+1}")
+            # plot_separate_histograms(backdoored_model_weights, target_model[0], backdoored_model_biases, target_model[1], f"results/random_circuit/{specs.experiment_name}/histograms/sample_{i+1}")
 
 
 def run_experiment_with_target_model(specs: ExperimentSpecs):

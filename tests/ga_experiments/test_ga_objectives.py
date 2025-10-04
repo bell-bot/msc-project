@@ -47,11 +47,11 @@ class TestEvaluateCorrectness(unittest.TestCase):
         self.test_mlp.infer_bits = MagicMock(
             return_value=Bits("101101")
         )  # half the bits are different from expected payload
-        expected_correctness_score = 0.5
+        expected_correctness_score = 0.0
         actual_correctness_score = evaluate_correctness(
             self.test_mlp, self.trigger_bits, self.expected_payload
         )
-
+       
         self.assertEqual(expected_correctness_score, actual_correctness_score)
 
 

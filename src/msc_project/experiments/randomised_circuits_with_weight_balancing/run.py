@@ -34,7 +34,7 @@ def dryrun(specs: ExperimentSpecs) -> WeightCounter:
         get_random_alphanum_string(specs.trigger_length), counting_keccak.msg_len
     )
     payload = format_msg(get_random_alphanum_string(specs.payload_length), counting_keccak.d)
-    _ = RandomisedStepMLP.create_with_randomised_balanced_backdoor(
+    mlp = RandomisedStepMLP.create_with_randomised_balanced_backdoor(
         trigger_message.bitlist, payload.bitlist, counting_keccak, sampler=weight_counter
     )
 

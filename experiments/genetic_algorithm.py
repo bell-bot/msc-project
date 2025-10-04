@@ -4,14 +4,15 @@ from pathlib import Path
 
 import numpy as np
 from circuits.examples.keccak import Keccak
+from circuits.tensors.mlp import StepMLP
 from circuits.utils.format import Bits, format_msg
-from circuits.dense.mlp import StepMLP
 import torch
 import logging
 import pygad
 
 from msc_project.circuits_custom.custom_stepmlp import GACompatibleStepMLP
-from .utils import generate_experiment_id, plot_fitness_over_generations, save_experiment_info
+from ..src.msc_project.utils.experiment_utils import generate_experiment_id, save_experiment_info
+from ..src.msc_project.utils.experiment_utils import plot_fitness_over_generations
 from msc_project.algorithms.genetic_algorithm.objectives import evaluate_normal_distribution
 from msc_project.algorithms.genetic_algorithm.utils import verify_ga_optimised_stepml
 from msc_project.analysis.analysis_utils import (

@@ -1,35 +1,28 @@
+import argparse
+import copy
 import logging
-import torch
+from pathlib import Path
+from typing import cast
+
 import numpy as np
 import pygad
 import pygad.torchga
-import argparse
-from scipy import stats
-import copy
-from pathlib import Path
+import torch
 
 from circuits.examples.keccak import Keccak
 from circuits.utils.format import Bits, format_msg
-from msc_project.algorithms.genetic_algorithm.objectives import (
-    evaluate_correctness,
-    evaluate_distribution_stats,
-    evaluate_normal_distribution,
-    evaluate_unique_params,
-)
-
+from msc_project.algorithms.genetic_algorithm.objectives import evaluate_correctness, evaluate_distribution_stats, evaluate_unique_params
+from msc_project.analysis.analysis_utils import get_param_stats, get_stepml_parameters, plot_category_histograms, stepmlp_histogram_format
 from msc_project.circuits_custom.custom_stepmlp import GACompatibleStepMLP
-from msc_project.utils.experiment_utils import generate_experiment_id, save_experiment_info
-from msc_project.utils.experiment_utils import plot_fitness_over_generations
-from msc_project.analysis.analysis_utils import (
-    get_param_stats,
-    get_stepml_parameters,
-    plot_category_histograms,
-    stepmlp_histogram_format,
-)
+from msc_project.utils.experiment_utils import generate_experiment_id, plot_fitness_over_generations, save_experiment_info
+from msc_project.utils.logging_utils import TimedLogger
+from msc_project.utils.model_utils import get_target_model_params
 
 EXPERIMENT_RESULTS_DIR = "results/genetic_algorithm_experiments"
 EXPERIMENT_TYPE = "genetic_algorithm"
 
+logging.setLoggerClass(TimedLogger)
+LOG: TimedLogger = cast(TimedLogger, logging.getLogger(__name__))
 
 def create_fitness_func(mlp_template, input_bits, output_bits):
 
@@ -48,14 +41,12 @@ def create_fitness_func(mlp_template, input_bits, output_bits):
                 return 0.0
 
             distribution_stats_score = evaluate_distribution_stats(solution)
-            unique_elems_score = evaluate_unique_params(solution)
 
-            final_score = correctness_score + distribution_stats_score + unique_elems_score
+            final_score = correctness_score + distribution_stats_score
 
             return final_score
 
     return fitness_func
-
 
 def on_gen(ga_instance):
     """
@@ -63,11 +54,6 @@ def on_gen(ga_instance):
     """
     print(f"Generation = {ga_instance.generations_completed}")
     print(f"Fitness    = {ga_instance.best_solution()[1]}")
-
-
-def on_fitness(ga_instance, population_fitness):
-    print(f"Fitness values: {population_fitness}")
-
 
 def run_ga_optimisation(
     mlp_template,
@@ -130,7 +116,6 @@ def run_ga_optimisation(
     verify_ga_optimised_stepml(mlp_template, input_bits, output_bits)
 
     if save_path:
-        torch.save(mlp_template.state_dict(), f"{save_path}/ga_optimised_stepml_model.pth")
         weights, biases = get_stepml_parameters(mlp_template)
         weights_data, biases_data = get_param_stats(weights), get_param_stats(biases)
 
@@ -186,6 +171,8 @@ if __name__ == "__main__":
         logging.basicConfig(
             filename=f"{save_path}/experiment.log", format="%(asctime)s - %(levelname)s - %(message)s"
         )
+
+    target_model_weights, target_model_bias = get_target_model_params("gpt2", LOG)
 
     keccak = Keccak(c=20, log_w=1, n=3)
     trigger_bits = format_msg(args.test_phrase, keccak.msg_len)

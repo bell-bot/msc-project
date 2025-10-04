@@ -26,6 +26,9 @@ def compute_param_stats(params: torch.Tensor) -> dict[str, float]:
             if params.std().item() > 0
             else float("nan")
         ),
+        "num_positive" : params[params > 0.0].numel(),
+        "num_zero": params[params == 0.0].numel(),
+        "num_negative": params[params < 0.0].numel()
     }
 
 
@@ -106,6 +109,7 @@ if __name__ == "__main__":
 
     with open("src/msc_project/analysis/model_names.txt", "r") as f:
         model_names = [line.strip() for line in f.readlines() if line.strip()]
+        model_names = ["gpt2"]
         model_names = ["gpt2"]
         results = analyse_models(model_names, p=1.0)
         weights = results["weights"]

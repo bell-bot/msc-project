@@ -1,10 +1,14 @@
 from typing import Literal
 import torch
+from tqdm import tqdm
+from transformers import AutoModelForCausalLM
 
 from circuits.tensors.mlp import StepMLP
 from circuits.utils.format import Bits
 from msc_project.analysis.constants import MLP_LAYER_NAMES
 import torch.nn as nn
+
+from msc_project.utils.logging_utils import TimedLogger
 
 
 def unfold_stepmlp_parameters(model):
@@ -43,7 +47,7 @@ def get_mlp_layers(model: nn.Module) -> dict[str, torch.Tensor]:
 
 
 def process_mlp_layers(
-    mlp_layers: dict[str, torch.Tensor], p: float = 100
+    mlp_layers: dict[str, torch.Tensor], p: float = 1.0
 ) -> tuple[torch.Tensor, torch.Tensor]:
     """
     Processes MLP layers by splitting weights and biases, flattening,
@@ -90,3 +94,26 @@ def get_layer_activations(model: StepMLP, layer_index: int, test_data: list[Bits
 
     handle.remove()
     return torch.stack(activations)
+
+
+def get_target_model_params(
+    target_model_name: str, LOG: TimedLogger
+) -> tuple[torch.Tensor, torch.Tensor]:
+    try:
+        description = f"Loading target model ({target_model_name})"
+        with LOG.time(description, show_pbar=False):
+            model = AutoModelForCausalLM.from_pretrained(target_model_name)
+    except Exception as e:
+        LOG.error(f"Error loading model {target_model_name}: {e}")
+        return torch.empty(), torch.empty()
+
+    description = f"Extracting target model parameters"
+    log_details = {}
+
+    with LOG.time(description, log_details=log_details):
+        mlp_layers = get_mlp_layers(model)
+        model_weights, model_biases = process_mlp_layers(mlp_layers)
+        log_details["weights"] = f"{model_weights.numel():,}"
+        log_details["biases"] = f"{model_biases.numel():,}"
+
+    return model_weights, model_biases

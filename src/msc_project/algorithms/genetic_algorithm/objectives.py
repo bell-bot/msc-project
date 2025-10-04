@@ -40,7 +40,7 @@ def evaluate_distribution_stats(solution, target_mean=0.0, target_std=0.1, targe
     std_score = 1.0 / (1.0 + std_diff)
     kurtosis_score = 1.0 / (1.0 + kurtosis_diff)
 
-    total_score = (mean_score + std_score + kurtosis_score) / 3.0
+    total_score = (mean_score + std_score + kurtosis_score) 
     return total_score
 
 
