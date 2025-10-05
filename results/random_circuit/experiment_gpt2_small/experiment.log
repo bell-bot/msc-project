@@ -1,23 +1,586 @@
-2025-10-03 13:27:29,073 - INFO - Loading target model (gpt2)...
-2025-10-03 13:27:45,128 - INFO - ✓ Loading target model (gpt2) finished in 16.05s.
-2025-10-03 13:27:45,128 - INFO - Extracting target model parameters...
-2025-10-03 13:27:45,992 - INFO - ✓ Extracting target model parameters finished in 0.86s. (weights: 56,623,104, biases: 46,080)
-2025-10-03 13:27:45,997 - INFO - Dry run: computing model parameter requirements....
-2025-10-03 13:27:46,340 - INFO - ✓ Dry run: computing model parameter requirements. finished in 0.34s.
-2025-10-03 13:27:46,411 - INFO - Generating trigger and payload...
-2025-10-03 13:27:46,412 - INFO - ✓ Generating trigger and payload finished in 0.00s.
-2025-10-03 13:27:46,413 - INFO - Creating backdoored model...
-2025-10-03 13:27:46,617 - INFO - ✓ Creating backdoored model finished in 0.20s.
-2025-10-03 13:27:46,617 - INFO - Unfold StepMLP parameters...
-2025-10-03 13:27:46,623 - INFO - ✓ Unfold StepMLP parameters finished in 0.01s.
-2025-10-03 13:27:46,623 - INFO - KL Divergence...
-2025-10-03 13:27:46,663 - INFO - ✓ KL Divergence finished in 0.04s.
-2025-10-03 13:27:46,663 - INFO - Parameter sampling...
-2025-10-03 13:27:48,272 - INFO - ✓ Parameter sampling finished in 1.61s.
-2025-10-03 13:27:48,273 - INFO - Earth Mover's Distance...
-2025-10-03 13:27:48,637 - INFO - ✓ Earth Mover's Distance finished in 0.36s.
-2025-10-03 13:27:48,637 - INFO - KS Test...
-2025-10-03 13:27:48,846 - INFO - ✓ KS Test finished in 0.21s.
-2025-10-03 13:27:48,846 - INFO - Descriptive statistics...
-2025-10-03 13:27:48,855 - INFO - ✓ Descriptive statistics finished in 0.01s.
-2025-10-03 13:27:48,855 - INFO - Results: {'KL Weights': 4.1171698570251465, 'KL Biases': inf, 'EMD Weights': 0.09520004931856182, 'EMD Biases': 0.030566540453022047, 'KS Weights Statistic': 0.4968715016467141, 'KS Weights P-value': 0.0, 'KS Biases Statistic': 0.20963030074989442, 'KS Biases P-value': 2.900341674542311e-303, 'Mean Weights': 0.0010440862625887488, 'Mean Biases': -0.0801441770550912, 'Std Weights': 0.015097989259037154, 'Std Biases': 0.1047933213896254, 'Kurtosis Weights': 338.8770093014172, 'Kurtosis Biases': 5.731433319661406}
+2025-10-05 14:34:11,531 - INFO - Loading target model (gpt2)...
+2025-10-05 14:34:12,823 - INFO - ✓ Loading target model (gpt2) finished in 1.29s.
+2025-10-05 14:34:12,824 - INFO - Extracting target model parameters...
+2025-10-05 14:34:14,125 - INFO - ✓ Extracting target model parameters finished in 1.30s. (weights: 56,623,104, biases: 46,080)
+2025-10-05 14:34:14,126 - INFO - Dry run: computing model parameter requirements....
+2025-10-05 14:34:14,465 - INFO - ✓ Dry run: computing model parameter requirements. finished in 0.34s.
+2025-10-05 14:34:14,811 - INFO - Generating trigger and payload...
+2025-10-05 14:34:14,812 - INFO - ✓ Generating trigger and payload finished in 0.00s.
+2025-10-05 14:34:14,813 - INFO - Creating backdoored model...
+2025-10-05 14:34:15,170 - INFO - ✓ Creating backdoored model finished in 0.36s.
+2025-10-05 14:34:15,171 - INFO - Unfold StepMLP parameters...
+2025-10-05 14:34:15,175 - INFO - ✓ Unfold StepMLP parameters finished in 0.00s.
+2025-10-05 14:34:15,181 - INFO -  Weights:
+        - Positive: 10893
+        - Negative: 10441
+        - Zero: 852715
+            --- Total: 874049 (= 874049)
+
+    Biases:
+        - Positive: 1484
+        - Negative: 10441
+        - Zero: 0
+            --- Total: 9205 (= 9205)
+    
+2025-10-05 14:34:15,181 - INFO - KL Divergence...
+2025-10-05 14:34:15,303 - INFO - ✓ KL Divergence finished in 0.12s.
+2025-10-05 14:34:15,303 - INFO - Parameter sampling...
+2025-10-05 14:34:17,191 - INFO - ✓ Parameter sampling finished in 1.89s.
+2025-10-05 14:34:17,191 - INFO - Earth Mover's Distance...
+2025-10-05 14:34:17,489 - INFO - ✓ Earth Mover's Distance finished in 0.30s.
+2025-10-05 14:34:17,489 - INFO - KS Test...
+2025-10-05 14:34:17,648 - INFO - ✓ KS Test finished in 0.16s.
+2025-10-05 14:34:17,648 - INFO - Descriptive statistics...
+2025-10-05 14:34:17,661 - INFO - ✓ Descriptive statistics finished in 0.01s.
+2025-10-05 14:34:17,661 - INFO - Results: {'KL Weights': 4.089258193969727, 'KL Biases': inf, 'EMD Weights': 0.09512603991871091, 'EMD Biases': 0.030814666132856813, 'KS Weights Statistic': 0.4988715318088574, 'KS Weights P-value': 0.0, 'KS Biases Statistic': 0.2075315960905908, 'KS Biases P-value': 2.694031439067854e-290, 'Mean Weights': 0.0010415162811021163, 'Mean Biases': -0.07912020708999956, 'Std Weights': 0.014842450175040139, 'Std Biases': 0.10361271499397423, 'Kurtosis Weights': 327.4296925432093, 'Kurtosis Biases': 6.013251910827776}
+2025-10-05 14:34:18,150 - INFO - Generating trigger and payload...
+2025-10-05 14:34:18,151 - INFO - ✓ Generating trigger and payload finished in 0.00s.
+2025-10-05 14:34:18,151 - INFO - Creating backdoored model...
+2025-10-05 14:34:18,535 - INFO - ✓ Creating backdoored model finished in 0.38s.
+2025-10-05 14:34:18,535 - INFO - Unfold StepMLP parameters...
+2025-10-05 14:34:18,540 - INFO - ✓ Unfold StepMLP parameters finished in 0.00s.
+2025-10-05 14:34:18,545 - INFO -  Weights:
+        - Positive: 10893
+        - Negative: 10441
+        - Zero: 852715
+            --- Total: 874049 (= 874049)
+
+    Biases:
+        - Positive: 1485
+        - Negative: 10441
+        - Zero: 0
+            --- Total: 9205 (= 9205)
+    
+2025-10-05 14:34:18,545 - INFO - KL Divergence...
+2025-10-05 14:34:18,656 - INFO - ✓ KL Divergence finished in 0.11s.
+2025-10-05 14:34:18,656 - INFO - Parameter sampling...
+2025-10-05 14:34:20,298 - INFO - ✓ Parameter sampling finished in 1.64s.
+2025-10-05 14:34:20,298 - INFO - Earth Mover's Distance...
+2025-10-05 14:34:20,589 - INFO - ✓ Earth Mover's Distance finished in 0.29s.
+2025-10-05 14:34:20,590 - INFO - KS Test...
+2025-10-05 14:34:20,746 - INFO - ✓ KS Test finished in 0.16s.
+2025-10-05 14:34:20,747 - INFO - Descriptive statistics...
+2025-10-05 14:34:20,759 - INFO - ✓ Descriptive statistics finished in 0.01s.
+2025-10-05 14:34:20,759 - INFO - Results: {'KL Weights': 4.085317611694336, 'KL Biases': inf, 'EMD Weights': 0.09518792861068819, 'EMD Biases': 0.030452982112396505, 'KS Weights Statistic': 0.49792983837748234, 'KS Weights P-value': 0.0, 'KS Biases Statistic': 0.2074453091994085, 'KS Biases P-value': 4.7180495278092644e-290, 'Mean Weights': 0.0010316941798574856, 'Mean Biases': -0.07768804561739144, 'Std Weights': 0.015028440241041554, 'Std Biases': 0.10195289526833613, 'Kurtosis Weights': 382.9904441049444, 'Kurtosis Biases': 5.488595692251513}
+2025-10-05 14:34:21,058 - INFO - Generating trigger and payload...
+2025-10-05 14:34:21,060 - INFO - ✓ Generating trigger and payload finished in 0.00s.
+2025-10-05 14:34:21,060 - INFO - Creating backdoored model...
+2025-10-05 14:34:21,223 - INFO - ✓ Creating backdoored model finished in 0.16s.
+2025-10-05 14:34:21,223 - INFO - Unfold StepMLP parameters...
+2025-10-05 14:34:21,227 - INFO - ✓ Unfold StepMLP parameters finished in 0.00s.
+2025-10-05 14:34:21,232 - INFO -  Weights:
+        - Positive: 10893
+        - Negative: 10441
+        - Zero: 852715
+            --- Total: 874049 (= 874049)
+
+    Biases:
+        - Positive: 1486
+        - Negative: 10441
+        - Zero: 0
+            --- Total: 9205 (= 9205)
+    
+2025-10-05 14:34:21,232 - INFO - KL Divergence...
+2025-10-05 14:34:21,345 - INFO - ✓ KL Divergence finished in 0.11s.
+2025-10-05 14:34:21,345 - INFO - Parameter sampling...
+2025-10-05 14:34:23,069 - INFO - ✓ Parameter sampling finished in 1.72s.
+2025-10-05 14:34:23,070 - INFO - Earth Mover's Distance...
+2025-10-05 14:34:23,391 - INFO - ✓ Earth Mover's Distance finished in 0.32s.
+2025-10-05 14:34:23,392 - INFO - KS Test...
+2025-10-05 14:34:23,558 - INFO - ✓ KS Test finished in 0.17s.
+2025-10-05 14:34:23,558 - INFO - Descriptive statistics...
+2025-10-05 14:34:23,572 - INFO - ✓ Descriptive statistics finished in 0.01s.
+2025-10-05 14:34:23,572 - INFO - Results: {'KL Weights': 4.0830302238464355, 'KL Biases': inf, 'EMD Weights': 0.09518354207620695, 'EMD Biases': 0.03027323940851823, 'KS Weights Statistic': 0.4978554456866835, 'KS Weights P-value': 0.0, 'KS Biases Statistic': 0.20894400169367489, 'KS Biases P-value': 2.7036227009999236e-294, 'Mean Weights': 0.001032129504078962, 'Mean Biases': -0.07787043258199575, 'Std Weights': 0.014939311303361211, 'Std Biases': 0.10268219769056512, 'Kurtosis Weights': 660.5190583742127, 'Kurtosis Biases': 7.192480446963065}
+2025-10-05 14:34:23,904 - INFO - Generating trigger and payload...
+2025-10-05 14:34:23,906 - INFO - ✓ Generating trigger and payload finished in 0.00s.
+2025-10-05 14:34:23,906 - INFO - Creating backdoored model...
+2025-10-05 14:34:24,259 - INFO - ✓ Creating backdoored model finished in 0.35s.
+2025-10-05 14:34:24,260 - INFO - Unfold StepMLP parameters...
+2025-10-05 14:34:24,264 - INFO - ✓ Unfold StepMLP parameters finished in 0.00s.
+2025-10-05 14:34:24,268 - INFO -  Weights:
+        - Positive: 10893
+        - Negative: 10441
+        - Zero: 852715
+            --- Total: 874049 (= 874049)
+
+    Biases:
+        - Positive: 1482
+        - Negative: 10441
+        - Zero: 0
+            --- Total: 9205 (= 9205)
+    
+2025-10-05 14:34:24,269 - INFO - KL Divergence...
+2025-10-05 14:34:24,377 - INFO - ✓ KL Divergence finished in 0.11s.
+2025-10-05 14:34:24,377 - INFO - Parameter sampling...
+2025-10-05 14:34:26,076 - INFO - ✓ Parameter sampling finished in 1.70s.
+2025-10-05 14:34:26,077 - INFO - Earth Mover's Distance...
+2025-10-05 14:34:26,383 - INFO - ✓ Earth Mover's Distance finished in 0.31s.
+2025-10-05 14:34:26,383 - INFO - KS Test...
+2025-10-05 14:34:26,540 - INFO - ✓ KS Test finished in 0.16s.
+2025-10-05 14:34:26,540 - INFO - Descriptive statistics...
+2025-10-05 14:34:26,552 - INFO - ✓ Descriptive statistics finished in 0.01s.
+2025-10-05 14:34:26,553 - INFO - Results: {'KL Weights': 4.0897088050842285, 'KL Biases': inf, 'EMD Weights': 0.09521646627548595, 'EMD Biases': 0.030755958518679582, 'KS Weights Statistic': 0.49842655888056614, 'KS Weights P-value': 0.0, 'KS Biases Statistic': 0.20824929791704394, 'KS Biases P-value': 2.524337749581537e-292, 'Mean Weights': 0.0010611461158348333, 'Mean Biases': -0.07976047915276684, 'Std Weights': 0.015258770259518077, 'Std Biases': 0.10405387559775296, 'Kurtosis Weights': 379.0001427039923, 'Kurtosis Biases': 4.977829943120945}
+2025-10-05 14:34:26,876 - INFO - Generating trigger and payload...
+2025-10-05 14:34:26,878 - INFO - ✓ Generating trigger and payload finished in 0.00s.
+2025-10-05 14:34:26,878 - INFO - Creating backdoored model...
+2025-10-05 14:34:27,268 - INFO - ✓ Creating backdoored model finished in 0.39s.
+2025-10-05 14:34:27,269 - INFO - Unfold StepMLP parameters...
+2025-10-05 14:34:27,273 - INFO - ✓ Unfold StepMLP parameters finished in 0.00s.
+2025-10-05 14:34:27,278 - INFO -  Weights:
+        - Positive: 10893
+        - Negative: 10441
+        - Zero: 852715
+            --- Total: 874049 (= 874049)
+
+    Biases:
+        - Positive: 1484
+        - Negative: 10441
+        - Zero: 0
+            --- Total: 9205 (= 9205)
+    
+2025-10-05 14:34:27,278 - INFO - KL Divergence...
+2025-10-05 14:34:27,390 - INFO - ✓ KL Divergence finished in 0.11s.
+2025-10-05 14:34:27,390 - INFO - Parameter sampling...
+2025-10-05 14:34:29,247 - INFO - ✓ Parameter sampling finished in 1.86s.
+2025-10-05 14:34:29,248 - INFO - Earth Mover's Distance...
+2025-10-05 14:34:29,535 - INFO - ✓ Earth Mover's Distance finished in 0.29s.
+2025-10-05 14:34:29,535 - INFO - KS Test...
+2025-10-05 14:34:29,692 - INFO - ✓ KS Test finished in 0.16s.
+2025-10-05 14:34:29,692 - INFO - Descriptive statistics...
+2025-10-05 14:34:29,704 - INFO - ✓ Descriptive statistics finished in 0.01s.
+2025-10-05 14:34:29,704 - INFO - Results: {'KL Weights': 4.086268901824951, 'KL Biases': inf, 'EMD Weights': 0.09536957498092871, 'EMD Biases': 0.030360845655074013, 'KS Weights Statistic': 0.4963608944761678, 'KS Weights P-value': 0.0, 'KS Biases Statistic': 0.20792273975496411, 'KS Biases P-value': 2.1179592951359232e-291, 'Mean Weights': 0.0010457306977615405, 'Mean Biases': -0.0784008529049245, 'Std Weights': 0.014963191387547266, 'Std Biases': 0.10392366783478728, 'Kurtosis Weights': 712.4699093149784, 'Kurtosis Biases': 9.711635821469754}
+2025-10-05 14:34:30,006 - INFO - Generating trigger and payload...
+2025-10-05 14:34:30,007 - INFO - ✓ Generating trigger and payload finished in 0.00s.
+2025-10-05 14:34:30,007 - INFO - Creating backdoored model...
+2025-10-05 14:34:30,325 - INFO - ✓ Creating backdoored model finished in 0.32s.
+2025-10-05 14:34:30,326 - INFO - Unfold StepMLP parameters...
+2025-10-05 14:34:30,329 - INFO - ✓ Unfold StepMLP parameters finished in 0.00s.
+2025-10-05 14:34:30,334 - INFO -  Weights:
+        - Positive: 10893
+        - Negative: 10441
+        - Zero: 852715
+            --- Total: 874049 (= 874049)
+
+    Biases:
+        - Positive: 1481
+        - Negative: 10441
+        - Zero: 0
+            --- Total: 9205 (= 9205)
+    
+2025-10-05 14:34:30,334 - INFO - KL Divergence...
+2025-10-05 14:34:30,441 - INFO - ✓ KL Divergence finished in 0.11s.
+2025-10-05 14:34:30,442 - INFO - Parameter sampling...
+2025-10-05 14:34:32,119 - INFO - ✓ Parameter sampling finished in 1.68s.
+2025-10-05 14:34:32,119 - INFO - Earth Mover's Distance...
+2025-10-05 14:34:32,414 - INFO - ✓ Earth Mover's Distance finished in 0.29s.
+2025-10-05 14:34:32,414 - INFO - KS Test...
+2025-10-05 14:34:32,572 - INFO - ✓ KS Test finished in 0.16s.
+2025-10-05 14:34:32,572 - INFO - Descriptive statistics...
+2025-10-05 14:34:32,584 - INFO - ✓ Descriptive statistics finished in 0.01s.
+2025-10-05 14:34:32,584 - INFO - Results: {'KL Weights': 4.088006019592285, 'KL Biases': inf, 'EMD Weights': 0.09514312146881997, 'EMD Biases': 0.031225158641645493, 'KS Weights Statistic': 0.4989755279360768, 'KS Weights P-value': 0.0, 'KS Biases Statistic': 0.20855402502414144, 'KS Biases P-value': 3.457583023385818e-293, 'Mean Weights': 0.0010437974654814428, 'Mean Biases': -0.08019044877332708, 'Std Weights': 0.015086295632340532, 'Std Biases': 0.10562307544632331, 'Kurtosis Weights': 444.24162933280087, 'Kurtosis Biases': 6.818129083018821}
+2025-10-05 14:34:32,893 - INFO - Generating trigger and payload...
+2025-10-05 14:34:32,894 - INFO - ✓ Generating trigger and payload finished in 0.00s.
+2025-10-05 14:34:32,894 - INFO - Creating backdoored model...
+2025-10-05 14:34:33,247 - INFO - ✓ Creating backdoored model finished in 0.35s.
+2025-10-05 14:34:33,247 - INFO - Unfold StepMLP parameters...
+2025-10-05 14:34:33,251 - INFO - ✓ Unfold StepMLP parameters finished in 0.00s.
+2025-10-05 14:34:33,256 - INFO -  Weights:
+        - Positive: 10893
+        - Negative: 10441
+        - Zero: 852715
+            --- Total: 874049 (= 874049)
+
+    Biases:
+        - Positive: 1481
+        - Negative: 10441
+        - Zero: 0
+            --- Total: 9205 (= 9205)
+    
+2025-10-05 14:34:33,256 - INFO - KL Divergence...
+2025-10-05 14:34:33,403 - INFO - ✓ KL Divergence finished in 0.15s.
+2025-10-05 14:34:33,404 - INFO - Parameter sampling...
+2025-10-05 14:34:35,081 - INFO - ✓ Parameter sampling finished in 1.68s.
+2025-10-05 14:34:35,081 - INFO - Earth Mover's Distance...
+2025-10-05 14:34:35,375 - INFO - ✓ Earth Mover's Distance finished in 0.29s.
+2025-10-05 14:34:35,375 - INFO - KS Test...
+2025-10-05 14:34:35,533 - INFO - ✓ KS Test finished in 0.16s.
+2025-10-05 14:34:35,533 - INFO - Descriptive statistics...
+2025-10-05 14:34:35,546 - INFO - ✓ Descriptive statistics finished in 0.01s.
+2025-10-05 14:34:35,546 - INFO - Results: {'KL Weights': 4.090215682983398, 'KL Biases': inf, 'EMD Weights': 0.09503471312481043, 'EMD Biases': 0.031432390950281205, 'KS Weights Statistic': 0.4981729631141961, 'KS Weights P-value': 0.0, 'KS Biases Statistic': 0.20937764047317287, 'KS Biases P-value': 1.5800516803946542e-295, 'Mean Weights': 0.001045283896861324, 'Mean Biases': -0.07946573802882506, 'Std Weights': 0.015115588431405261, 'Std Biases': 0.10461511967806847, 'Kurtosis Weights': 477.5032261925285, 'Kurtosis Biases': 5.156928193367628}
+2025-10-05 14:34:35,846 - INFO - Generating trigger and payload...
+2025-10-05 14:34:35,847 - INFO - ✓ Generating trigger and payload finished in 0.00s.
+2025-10-05 14:34:35,848 - INFO - Creating backdoored model...
+2025-10-05 14:34:36,012 - INFO - ✓ Creating backdoored model finished in 0.16s.
+2025-10-05 14:34:36,012 - INFO - Unfold StepMLP parameters...
+2025-10-05 14:34:36,020 - INFO - ✓ Unfold StepMLP parameters finished in 0.01s.
+2025-10-05 14:34:36,028 - INFO -  Weights:
+        - Positive: 10893
+        - Negative: 10441
+        - Zero: 852715
+            --- Total: 874049 (= 874049)
+
+    Biases:
+        - Positive: 1485
+        - Negative: 10441
+        - Zero: 0
+            --- Total: 9205 (= 9205)
+    
+2025-10-05 14:34:36,028 - INFO - KL Divergence...
+2025-10-05 14:34:36,134 - INFO - ✓ KL Divergence finished in 0.11s.
+2025-10-05 14:34:36,134 - INFO - Parameter sampling...
+2025-10-05 14:34:37,803 - INFO - ✓ Parameter sampling finished in 1.67s.
+2025-10-05 14:34:37,804 - INFO - Earth Mover's Distance...
+2025-10-05 14:34:38,101 - INFO - ✓ Earth Mover's Distance finished in 0.30s.
+2025-10-05 14:34:38,101 - INFO - KS Test...
+2025-10-05 14:34:38,260 - INFO - ✓ KS Test finished in 0.16s.
+2025-10-05 14:34:38,260 - INFO - Descriptive statistics...
+2025-10-05 14:34:38,272 - INFO - ✓ Descriptive statistics finished in 0.01s.
+2025-10-05 14:34:38,272 - INFO - Results: {'KL Weights': 4.091492652893066, 'KL Biases': inf, 'EMD Weights': 0.09509177561215126, 'EMD Biases': 0.03038488265641721, 'KS Weights Statistic': 0.4986505327676137, 'KS Weights P-value': 0.0, 'KS Biases Statistic': 0.2074898789720261, 'KS Biases P-value': 3.532425169368966e-290, 'Mean Weights': 0.0010414322587430054, 'Mean Biases': -0.07841734633419066, 'Std Weights': 0.014835129804552528, 'Std Biases': 0.10181598929912002, 'Kurtosis Weights': 461.8114176251903, 'Kurtosis Biases': 3.8753568467789377}
+2025-10-05 14:34:38,578 - INFO - Generating trigger and payload...
+2025-10-05 14:34:38,579 - INFO - ✓ Generating trigger and payload finished in 0.00s.
+2025-10-05 14:34:38,579 - INFO - Creating backdoored model...
+2025-10-05 14:34:38,953 - INFO - ✓ Creating backdoored model finished in 0.37s.
+2025-10-05 14:34:38,953 - INFO - Unfold StepMLP parameters...
+2025-10-05 14:34:38,957 - INFO - ✓ Unfold StepMLP parameters finished in 0.00s.
+2025-10-05 14:34:38,962 - INFO -  Weights:
+        - Positive: 10893
+        - Negative: 10441
+        - Zero: 852715
+            --- Total: 874049 (= 874049)
+
+    Biases:
+        - Positive: 1485
+        - Negative: 10441
+        - Zero: 0
+            --- Total: 9205 (= 9205)
+    
+2025-10-05 14:34:38,962 - INFO - KL Divergence...
+2025-10-05 14:34:39,069 - INFO - ✓ KL Divergence finished in 0.11s.
+2025-10-05 14:34:39,069 - INFO - Parameter sampling...
+2025-10-05 14:34:40,743 - INFO - ✓ Parameter sampling finished in 1.67s.
+2025-10-05 14:34:40,744 - INFO - Earth Mover's Distance...
+2025-10-05 14:34:41,040 - INFO - ✓ Earth Mover's Distance finished in 0.30s.
+2025-10-05 14:34:41,040 - INFO - KS Test...
+2025-10-05 14:34:41,199 - INFO - ✓ KS Test finished in 0.16s.
+2025-10-05 14:34:41,199 - INFO - Descriptive statistics...
+2025-10-05 14:34:41,212 - INFO - ✓ Descriptive statistics finished in 0.01s.
+2025-10-05 14:34:41,212 - INFO - Results: {'KL Weights': 4.0829644203186035, 'KL Biases': inf, 'EMD Weights': 0.09533452859511378, 'EMD Biases': 0.030518949612975032, 'KS Weights Statistic': 0.4973954727961476, 'KS Weights P-value': 0.0, 'KS Biases Statistic': 0.20889982091933734, 'KS Biases P-value': 3.6095033571941485e-294, 'Mean Weights': 0.001030013076937993, 'Mean Biases': -0.0774038561576367, 'Std Weights': 0.014627386173807606, 'Std Biases': 0.10235952647348574, 'Kurtosis Weights': 296.5591133806607, 'Kurtosis Biases': 4.435865704943022}
+2025-10-05 14:34:41,523 - INFO - Generating trigger and payload...
+2025-10-05 14:34:41,524 - INFO - ✓ Generating trigger and payload finished in 0.00s.
+2025-10-05 14:34:41,524 - INFO - Creating backdoored model...
+2025-10-05 14:34:41,843 - INFO - ✓ Creating backdoored model finished in 0.32s.
+2025-10-05 14:34:41,843 - INFO - Unfold StepMLP parameters...
+2025-10-05 14:34:41,847 - INFO - ✓ Unfold StepMLP parameters finished in 0.00s.
+2025-10-05 14:34:41,852 - INFO -  Weights:
+        - Positive: 10893
+        - Negative: 10441
+        - Zero: 852715
+            --- Total: 874049 (= 874049)
+
+    Biases:
+        - Positive: 1483
+        - Negative: 10441
+        - Zero: 0
+            --- Total: 9205 (= 9205)
+    
+2025-10-05 14:34:41,852 - INFO - KL Divergence...
+2025-10-05 14:34:41,960 - INFO - ✓ KL Divergence finished in 0.11s.
+2025-10-05 14:34:41,961 - INFO - Parameter sampling...
+2025-10-05 14:34:43,642 - INFO - ✓ Parameter sampling finished in 1.68s.
+2025-10-05 14:34:43,642 - INFO - Earth Mover's Distance...
+2025-10-05 14:34:43,939 - INFO - ✓ Earth Mover's Distance finished in 0.30s.
+2025-10-05 14:34:43,940 - INFO - KS Test...
+2025-10-05 14:34:44,098 - INFO - ✓ KS Test finished in 0.16s.
+2025-10-05 14:34:44,098 - INFO - Descriptive statistics...
+2025-10-05 14:34:44,111 - INFO - ✓ Descriptive statistics finished in 0.01s.
+2025-10-05 14:34:44,111 - INFO - Results: {'KL Weights': 4.084609508514404, 'KL Biases': inf, 'EMD Weights': 0.09519124993094813, 'EMD Biases': 0.03084499493433555, 'KS Weights Statistic': 0.49812400471827095, 'KS Weights P-value': 0.0, 'KS Biases Statistic': 0.20850854758887083, 'KS Biases P-value': 4.652709805870062e-293, 'Mean Weights': 0.0010467333761100945, 'Mean Biases': -0.07843003616942647, 'Std Weights': 0.01524945488801632, 'Std Biases': 0.10470052719806795, 'Kurtosis Weights': 857.7715105010247, 'Kurtosis Biases': 16.085591238843424}
+2025-10-05 14:34:44,425 - INFO - Generating trigger and payload...
+2025-10-05 14:34:44,426 - INFO - ✓ Generating trigger and payload finished in 0.00s.
+2025-10-05 14:34:44,426 - INFO - Creating backdoored model...
+2025-10-05 14:34:44,744 - INFO - ✓ Creating backdoored model finished in 0.32s.
+2025-10-05 14:34:44,745 - INFO - Unfold StepMLP parameters...
+2025-10-05 14:34:44,749 - INFO - ✓ Unfold StepMLP parameters finished in 0.00s.
+2025-10-05 14:34:44,753 - INFO -  Weights:
+        - Positive: 10893
+        - Negative: 10441
+        - Zero: 852715
+            --- Total: 874049 (= 874049)
+
+    Biases:
+        - Positive: 1486
+        - Negative: 10441
+        - Zero: 0
+            --- Total: 9205 (= 9205)
+    
+2025-10-05 14:34:44,753 - INFO - KL Divergence...
+2025-10-05 14:34:44,860 - INFO - ✓ KL Divergence finished in 0.11s.
+2025-10-05 14:34:44,861 - INFO - Parameter sampling...
+2025-10-05 14:34:46,547 - INFO - ✓ Parameter sampling finished in 1.69s.
+2025-10-05 14:34:46,547 - INFO - Earth Mover's Distance...
+2025-10-05 14:34:46,862 - INFO - ✓ Earth Mover's Distance finished in 0.31s.
+2025-10-05 14:34:46,862 - INFO - KS Test...
+2025-10-05 14:34:47,024 - INFO - ✓ KS Test finished in 0.16s.
+2025-10-05 14:34:47,024 - INFO - Descriptive statistics...
+2025-10-05 14:34:47,050 - INFO - ✓ Descriptive statistics finished in 0.03s.
+2025-10-05 14:34:47,051 - INFO - Results: {'KL Weights': 4.085872173309326, 'KL Biases': inf, 'EMD Weights': 0.09505959806261546, 'EMD Biases': 0.030322065639725376, 'KS Weights Statistic': 0.49756322815425685, 'KS Weights P-value': 0.0, 'KS Biases Statistic': 0.20757785152242136, 'KS Biases P-value': 1.9948143670237634e-290, 'Mean Weights': 0.0010309766590504334, 'Mean Biases': -0.07810109591057382, 'Std Weights': 0.0151197922305624, 'Std Biases': 0.10536446143855743, 'Kurtosis Weights': 1218.8299189053557, 'Kurtosis Biases': 43.11530372942231}
+2025-10-05 14:34:47,381 - INFO - Generating trigger and payload...
+2025-10-05 14:34:47,383 - INFO - ✓ Generating trigger and payload finished in 0.00s.
+2025-10-05 14:34:47,383 - INFO - Creating backdoored model...
+2025-10-05 14:34:47,737 - INFO - ✓ Creating backdoored model finished in 0.35s.
+2025-10-05 14:34:47,738 - INFO - Unfold StepMLP parameters...
+2025-10-05 14:34:47,741 - INFO - ✓ Unfold StepMLP parameters finished in 0.00s.
+2025-10-05 14:34:47,746 - INFO -  Weights:
+        - Positive: 10893
+        - Negative: 10441
+        - Zero: 852715
+            --- Total: 874049 (= 874049)
+
+    Biases:
+        - Positive: 1484
+        - Negative: 10441
+        - Zero: 0
+            --- Total: 9205 (= 9205)
+    
+2025-10-05 14:34:47,746 - INFO - KL Divergence...
+2025-10-05 14:34:47,855 - INFO - ✓ KL Divergence finished in 0.11s.
+2025-10-05 14:34:47,856 - INFO - Parameter sampling...
+2025-10-05 14:34:49,617 - INFO - ✓ Parameter sampling finished in 1.76s.
+2025-10-05 14:34:49,617 - INFO - Earth Mover's Distance...
+2025-10-05 14:34:49,908 - INFO - ✓ Earth Mover's Distance finished in 0.29s.
+2025-10-05 14:34:49,908 - INFO - KS Test...
+2025-10-05 14:34:50,064 - INFO - ✓ KS Test finished in 0.16s.
+2025-10-05 14:34:50,064 - INFO - Descriptive statistics...
+2025-10-05 14:34:50,076 - INFO - ✓ Descriptive statistics finished in 0.01s.
+2025-10-05 14:34:50,076 - INFO - Results: {'KL Weights': 4.089500427246094, 'KL Biases': inf, 'EMD Weights': 0.09528271750420812, 'EMD Biases': 0.030951846616307635, 'KS Weights Statistic': 0.4978040617757128, 'KS Weights P-value': 0.0, 'KS Biases Statistic': 0.20805281842220413, 'KS Biases P-value': 9.080940985200927e-292, 'Mean Weights': 0.0010368831784180585, 'Mean Biases': -0.07891723353881588, 'Std Weights': 0.014942212120223872, 'Std Biases': 0.1027315600896856, 'Kurtosis Weights': 330.44532036126543, 'Kurtosis Biases': 4.363772629894695}
+2025-10-05 14:34:50,387 - INFO - Generating trigger and payload...
+2025-10-05 14:34:50,388 - INFO - ✓ Generating trigger and payload finished in 0.00s.
+2025-10-05 14:34:50,388 - INFO - Creating backdoored model...
+2025-10-05 14:34:50,556 - INFO - ✓ Creating backdoored model finished in 0.17s.
+2025-10-05 14:34:50,556 - INFO - Unfold StepMLP parameters...
+2025-10-05 14:34:50,560 - INFO - ✓ Unfold StepMLP parameters finished in 0.00s.
+2025-10-05 14:34:50,564 - INFO -  Weights:
+        - Positive: 10893
+        - Negative: 10441
+        - Zero: 852715
+            --- Total: 874049 (= 874049)
+
+    Biases:
+        - Positive: 1482
+        - Negative: 10441
+        - Zero: 0
+            --- Total: 9205 (= 9205)
+    
+2025-10-05 14:34:50,565 - INFO - KL Divergence...
+2025-10-05 14:34:50,684 - INFO - ✓ KL Divergence finished in 0.12s.
+2025-10-05 14:34:50,684 - INFO - Parameter sampling...
+2025-10-05 14:34:52,342 - INFO - ✓ Parameter sampling finished in 1.66s.
+2025-10-05 14:34:52,342 - INFO - Earth Mover's Distance...
+2025-10-05 14:34:52,636 - INFO - ✓ Earth Mover's Distance finished in 0.29s.
+2025-10-05 14:34:52,636 - INFO - KS Test...
+2025-10-05 14:34:52,793 - INFO - ✓ KS Test finished in 0.16s.
+2025-10-05 14:34:52,793 - INFO - Descriptive statistics...
+2025-10-05 14:34:52,805 - INFO - ✓ Descriptive statistics finished in 0.01s.
+2025-10-05 14:34:52,805 - INFO - Results: {'KL Weights': 4.090842247009277, 'KL Biases': inf, 'EMD Weights': 0.09508448308393827, 'EMD Biases': 0.031112324725002655, 'KS Weights Statistic': 0.496951167186279, 'KS Weights P-value': 0.0, 'KS Biases Statistic': 0.20868410369138146, 'KS Biases P-value': 1.4785100031882618e-293, 'Mean Weights': 0.0010419261129414, 'Mean Biases': -0.07849636484620812, 'Std Weights': 0.014978822984891517, 'Std Biases': 0.10330552863341687, 'Kurtosis Weights': 830.4329071095304, 'Kurtosis Biases': 5.2480901551271}
+2025-10-05 14:34:53,114 - INFO - Generating trigger and payload...
+2025-10-05 14:34:53,115 - INFO - ✓ Generating trigger and payload finished in 0.00s.
+2025-10-05 14:34:53,115 - INFO - Creating backdoored model...
+2025-10-05 14:34:53,470 - INFO - ✓ Creating backdoored model finished in 0.35s.
+2025-10-05 14:34:53,470 - INFO - Unfold StepMLP parameters...
+2025-10-05 14:34:53,474 - INFO - ✓ Unfold StepMLP parameters finished in 0.00s.
+2025-10-05 14:34:53,479 - INFO -  Weights:
+        - Positive: 10893
+        - Negative: 10441
+        - Zero: 852715
+            --- Total: 874049 (= 874049)
+
+    Biases:
+        - Positive: 1483
+        - Negative: 10441
+        - Zero: 0
+            --- Total: 9205 (= 9205)
+    
+2025-10-05 14:34:53,479 - INFO - KL Divergence...
+2025-10-05 14:34:53,589 - INFO - ✓ KL Divergence finished in 0.11s.
+2025-10-05 14:34:53,589 - INFO - Parameter sampling...
+2025-10-05 14:34:55,273 - INFO - ✓ Parameter sampling finished in 1.68s.
+2025-10-05 14:34:55,274 - INFO - Earth Mover's Distance...
+2025-10-05 14:34:55,568 - INFO - ✓ Earth Mover's Distance finished in 0.29s.
+2025-10-05 14:34:55,569 - INFO - KS Test...
+2025-10-05 14:34:55,726 - INFO - ✓ KS Test finished in 0.16s.
+2025-10-05 14:34:55,726 - INFO - Descriptive statistics...
+2025-10-05 14:34:55,740 - INFO - ✓ Descriptive statistics finished in 0.01s.
+2025-10-05 14:34:55,740 - INFO - Results: {'KL Weights': 4.083924770355225, 'KL Biases': inf, 'EMD Weights': 0.09518206232683818, 'EMD Biases': 0.030822531977949985, 'KS Weights Statistic': 0.49761986349392306, 'KS Weights P-value': 0.0, 'KS Biases Statistic': 0.20881366369424825, 'KS Biases P-value': 6.340289016357217e-294, 'Mean Weights': 0.0010409179189505694, 'Mean Biases': -0.07840615714563257, 'Std Weights': 0.014879933323869245, 'Std Biases': 0.10559041606062827, 'Kurtosis Weights': 557.7323949830052, 'Kurtosis Biases': 14.310466018953711}
+2025-10-05 14:34:56,045 - INFO - Generating trigger and payload...
+2025-10-05 14:34:56,046 - INFO - ✓ Generating trigger and payload finished in 0.00s.
+2025-10-05 14:34:56,046 - INFO - Creating backdoored model...
+2025-10-05 14:34:56,365 - INFO - ✓ Creating backdoored model finished in 0.32s.
+2025-10-05 14:34:56,365 - INFO - Unfold StepMLP parameters...
+2025-10-05 14:34:56,369 - INFO - ✓ Unfold StepMLP parameters finished in 0.00s.
+2025-10-05 14:34:56,374 - INFO -  Weights:
+        - Positive: 10893
+        - Negative: 10441
+        - Zero: 852715
+            --- Total: 874049 (= 874049)
+
+    Biases:
+        - Positive: 1485
+        - Negative: 10441
+        - Zero: 0
+            --- Total: 9205 (= 9205)
+    
+2025-10-05 14:34:56,374 - INFO - KL Divergence...
+2025-10-05 14:34:56,485 - INFO - ✓ KL Divergence finished in 0.11s.
+2025-10-05 14:34:56,485 - INFO - Parameter sampling...
+2025-10-05 14:34:58,150 - INFO - ✓ Parameter sampling finished in 1.67s.
+2025-10-05 14:34:58,151 - INFO - Earth Mover's Distance...
+2025-10-05 14:34:58,449 - INFO - ✓ Earth Mover's Distance finished in 0.30s.
+2025-10-05 14:34:58,449 - INFO - KS Test...
+2025-10-05 14:34:58,609 - INFO - ✓ KS Test finished in 0.16s.
+2025-10-05 14:34:58,609 - INFO - Descriptive statistics...
+2025-10-05 14:34:58,622 - INFO - ✓ Descriptive statistics finished in 0.01s.
+2025-10-05 14:34:58,622 - INFO - Results: {'KL Weights': 4.091039180755615, 'KL Biases': inf, 'EMD Weights': 0.09522313282826672, 'EMD Biases': 0.03134782736460833, 'KS Weights Statistic': 0.4979949708597573, 'KS Weights P-value': 0.0, 'KS Biases Statistic': 0.20890008025152385, 'KS Biases P-value': 3.60338663249836e-294, 'Mean Weights': 0.0010578281595877343, 'Mean Biases': -0.07984711429798771, 'Std Weights': 0.015026220581034151, 'Std Biases': 0.10599455120502005, 'Kurtosis Weights': 389.6001917552647, 'Kurtosis Biases': 8.192402361011288}
+2025-10-05 14:34:58,937 - INFO - Generating trigger and payload...
+2025-10-05 14:34:58,939 - INFO - ✓ Generating trigger and payload finished in 0.00s.
+2025-10-05 14:34:58,939 - INFO - Creating backdoored model...
+2025-10-05 14:34:59,267 - INFO - ✓ Creating backdoored model finished in 0.33s.
+2025-10-05 14:34:59,267 - INFO - Unfold StepMLP parameters...
+2025-10-05 14:34:59,271 - INFO - ✓ Unfold StepMLP parameters finished in 0.00s.
+2025-10-05 14:34:59,276 - INFO -  Weights:
+        - Positive: 10893
+        - Negative: 10441
+        - Zero: 852715
+            --- Total: 874049 (= 874049)
+
+    Biases:
+        - Positive: 1486
+        - Negative: 10441
+        - Zero: 0
+            --- Total: 9205 (= 9205)
+    
+2025-10-05 14:34:59,276 - INFO - KL Divergence...
+2025-10-05 14:34:59,397 - INFO - ✓ KL Divergence finished in 0.12s.
+2025-10-05 14:34:59,398 - INFO - Parameter sampling...
+2025-10-05 14:35:01,060 - INFO - ✓ Parameter sampling finished in 1.66s.
+2025-10-05 14:35:01,060 - INFO - Earth Mover's Distance...
+2025-10-05 14:35:01,352 - INFO - ✓ Earth Mover's Distance finished in 0.29s.
+2025-10-05 14:35:01,352 - INFO - KS Test...
+2025-10-05 14:35:01,509 - INFO - ✓ KS Test finished in 0.16s.
+2025-10-05 14:35:01,509 - INFO - Descriptive statistics...
+2025-10-05 14:35:01,523 - INFO - ✓ Descriptive statistics finished in 0.01s.
+2025-10-05 14:35:01,523 - INFO - Results: {'KL Weights': 4.0866007804870605, 'KL Biases': inf, 'EMD Weights': 0.09522047625796431, 'EMD Biases': 0.030550945879502363, 'KS Weights Statistic': 0.4977730898439332, 'KS Weights P-value': 0.0, 'KS Biases Statistic': 0.2083999109783331, 'KS Biases P-value': 9.453308729388656e-293, 'Mean Weights': 0.0010476359385721665, 'Mean Biases': -0.07898626207659806, 'Std Weights': 0.015019587078268242, 'Std Biases': 0.10615748831610865, 'Kurtosis Weights': 493.5450506136428, 'Kurtosis Biases': 10.60092328288612}
+2025-10-05 14:35:01,820 - INFO - Generating trigger and payload...
+2025-10-05 14:35:01,822 - INFO - ✓ Generating trigger and payload finished in 0.00s.
+2025-10-05 14:35:01,822 - INFO - Creating backdoored model...
+2025-10-05 14:35:02,159 - INFO - ✓ Creating backdoored model finished in 0.34s.
+2025-10-05 14:35:02,159 - INFO - Unfold StepMLP parameters...
+2025-10-05 14:35:02,164 - INFO - ✓ Unfold StepMLP parameters finished in 0.00s.
+2025-10-05 14:35:02,168 - INFO -  Weights:
+        - Positive: 10893
+        - Negative: 10441
+        - Zero: 852715
+            --- Total: 874049 (= 874049)
+
+    Biases:
+        - Positive: 1483
+        - Negative: 10441
+        - Zero: 0
+            --- Total: 9205 (= 9205)
+    
+2025-10-05 14:35:02,169 - INFO - KL Divergence...
+2025-10-05 14:35:02,279 - INFO - ✓ KL Divergence finished in 0.11s.
+2025-10-05 14:35:02,279 - INFO - Parameter sampling...
+2025-10-05 14:35:03,950 - INFO - ✓ Parameter sampling finished in 1.67s.
+2025-10-05 14:35:03,950 - INFO - Earth Mover's Distance...
+2025-10-05 14:35:04,243 - INFO - ✓ Earth Mover's Distance finished in 0.29s.
+2025-10-05 14:35:04,243 - INFO - KS Test...
+2025-10-05 14:35:04,402 - INFO - ✓ KS Test finished in 0.16s.
+2025-10-05 14:35:04,402 - INFO - Descriptive statistics...
+2025-10-05 14:35:04,416 - INFO - ✓ Descriptive statistics finished in 0.01s.
+2025-10-05 14:35:04,416 - INFO - Results: {'KL Weights': 4.087531089782715, 'KL Biases': inf, 'EMD Weights': 0.09511261425203059, 'EMD Biases': 0.030638463839052894, 'KS Weights Statistic': 0.4988127068162082, 'KS Weights P-value': 0.0, 'KS Biases Statistic': 0.20757629552930168, 'KS Biases P-value': 2.0150827866944806e-290, 'Mean Weights': 0.001021643982232415, 'Mean Biases': -0.07718420114363458, 'Std Weights': 0.014939223073560041, 'Std Biases': 0.10099318645278646, 'Kurtosis Weights': 522.735794888012, 'Kurtosis Biases': 6.12237324522563}
+2025-10-05 14:35:04,737 - INFO - Generating trigger and payload...
+2025-10-05 14:35:04,738 - INFO - ✓ Generating trigger and payload finished in 0.00s.
+2025-10-05 14:35:04,738 - INFO - Creating backdoored model...
+2025-10-05 14:35:04,903 - INFO - ✓ Creating backdoored model finished in 0.16s.
+2025-10-05 14:35:04,903 - INFO - Unfold StepMLP parameters...
+2025-10-05 14:35:04,907 - INFO - ✓ Unfold StepMLP parameters finished in 0.00s.
+2025-10-05 14:35:04,912 - INFO -  Weights:
+        - Positive: 10893
+        - Negative: 10441
+        - Zero: 852715
+            --- Total: 874049 (= 874049)
+
+    Biases:
+        - Positive: 1484
+        - Negative: 10441
+        - Zero: 0
+            --- Total: 9205 (= 9205)
+    
+2025-10-05 14:35:04,913 - INFO - KL Divergence...
+2025-10-05 14:35:05,026 - INFO - ✓ KL Divergence finished in 0.11s.
+2025-10-05 14:35:05,026 - INFO - Parameter sampling...
+2025-10-05 14:35:06,679 - INFO - ✓ Parameter sampling finished in 1.65s.
+2025-10-05 14:35:06,679 - INFO - Earth Mover's Distance...
+2025-10-05 14:35:06,972 - INFO - ✓ Earth Mover's Distance finished in 0.29s.
+2025-10-05 14:35:06,973 - INFO - KS Test...
+2025-10-05 14:35:07,131 - INFO - ✓ KS Test finished in 0.16s.
+2025-10-05 14:35:07,131 - INFO - Descriptive statistics...
+2025-10-05 14:35:07,144 - INFO - ✓ Descriptive statistics finished in 0.01s.
+2025-10-05 14:35:07,144 - INFO - Results: {'KL Weights': 4.089305400848389, 'KL Biases': inf, 'EMD Weights': 0.0951438592580697, 'EMD Biases': 0.029738345025003502, 'KS Weights Statistic': 0.49763324552513644, 'KS Weights P-value': 0.0, 'KS Biases Statistic': 0.2087477815310218, 'KS Biases P-value': 9.75269134591773e-294, 'Mean Weights': 0.001042148008680306, 'Mean Biases': -0.07889445250726196, 'Std Weights': 0.014899642792902004, 'Std Biases': 0.10348845957611336, 'Kurtosis Weights': 346.31010691403424, 'Kurtosis Biases': 6.541506225215272}
+2025-10-05 14:35:07,464 - INFO - Generating trigger and payload...
+2025-10-05 14:35:07,465 - INFO - ✓ Generating trigger and payload finished in 0.00s.
+2025-10-05 14:35:07,466 - INFO - Creating backdoored model...
+2025-10-05 14:35:07,810 - INFO - ✓ Creating backdoored model finished in 0.34s.
+2025-10-05 14:35:07,810 - INFO - Unfold StepMLP parameters...
+2025-10-05 14:35:07,814 - INFO - ✓ Unfold StepMLP parameters finished in 0.00s.
+2025-10-05 14:35:07,819 - INFO -  Weights:
+        - Positive: 10893
+        - Negative: 10441
+        - Zero: 852715
+            --- Total: 874049 (= 874049)
+
+    Biases:
+        - Positive: 1484
+        - Negative: 10441
+        - Zero: 0
+            --- Total: 9205 (= 9205)
+    
+2025-10-05 14:35:07,819 - INFO - KL Divergence...
+2025-10-05 14:35:07,926 - INFO - ✓ KL Divergence finished in 0.11s.
+2025-10-05 14:35:07,926 - INFO - Parameter sampling...
+2025-10-05 14:35:09,612 - INFO - ✓ Parameter sampling finished in 1.69s.
+2025-10-05 14:35:09,612 - INFO - Earth Mover's Distance...
+2025-10-05 14:35:09,909 - INFO - ✓ Earth Mover's Distance finished in 0.30s.
+2025-10-05 14:35:09,909 - INFO - KS Test...
+2025-10-05 14:35:10,067 - INFO - ✓ KS Test finished in 0.16s.
+2025-10-05 14:35:10,067 - INFO - Descriptive statistics...
+2025-10-05 14:35:10,080 - INFO - ✓ Descriptive statistics finished in 0.01s.
+2025-10-05 14:35:10,080 - INFO - Results: {'KL Weights': 4.085384368896484, 'KL Biases': inf, 'EMD Weights': 0.09528085090178967, 'EMD Biases': 0.030031010060483157, 'KS Weights Statistic': 0.4978284960328311, 'KS Weights P-value': 0.0, 'KS Biases Statistic': 0.20876974225209732, 'KS Biases P-value': 8.448757188236742e-294, 'Mean Weights': 0.0010436279087908526, 'Mean Biases': -0.07867791057365729, 'Std Weights': 0.014735709006535794, 'Std Biases': 0.10291635817080513, 'Kurtosis Weights': 313.3772624606761, 'Kurtosis Biases': 6.011061485578606}
+2025-10-05 14:35:10,384 - INFO - Generating trigger and payload...
+2025-10-05 14:35:10,385 - INFO - ✓ Generating trigger and payload finished in 0.00s.
+2025-10-05 14:35:10,385 - INFO - Creating backdoored model...
+2025-10-05 14:35:10,703 - INFO - ✓ Creating backdoored model finished in 0.32s.
+2025-10-05 14:35:10,703 - INFO - Unfold StepMLP parameters...
+2025-10-05 14:35:10,707 - INFO - ✓ Unfold StepMLP parameters finished in 0.00s.
+2025-10-05 14:35:10,711 - INFO -  Weights:
+        - Positive: 10893
+        - Negative: 10441
+        - Zero: 852715
+            --- Total: 874049 (= 874049)
+
+    Biases:
+        - Positive: 1484
+        - Negative: 10441
+        - Zero: 0
+            --- Total: 9205 (= 9205)
+    
+2025-10-05 14:35:10,711 - INFO - KL Divergence...
+2025-10-05 14:35:10,829 - INFO - ✓ KL Divergence finished in 0.12s.
+2025-10-05 14:35:10,829 - INFO - Parameter sampling...
+2025-10-05 14:35:12,499 - INFO - ✓ Parameter sampling finished in 1.67s.
+2025-10-05 14:35:12,499 - INFO - Earth Mover's Distance...
+2025-10-05 14:35:12,791 - INFO - ✓ Earth Mover's Distance finished in 0.29s.
+2025-10-05 14:35:12,791 - INFO - KS Test...
+2025-10-05 14:35:12,948 - INFO - ✓ KS Test finished in 0.16s.
+2025-10-05 14:35:12,948 - INFO - Descriptive statistics...
+2025-10-05 14:35:12,960 - INFO - ✓ Descriptive statistics finished in 0.01s.
+2025-10-05 14:35:12,960 - INFO - Results: {'KL Weights': 4.096349239349365, 'KL Biases': inf, 'EMD Weights': 0.09517691619770821, 'EMD Biases': 0.030901212141612622, 'KS Weights Statistic': 0.49908255017624864, 'KS Weights P-value': 0.0, 'KS Biases Statistic': 0.20931292530478607, 'KS Biases P-value': 2.414855206305874e-295, 'Mean Weights': 0.0010635646546358216, 'Mean Biases': -0.07962690957128928, 'Std Weights': 0.015225822615497755, 'Std Biases': 0.10537250751102348, 'Kurtosis Weights': 402.3399056073756, 'Kurtosis Biases': 7.411418083095986}

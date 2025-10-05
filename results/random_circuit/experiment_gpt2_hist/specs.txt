@@ -1,11 +1,11 @@
 target_model: gpt2
-experiment_name: experiment_gpt2_small
+experiment_name: experiment_gpt2_hist
 target_weights: None
 target_biases: None
-num_samples: 20
-c: 20
-n: 3
-log_w: 1
+num_samples: 1
+c: 448
+n: 24
+log_w: 6
 random_seed: 95
 trigger_length: 16
 payload_length: 16

@@ -1,0 +1,33 @@
+2025-10-05 14:27:18,100 - INFO - Loading target model (gpt2)...
+2025-10-05 14:27:18,973 - INFO - ✓ Loading target model (gpt2) finished in 0.87s.
+2025-10-05 14:27:18,974 - INFO - Extracting target model parameters...
+2025-10-05 14:27:19,986 - INFO - ✓ Extracting target model parameters finished in 1.01s. (weights: 56,623,104, biases: 46,080)
+2025-10-05 14:27:19,988 - INFO - Generating trigger and payload...
+2025-10-05 14:27:19,989 - INFO - ✓ Generating trigger and payload finished in 0.00s.
+2025-10-05 14:27:19,989 - INFO - Creating backdoored model...
+2025-10-05 14:27:20,039 - INFO - ✓ Creating backdoored model finished in 0.05s.
+2025-10-05 14:27:20,039 - INFO - Unfold StepMLP parameters...
+2025-10-05 14:27:20,040 - INFO - ✓ Unfold StepMLP parameters finished in 0.00s.
+2025-10-05 14:27:20,041 - INFO -  Weights:
+        - Positive: 11815
+        - Negative: 821
+        - Zero: 196057
+            --- Total: 208693 (= 208693)
+
+    Biases:
+        - Positive: 26
+        - Negative: 821
+        - Zero: 39
+            --- Total: 2148 (= 2148)
+    
+2025-10-05 14:27:20,041 - INFO - KL Divergence...
+2025-10-05 14:27:20,158 - INFO - ✓ KL Divergence finished in 0.12s.
+2025-10-05 14:27:20,159 - INFO - Parameter sampling...
+2025-10-05 14:27:21,879 - INFO - ✓ Parameter sampling finished in 1.72s.
+2025-10-05 14:27:21,879 - INFO - Earth Mover's Distance...
+2025-10-05 14:27:22,122 - INFO - ✓ Earth Mover's Distance finished in 0.24s.
+2025-10-05 14:27:22,122 - INFO - KS Test...
+2025-10-05 14:27:22,243 - INFO - ✓ KS Test finished in 0.12s.
+2025-10-05 14:27:22,243 - INFO - Descriptive statistics...
+2025-10-05 14:27:22,247 - INFO - ✓ Descriptive statistics finished in 0.00s.
+2025-10-05 14:27:22,247 - INFO - Results: {'KL Weights': 4.610952377319336, 'KL Biases': inf, 'EMD Weights': 0.12313829424654212, 'EMD Biases': 3.781864299996167, 'KS Weights Statistic': 0.49987899167197747, 'KS Weights P-value': 0.0, 'KS Biases Statistic': 0.9696090840316574, 'KS Biases P-value': 0.0, 'Mean Weights': 0.05268025281154615, 'Mean Biases': -3.8314711359404097, 'Std Weights': 0.2403608480294179, 'Std Biases': 3.3789529491695034, 'Kurtosis Weights': 12.109845704536387, 'Kurtosis Biases': -0.8346380844269854}

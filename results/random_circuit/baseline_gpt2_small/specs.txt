@@ -1,5 +1,5 @@
 target_model: gpt2
-experiment_name: experiment_gpt2_small
+experiment_name: baseline_gpt2_small
 target_weights: None
 target_biases: None
 num_samples: 20

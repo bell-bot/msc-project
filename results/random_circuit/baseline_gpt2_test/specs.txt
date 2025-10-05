@@ -1,9 +1,9 @@
 target_model: gpt2
-experiment_name: experiment_gpt2_small
+experiment_name: baseline_gpt2_test
 target_weights: None
 target_biases: None
-num_samples: 20
-c: 20
+num_samples: 1
+c: 24
 n: 3
 log_w: 1
 random_seed: 95
