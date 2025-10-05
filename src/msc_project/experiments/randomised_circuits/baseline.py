@@ -46,10 +46,7 @@ def evaluate_baseline(
 
             pbar.set_description(f"{step_info}Creating backdoored model")
             with LOG.time("Creating backdoored model", show_pbar=False):
-                backdoor_fun = get_backdoor(trigger=trigger.bitlist, payload=payload.bitlist, k=keccak)
-                graph = compiled(backdoor_fun, keccak.msg_len)
-
-                backdoored_model = GACompatibleStepMLP.from_graph(graph)
+                backdoored_model = CustomStepMLP.create_with_backdoor(trigger.bitlist, payload.bitlist, keccak)
 
             metrics = evaluate_model(
                 backdoored_model, target_model, specs.sample_size, LOG, pbar=pbar, step_info=step_info
@@ -120,22 +117,4 @@ def run_experiment_with_target_dist(specs: ExperimentSpecs):
 
     evaluate_baseline(specs, (model_weights, model_biases), result_file)
 
-sample_size = 2000000
-torch.manual_seed(15)
-laplace_dist_weights = torch.distributions.laplace.Laplace(loc=-0.001100021, scale=0.09658630688985188)
-laplace_dist_biases = torch.distributions.laplace.Laplace(loc=-0.06297976, scale=0.0810421519809299)
-target_weights = laplace_dist_weights.sample((sample_size,))
-target_biases = laplace_dist_biases.sample((sample_size,))
-run_experiment_with_target_dist(ExperimentSpecs("laplace", "baseline_laplace_small2", num_samples=20, n=3, c=20, log_w=1, sample_size=sample_size, target_weights=target_weights, target_biases=target_biases))
-
-print(f"Weights stats: {compute_param_stats(target_weights)}")
-print(f"Bias stats: {compute_param_stats(target_biases)}")
-
-normal_dist_weights = torch.distributions.normal.Normal(loc=-0.0014237247, scale=0.12775175)
-normal_dist_biases = torch.distributions.normal.Normal(loc=-0.066784285, scale=0.10962485)
-target_weights = normal_dist_weights.sample((sample_size,))
-target_biases = normal_dist_biases.sample((sample_size,))
-run_experiment_with_target_dist(ExperimentSpecs("normal", "baseline_normal_small", num_samples=20, n=3, c=20, log_w=1, sample_size=sample_size, target_weights=target_weights, target_biases=target_biases))
-
-print(f"Weights stats: {compute_param_stats(target_weights)}")
-print(f"Bias stats: {compute_param_stats(target_biases)}")
+run_experiment_with_target_model(ExperimentSpecs("gpt2", "baseline_gpt2_small", num_samples=20, log_w=1, n=3, c=20))

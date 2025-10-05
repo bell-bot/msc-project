@@ -16,7 +16,7 @@ def plot_histograms(backdoored_weights, target_weights, backdoored_biases, targe
     ax1.set_title("Weights")
     ax1.set_xlabel("Value")
     ax1.set_ylabel("Density")
-    #ax1.set_yscale("log")
+    ax1.set_yscale("log")
     ax1.legend()
     ax1.grid(True)
 
@@ -27,7 +27,7 @@ def plot_histograms(backdoored_weights, target_weights, backdoored_biases, targe
     ax2.set_title("Biases")
     ax2.set_xlabel("Value")
     ax2.set_ylabel("Density")
-    #ax2.set_yscale("log")
+    ax2.set_yscale("log")
     ax2.legend()
     ax2.grid(True)
 

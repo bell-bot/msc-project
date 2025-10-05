@@ -28,6 +28,31 @@ def evaluate_model(
         backdoored_model_weights, backdoored_model_biases = unfold_stepmlp_parameters(backdoored_model)
         target_model_weights, target_model_biases = target
 
+    backdoored_model_weights = backdoored_model_weights.to(torch.float64)
+    backdoored_model_biases = backdoored_model_biases.to(torch.float64)
+
+    zero_weights = backdoored_model_weights[backdoored_model_weights == 0.0].numel()
+    positive_weights = backdoored_model_weights[backdoored_model_weights > 0.0].numel()
+    negative_weights = backdoored_model_weights[backdoored_model_weights < 0.0].numel()
+    zero_biases = backdoored_model_biases[backdoored_model_biases == 0.0].numel()
+    positive_biases = backdoored_model_biases[backdoored_model_biases > 0.0].numel()
+    negative_biases = backdoored_model_biases[backdoored_model_biases < 0.0].numel()
+    
+    param_count = f""" Weights:
+        - Positive: {positive_weights}
+        - Negative: {negative_weights}
+        - Zero: {zero_weights}
+            --- Total: {backdoored_model_weights.numel()} (= {positive_weights + negative_weights + zero_weights})
+
+    Biases:
+        - Positive: {positive_biases}
+        - Negative: {negative_weights}
+        - Zero: {zero_biases}
+            --- Total: {backdoored_model_biases.numel()} (= {positive_biases + negative_biases + zero_biases})
+    """
+
+    LOG.info(param_count)
+
     if pbar:
         pbar.set_description(f"{step_info}Calculating KL Divergence")
     with LOG.time("KL Divergence", show_pbar=False):
@@ -78,7 +103,7 @@ def save_evaluation_report(specs: ExperimentSpecs, filepath: str):
         for key, value in specs.dict().items():
             f.write(f"{key}: {value}\n")
 
-    headers = "Index, KL Weights, KL Biases, EMD Weights, EMD Biases, KS Weights Statistic, KS Weights P-value, KS Biases Statistic, KS Biases P-value, Mean Weights, Mean Biases, Std Weights, Std Biases, Kurtosis Weights, Kurtosis Biases\n"
+    headers = "KL Weights, KL Biases, EMD Weights, EMD Biases, KS Weights Statistic, KS Weights P-value, KS Biases Statistic, KS Biases P-value, Mean Weights, Mean Biases, Std Weights, Std Biases, Kurtosis Weights, Kurtosis Biases\n"
     with open(f"{filepath}/evaluation_report.csv", "w") as f:
         f.write(headers)
 

@@ -37,16 +37,6 @@ def dryrun(specs: ExperimentSpecs) -> WeightCounter:
     mlp = RandomisedStepMLP.create_with_randomised_backdoor(
         trigger_message.bitlist, payload.bitlist, counting_keccak, sampler=weight_counter
     )
-
-    backdoored_model_weights, backdoored_model_biases = unfold_stepmlp_parameters(mlp)
-    positive_weights = backdoored_model_weights[backdoored_model_weights > 0]
-    negative_weights = backdoored_model_weights[backdoored_model_weights < 0]
-    positive_biases = backdoored_model_biases[backdoored_model_biases > 0]
-    negative_biases = backdoored_model_biases[backdoored_model_biases < 0]
-    
-    LOG.info(f"Num positive samples taken: {weight_counter.positive_idx}; num positive weights: {positive_weights.numel()}; num positive biases: {positive_biases.numel()} (Total: {positive_weights.numel()+positive_biases.numel()})")
-    LOG.info(f"Num negative samples taken: {weight_counter.negative_idx}; num negative weights: {negative_weights.numel()}; num negative biases: {negative_biases.numel()} (Total: {negative_weights.numel()+negative_biases.numel()})")
-
     return weight_counter
 
 def format_results(results: dict) -> str:
@@ -96,17 +86,6 @@ def evaluate_randomised(
             LOG.info(f"Results: {metrics}")
             result_file.write(format_results(metrics))
             result_file.flush()
-
-            backdoored_model_weights, backdoored_model_biases = unfold_stepmlp_parameters(backdoored_model)
-
-            positive_weights = backdoored_model_weights[backdoored_model_weights > 0]
-            negative_weights = backdoored_model_weights[backdoored_model_weights < 0]
-            positive_biases = backdoored_model_biases[backdoored_model_biases > 0]
-            negative_biases = backdoored_model_biases[backdoored_model_biases < 0]
-            LOG.info(f"Num positive samples taken: {sampler.positive_idx}; num positive weights: {positive_weights.numel()}; num positive biases: {positive_biases.numel()} (Total: {positive_weights.numel()+positive_biases.numel()})")
-            LOG.info(f"Num negative samples taken: {sampler.negative_idx}; num negative weights: {negative_weights.numel()}; num negative biases: {negative_biases.numel()} (Total: {negative_weights.numel()+negative_biases.numel()})")
-            # plot_separate_histograms(backdoored_model_weights, target_model[0], backdoored_model_biases, target_model[1], f"results/random_circuit/{specs.experiment_name}/histograms/sample_{i+1}")
-
 
 def run_experiment_with_target_model(specs: ExperimentSpecs):
 
@@ -170,16 +149,18 @@ def run_experiment_with_target_dist(specs: ExperimentSpecs):
 
     evaluate_randomised(specs, (model_weights, model_biases), result_file)
 
-sample_size = 2000000
-torch.manual_seed(15)
-laplace_dist_weights = torch.distributions.laplace.Laplace(loc=-0.001100021, scale=0.09658630688985188)
-laplace_dist_biases = torch.distributions.laplace.Laplace(loc=-0.06297976, scale=0.0810421519809299)
-target_weights = laplace_dist_weights.sample((sample_size,))
-target_biases = laplace_dist_biases.sample((sample_size,))
-run_experiment_with_target_dist(ExperimentSpecs("laplace", "experiment_laplace_small2", num_samples=20, n=3, c=20, log_w=1, sample_size=sample_size, target_weights=target_weights, target_biases=target_biases))
+# sample_size = 2000000
+# torch.manual_seed(15)
+# laplace_dist_weights = torch.distributions.laplace.Laplace(loc=-0.001100021, scale=0.09658630688985188)
+# laplace_dist_biases = torch.distributions.laplace.Laplace(loc=-0.06297976, scale=0.0810421519809299)
+# target_weights = laplace_dist_weights.sample((sample_size,))
+# target_biases = laplace_dist_biases.sample((sample_size,))
+# run_experiment_with_target_dist(ExperimentSpecs("laplace", "experiment_laplace_small_hist", num_samples=1, n=3, c=20, log_w=1, sample_size=sample_size, target_weights=target_weights, target_biases=target_biases))
 
-normal_dist_weights = torch.distributions.normal.Normal(loc=-0.0014237247, scale=0.12775175)
-normal_dist_biases = torch.distributions.normal.Normal(loc=-0.066784285, scale=0.10962485)
-target_weights = normal_dist_weights.sample((sample_size,))
-target_biases = normal_dist_biases.sample((sample_size,))
-run_experiment_with_target_dist(ExperimentSpecs("normal", "experiment_normal_small", num_samples=20, n=3, c=20, log_w=1, sample_size=sample_size, target_weights=target_weights, target_biases=target_biases))
+# normal_dist_weights = torch.distributions.normal.Normal(loc=-0.0014237247, scale=0.12775175)
+# normal_dist_biases = torch.distributions.normal.Normal(loc=-0.066784285, scale=0.10962485)
+# target_weights = normal_dist_weights.sample((sample_size,))
+# target_biases = normal_dist_biases.sample((sample_size,))
+# run_experiment_with_target_dist(ExperimentSpecs("normal", "experiment_normal_small_hist", num_samples=1, n=3, c=20, log_w=1, sample_size=sample_size, target_weights=target_weights, target_biases=target_biases))
+
+run_experiment_with_target_model(ExperimentSpecs("gpt2", "experiment_gpt2_small", num_samples=20, log_w=1, n=3, c=20))
