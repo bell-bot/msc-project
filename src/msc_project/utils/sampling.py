@@ -31,13 +31,15 @@ class WeightSampler:
         self.negative_idx = 0
 
     def sample(
-        self, num_samples: int, sign: Literal["positive", "negative"] = "positive"
+        self, num_samples: int, sign: Literal["positive", "negative", "any"] = "positive"
     ) -> torch.Tensor:
 
         if sign == "positive":
             target = self.target_distribution[self.target_distribution > 0]
         elif sign == "negative":
             target = self.target_distribution[self.target_distribution < 0]
+        else:
+            target = self.target_distribution
 
         num_available = target.numel()
 

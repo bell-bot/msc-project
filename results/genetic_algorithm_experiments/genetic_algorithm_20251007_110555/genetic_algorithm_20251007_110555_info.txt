@@ -1,0 +1,17 @@
+test_phrase: Test
+payload: tseT
+num_solutions: 100
+num_generations: 10
+num_parents_mating: 50
+save: True
+seed: 89
+Objectives:
+    dist_stats_weights = evaluate_distribution_stats(local_model_weights, target_mean_weights, target_std_weights, target_kurtosis_weights)
+    dist_stats_biases = evaluate_distribution_stats(local_model_biases, target_mean_biases, target_std_biases, target_kurtosis_biases)
+    #unique_elems_score = evaluate_unique_params(solution)
+    unique_elems_score = 0.0
+    weights_ks_statistic = evaluate_ks_statistic(target_weights, local_model_weights)
+    biases_ks_statistic = evaluate_ks_statistic(target_biases, local_model_biases)
+
+Initialisation: 
+    Non-zero parameters sampled from target weights and biases

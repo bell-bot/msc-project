@@ -34,6 +34,7 @@ from msc_project.analysis.analysis_utils import (
 )
 from msc_project.utils.logging_utils import TimedLogger
 from msc_project.utils.model_utils import get_mlp_layers, process_mlp_layers, unfold_stepmlp_parameters
+from msc_project.utils.sampling import WeightSampler
 
 EXPERIMENT_RESULTS_DIR = "results/genetic_algorithm_experiments"
 EXPERIMENT_TYPE = "genetic_algorithm"
@@ -125,6 +126,24 @@ def on_gen(ga_instance):
 def on_fitness(ga_instance, population_fitness):
     print(f"Fitness values: {population_fitness}")
 
+def initialise_population_from_target(mlp_template: GACompatibleStepMLP, num_solutions: int, target_weights: torch.Tensor, target_biases: torch.Tensor) -> pygad.torchga.TorchGA:
+    weight_sampler = WeightSampler(target_weights)
+    bias_sampler = WeightSampler(target_biases)
+
+    params = []
+    for _, layer in mlp_template.named_parameters():
+        mlp_bias = layer[0]
+        mlp_weight = layer[1:]
+
+        bias_sample = bias_sampler.sample(num_samples = mlp_bias.numel(), sign = "any").reshape(mlp_bias.shape).unsqueeze(dim=0)
+        weight_sample = weight_sampler.sample(num_samples=mlp_weight.numel(), sign = "any").reshape(mlp_weight.shape)
+        param = torch.cat([torch.mul(mlp_bias,bias_sample), torch.mul(mlp_weight,weight_sample)], dim=0)
+        params.append(param)
+
+    mlp_template.load_params(params)
+    return pygad.torchga.TorchGA(model=mlp_template, num_solutions=num_solutions)
+
+    
 
 def run_ga_optimisation(
     mlp_template,
@@ -143,7 +162,8 @@ def run_ga_optimisation(
     
     
     print("Initializing genetic algorithm population...")
-    torch_ga = pygad.torchga.TorchGA(model=mlp_template, num_solutions=num_solutions)
+    torch_ga = initialise_population_from_target(mlp_template, num_solutions, gpt2_weights, gpt2_biases)
+    #torch_ga = pygad.torchga.TorchGA(model=mlp_template, num_solutions=num_solutions)
     #model_weights = np.array(torch_ga.population_weights).flatten()
     # print(f"Initial population num params: {model_weights.shape}")
     # print(
@@ -222,7 +242,6 @@ def run_ga_optimisation(
             custom_format=stepmlp_histogram_format,
         )
 
-
 def verify_ga_optimised_stepml(mlp_template, formatted_message: Bits, expected_output: Bits):
     actual_output = mlp_template.infer_bits(formatted_message)
     actual_output_hex = actual_output.bitstr
@@ -258,7 +277,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     print(f"Creating StepMLP from message: {args.test_phrase}")
-
+    EXPERIMENT_TYPE = "init_from_target_dist"
     experiment_id = generate_experiment_id(EXPERIMENT_TYPE)
     save_path = f"{EXPERIMENT_RESULTS_DIR}/{experiment_id}" if args.save else None
     seed = random.randint(0,1000)
