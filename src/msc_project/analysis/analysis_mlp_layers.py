@@ -110,7 +110,6 @@ if __name__ == "__main__":
     with open("src/msc_project/analysis/model_names.txt", "r") as f:
         model_names = [line.strip() for line in f.readlines() if line.strip()]
         model_names = ["gpt2"]
-        model_names = ["gpt2"]
         results = analyse_models(model_names, p=1.0)
         weights = results["weights"]
         biases = results["biases"]
@@ -135,12 +134,29 @@ if __name__ == "__main__":
         #     filename_prefix="GPT2_"
         # )
 
-        print("Fitting distributions...")
-        fitted_laplace_weights = fit_distribution(weights.numpy(), stats.laplace)
-        fitted_laplace_biases = fit_distribution(biases.numpy(), stats.laplace)
-        print("Fitted Laplace parameters for weights:", fitted_laplace_weights)
-        print("Fitted Laplace parameters for biases:", fitted_laplace_biases)
-        fitted_normal_weights = fit_distribution(weights.numpy(), stats.norm)
-        fitted_normal_biases = fit_distribution(biases.numpy(), stats.norm)
-        print("Fitted Normal parameters for weights:", fitted_normal_weights)
-        print("Fitted Normal parameters for biases:", fitted_normal_biases)
+        # print("Fitting distributions...")
+        # fitted_laplace_weights = fit_distribution(weights.numpy(), stats.laplace)
+        # fitted_laplace_biases = fit_distribution(biases.numpy(), stats.laplace)
+        # print("Fitted Laplace parameters for weights:", fitted_laplace_weights)
+        # print("Fitted Laplace parameters for biases:", fitted_laplace_biases)
+        # fitted_normal_weights = fit_distribution(weights.numpy(), stats.norm)
+        # fitted_normal_biases = fit_distribution(biases.numpy(), stats.norm)
+        # print("Fitted Normal parameters for weights:", fitted_normal_weights)
+        # print("Fitted Normal parameters for biases:", fitted_normal_biases)
+
+        zero_weights = weights[weights == 0.0]
+        positive_weights = weights[weights > 0.0]
+        negative_weights = weights[weights < 0.0]
+        zero_biases = biases[biases == 0.0]
+        positive_biases = biases[biases > 0.0]
+        negative_biases = biases[biases < 0.0]
+
+        print(f"Negative: {negative_weights.numel()}")
+        print(f"Zero: {zero_weights.numel()}")
+        print(f"Positive: {positive_weights.numel()}")
+        print(f"--- Total: {weights.numel()} (= {negative_weights.numel() + zero_weights.numel() + positive_weights.numel()})")
+
+        print(f"Negative: {negative_biases.numel()}")
+        print(f"Zero: {zero_biases.numel()}")
+        print(f"Positive: {positive_biases.numel()}")
+        print(f"--- Total: {biases.numel()} (= {negative_biases.numel() + zero_biases.numel() + positive_biases.numel()})")

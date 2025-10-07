@@ -1,6 +1,7 @@
 # Experiment: Randomised vs. Standard Backdoor with GPT2 Target Model
 
-## Model Setup (standard and backdoor)
+## Large Model
+### Model Setup (standard and backdoor)
 
 num_samples: 50
 c: 448
@@ -10,7 +11,7 @@ random_seed: 95
 trigger_length: 16
 payload_length: 16
 
-## Baseline Results
+### Baseline Results
 
 KL Weights 6.152332
 KL Biases inf
@@ -27,7 +28,7 @@ Std Biases 3.437875
 Kurtosis Weights 450.164896
 Kurtosis Biases -1.028155
 
-## Randomised Backdoor Results
+### Randomised Backdoor Results
 
 KL Weights 6.852437e+00
 KL Biases inf
@@ -49,6 +50,47 @@ Kurtosis Biases 1.088753e+02
 Weights: - Mean: -0.0014 - Std: 0.1278 - Kurtosis: 40.5677
 
 Biases: - Mean: -0.0668 - Std: 0.1096 - Kurtosis: 18.3524
+
+## Small Model
+
+### Model Setup
+num_samples: 20
+c: 20
+n: 3
+log_w: 1
+random_seed: 95
+trigger_length: 16
+payload_length: 16
+
+### Baseline Results
+KL Weights                4.613600
+EMD Weights              0.123450
+EMD Biases               3.755805
+KS Weights Statistic     0.500265
+KS Weights P-value       0.000000
+KS Biases Statistic      0.969165
+KS Biases P-value        0.000000
+Mean Weights             0.053100
+Mean Biases             -3.804495
+Std Weights              0.241000
+Std Biases               3.370500
+Kurtosis Weights        12.009700
+Kurtosis Biases         -0.813800
+
+### Randomised Backdoor Results
+KL Weights                 4.087855
+EMD Weights               0.095180
+EMD Biases                0.030670
+KS Weights Statistic      0.498000
+KS Weights P-value        0.000000
+KS Biases Statistic       0.208385
+KS Biases P-value         0.000000
+Mean Weights              0.001015
+Mean Biases              -0.078695
+Std Weights               0.014970
+Std Biases                0.103870
+Kurtosis Weights        520.282245
+Kurtosis Biases           9.083655
 
 # Experiment: Randomised vs. Standard Backdoor with Laplace Target Dist
 

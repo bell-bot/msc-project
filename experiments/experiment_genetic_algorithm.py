@@ -243,7 +243,11 @@ if __name__ == "__main__":
         "--test_phrase", type=str, default="Test", help="Test phrase to hash"
     )
     parser.add_argument(
+<<<<<<< HEAD
         "--payload", type=str, default="tseT", help="Payload for the backdoor"
+=======
+        "--payload", type=str, default="Tset", help="Payload for the backdoor"
+>>>>>>> 9d3951a (randomised circuits results)
     )
     parser.add_argument("--num_solutions", type=int, default=100, help="Number of solutions for GA")
     parser.add_argument("--num_generations", type=int, default=10, help="Number of generations for GA")
