@@ -1,0 +1,468 @@
+2025-10-07 08:45:39,495 - INFO - 
+Solution 0-------
+	KS Statistic Weights: 0.4996
+	KS Statistic Biases: 0.0313
+	Stats Score Weights: 0.6281
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 2.5982
+2025-10-07 08:46:23,827 - INFO - 
+Solution 22-------
+	KS Statistic Weights: 0.6235
+	KS Statistic Biases: 0.1019
+	Stats Score Weights: 0.5433
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 2.9512
+2025-10-07 08:46:26,143 - INFO - Generation = 1
+2025-10-07 08:46:38,862 - INFO - 
+Solution 22-------
+	KS Statistic Weights: 0.6235
+	KS Statistic Biases: 0.1019
+	Stats Score Weights: 0.5433
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 2.9512
+2025-10-07 08:46:41,170 - INFO - Fitness    = 2.951220750808716
+2025-10-07 08:47:15,741 - INFO - Generation = 2
+2025-10-07 08:47:20,939 - INFO - Fitness    = 2.951220750808716
+2025-10-07 08:48:04,272 - INFO - 
+Solution 73-------
+	KS Statistic Weights: 0.6199
+	KS Statistic Biases: 0.0989
+	Stats Score Weights: 0.5357
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 2.9483
+2025-10-07 08:48:05,000 - INFO - Generation = 3
+2025-10-07 08:48:19,223 - INFO - 
+Solution 73-------
+	KS Statistic Weights: 0.6199
+	KS Statistic Biases: 0.0989
+	Stats Score Weights: 0.5357
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 2.9483
+2025-10-07 08:48:19,951 - INFO - Fitness    = 2.951220750808716
+2025-10-07 08:49:02,894 - INFO - 
+Solution 72-------
+	KS Statistic Weights: 0.6211
+	KS Statistic Biases: 0.1032
+	Stats Score Weights: 0.5334
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 2.9612
+2025-10-07 08:49:03,623 - INFO - Generation = 4
+2025-10-07 08:49:17,849 - INFO - 
+Solution 72-------
+	KS Statistic Weights: 0.6211
+	KS Statistic Biases: 0.1032
+	Stats Score Weights: 0.5334
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 2.9612
+2025-10-07 08:49:18,580 - INFO - Fitness    = 2.961219310760498
+2025-10-07 08:50:00,593 - INFO - 
+Solution 31-------
+	KS Statistic Weights: 0.6204
+	KS Statistic Biases: 0.1058
+	Stats Score Weights: 0.5314
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 2.9662
+2025-10-07 08:50:11,953 - INFO - 
+Solution 81-------
+	KS Statistic Weights: 0.6287
+	KS Statistic Biases: 0.1036
+	Stats Score Weights: 0.5341
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 2.9675
+2025-10-07 08:50:12,372 - INFO - Generation = 5
+2025-10-07 08:50:25,386 - INFO - 
+Solution 31-------
+	KS Statistic Weights: 0.6204
+	KS Statistic Biases: 0.1058
+	Stats Score Weights: 0.5314
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 2.9662
+2025-10-07 08:50:36,780 - INFO - 
+Solution 81-------
+	KS Statistic Weights: 0.6287
+	KS Statistic Biases: 0.1036
+	Stats Score Weights: 0.5341
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 2.9675
+2025-10-07 08:50:37,199 - INFO - Fitness    = 2.9675447940826416
+2025-10-07 08:51:18,410 - INFO - 
+Solution 19-------
+	KS Statistic Weights: 0.6286
+	KS Statistic Biases: 0.1143
+	Stats Score Weights: 0.5301
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 2.9938
+2025-10-07 08:51:29,146 - INFO - 
+Solution 50-------
+	KS Statistic Weights: 0.6180
+	KS Statistic Biases: 0.1157
+	Stats Score Weights: 0.5275
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 2.9889
+2025-10-07 08:51:39,567 - INFO - 
+Solution 69-------
+	KS Statistic Weights: 0.6177
+	KS Statistic Biases: 0.1078
+	Stats Score Weights: 0.5278
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 2.9707
+2025-10-07 08:51:49,676 - INFO - 
+Solution 74-------
+	KS Statistic Weights: 0.6186
+	KS Statistic Biases: 0.1112
+	Stats Score Weights: 0.5284
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 2.9791
+2025-10-07 08:51:59,777 - INFO - 
+Solution 82-------
+	KS Statistic Weights: 0.6196
+	KS Statistic Biases: 0.1107
+	Stats Score Weights: 0.5292
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 2.9788
+2025-10-07 08:52:00,196 - INFO - Generation = 6
+2025-10-07 08:52:12,647 - INFO - 
+Solution 19-------
+	KS Statistic Weights: 0.6286
+	KS Statistic Biases: 0.1143
+	Stats Score Weights: 0.5301
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 2.9938
+2025-10-07 08:52:23,381 - INFO - 
+Solution 50-------
+	KS Statistic Weights: 0.6180
+	KS Statistic Biases: 0.1157
+	Stats Score Weights: 0.5275
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 2.9889
+2025-10-07 08:52:33,811 - INFO - 
+Solution 69-------
+	KS Statistic Weights: 0.6177
+	KS Statistic Biases: 0.1078
+	Stats Score Weights: 0.5278
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 2.9707
+2025-10-07 08:52:43,909 - INFO - 
+Solution 74-------
+	KS Statistic Weights: 0.6186
+	KS Statistic Biases: 0.1112
+	Stats Score Weights: 0.5284
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 2.9791
+2025-10-07 08:52:54,007 - INFO - 
+Solution 82-------
+	KS Statistic Weights: 0.6196
+	KS Statistic Biases: 0.1107
+	Stats Score Weights: 0.5292
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 2.9788
+2025-10-07 08:52:54,424 - INFO - Fitness    = 2.9937875270843506
+2025-10-07 08:53:35,221 - INFO - 
+Solution 10-------
+	KS Statistic Weights: 0.6197
+	KS Statistic Biases: 0.1191
+	Stats Score Weights: 0.5277
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 2.9970
+2025-10-07 08:53:46,973 - INFO - 
+Solution 62-------
+	KS Statistic Weights: 0.6281
+	KS Statistic Biases: 0.1063
+	Stats Score Weights: 0.5315
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 2.9763
+2025-10-07 08:53:57,491 - INFO - 
+Solution 84-------
+	KS Statistic Weights: 0.6248
+	KS Statistic Biases: 0.1158
+	Stats Score Weights: 0.5256
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 2.9973
+2025-10-07 08:53:57,906 - INFO - Generation = 7
+2025-10-07 08:54:10,118 - INFO - 
+Solution 10-------
+	KS Statistic Weights: 0.6197
+	KS Statistic Biases: 0.1191
+	Stats Score Weights: 0.5277
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 2.9970
+2025-10-07 08:54:21,878 - INFO - 
+Solution 62-------
+	KS Statistic Weights: 0.6281
+	KS Statistic Biases: 0.1063
+	Stats Score Weights: 0.5315
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 2.9763
+2025-10-07 08:54:32,394 - INFO - 
+Solution 84-------
+	KS Statistic Weights: 0.6248
+	KS Statistic Biases: 0.1158
+	Stats Score Weights: 0.5256
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 2.9973
+2025-10-07 08:54:32,809 - INFO - Fitness    = 2.9973480701446533
+2025-10-07 08:55:13,876 - INFO - 
+Solution 7-------
+	KS Statistic Weights: 0.6190
+	KS Statistic Biases: 0.1147
+	Stats Score Weights: 0.5243
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 2.9904
+2025-10-07 08:55:24,393 - INFO - 
+Solution 26-------
+	KS Statistic Weights: 0.6229
+	KS Statistic Biases: 0.1191
+	Stats Score Weights: 0.5230
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 3.0053
+2025-10-07 08:55:34,276 - INFO - 
+Solution 30-------
+	KS Statistic Weights: 0.6186
+	KS Statistic Biases: 0.1201
+	Stats Score Weights: 0.5250
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 3.0005
+2025-10-07 08:55:44,462 - INFO - 
+Solution 34-------
+	KS Statistic Weights: 0.6229
+	KS Statistic Biases: 0.1177
+	Stats Score Weights: 0.5236
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 3.0012
+2025-10-07 08:55:46,449 - INFO - Generation = 8
+2025-10-07 08:55:58,635 - INFO - 
+Solution 7-------
+	KS Statistic Weights: 0.6190
+	KS Statistic Biases: 0.1147
+	Stats Score Weights: 0.5243
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 2.9904
+2025-10-07 08:56:09,146 - INFO - 
+Solution 26-------
+	KS Statistic Weights: 0.6229
+	KS Statistic Biases: 0.1191
+	Stats Score Weights: 0.5230
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 3.0053
+2025-10-07 08:56:19,037 - INFO - 
+Solution 30-------
+	KS Statistic Weights: 0.6186
+	KS Statistic Biases: 0.1201
+	Stats Score Weights: 0.5250
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 3.0005
+2025-10-07 08:56:29,218 - INFO - 
+Solution 34-------
+	KS Statistic Weights: 0.6229
+	KS Statistic Biases: 0.1177
+	Stats Score Weights: 0.5236
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 3.0012
+2025-10-07 08:56:31,246 - INFO - Fitness    = 3.0052618980407715
+2025-10-07 08:57:12,205 - INFO - 
+Solution 9-------
+	KS Statistic Weights: 0.6211
+	KS Statistic Biases: 0.1162
+	Stats Score Weights: 0.5212
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 2.9987
+2025-10-07 08:57:22,695 - INFO - 
+Solution 22-------
+	KS Statistic Weights: 0.6146
+	KS Statistic Biases: 0.1096
+	Stats Score Weights: 0.5202
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 2.9815
+2025-10-07 08:57:32,566 - INFO - 
+Solution 23-------
+	KS Statistic Weights: 0.6173
+	KS Statistic Biases: 0.1157
+	Stats Score Weights: 0.5219
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 2.9932
+2025-10-07 08:57:43,646 - INFO - 
+Solution 62-------
+	KS Statistic Weights: 0.6160
+	KS Statistic Biases: 0.1137
+	Stats Score Weights: 0.5218
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 2.9885
+2025-10-07 08:57:54,378 - INFO - 
+Solution 91-------
+	KS Statistic Weights: 0.6183
+	KS Statistic Biases: 0.1230
+	Stats Score Weights: 0.5224
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 3.0091
+2025-10-07 08:57:54,486 - INFO - Generation = 9
+2025-10-07 08:58:06,567 - INFO - 
+Solution 9-------
+	KS Statistic Weights: 0.6211
+	KS Statistic Biases: 0.1162
+	Stats Score Weights: 0.5212
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 2.9987
+2025-10-07 08:58:16,977 - INFO - 
+Solution 22-------
+	KS Statistic Weights: 0.6146
+	KS Statistic Biases: 0.1096
+	Stats Score Weights: 0.5202
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 2.9815
+2025-10-07 08:58:26,769 - INFO - 
+Solution 23-------
+	KS Statistic Weights: 0.6173
+	KS Statistic Biases: 0.1157
+	Stats Score Weights: 0.5219
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 2.9932
+2025-10-07 08:58:37,822 - INFO - 
+Solution 62-------
+	KS Statistic Weights: 0.6160
+	KS Statistic Biases: 0.1137
+	Stats Score Weights: 0.5218
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 2.9885
+2025-10-07 08:58:48,551 - INFO - 
+Solution 91-------
+	KS Statistic Weights: 0.6183
+	KS Statistic Biases: 0.1230
+	Stats Score Weights: 0.5224
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 3.0091
+2025-10-07 08:58:48,658 - INFO - Fitness    = 3.0090508460998535
+2025-10-07 08:59:30,242 - INFO - 
+Solution 20-------
+	KS Statistic Weights: 0.6148
+	KS Statistic Biases: 0.1231
+	Stats Score Weights: 0.5181
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 3.0090
+2025-10-07 08:59:40,641 - INFO - 
+Solution 31-------
+	KS Statistic Weights: 0.6159
+	KS Statistic Biases: 0.1095
+	Stats Score Weights: 0.5180
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 2.9837
+2025-10-07 08:59:50,743 - INFO - 
+Solution 41-------
+	KS Statistic Weights: 0.6165
+	KS Statistic Biases: 0.1157
+	Stats Score Weights: 0.5200
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 2.9940
+2025-10-07 09:00:01,481 - INFO - 
+Solution 78-------
+	KS Statistic Weights: 0.6147
+	KS Statistic Biases: 0.1145
+	Stats Score Weights: 0.5191
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 2.9924
+2025-10-07 09:00:11,891 - INFO - 
+Solution 91-------
+	KS Statistic Weights: 0.6187
+	KS Statistic Biases: 0.1150
+	Stats Score Weights: 0.5229
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 2.9938
+2025-10-07 09:00:11,999 - INFO - Generation = 10
+2025-10-07 09:00:24,392 - INFO - 
+Solution 20-------
+	KS Statistic Weights: 0.6148
+	KS Statistic Biases: 0.1231
+	Stats Score Weights: 0.5181
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 3.0090
+2025-10-07 09:00:34,797 - INFO - 
+Solution 31-------
+	KS Statistic Weights: 0.6159
+	KS Statistic Biases: 0.1095
+	Stats Score Weights: 0.5180
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 2.9837
+2025-10-07 09:00:44,900 - INFO - 
+Solution 41-------
+	KS Statistic Weights: 0.6165
+	KS Statistic Biases: 0.1157
+	Stats Score Weights: 0.5200
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 2.9940
+2025-10-07 09:00:55,642 - INFO - 
+Solution 78-------
+	KS Statistic Weights: 0.6147
+	KS Statistic Biases: 0.1145
+	Stats Score Weights: 0.5191
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 2.9924
+2025-10-07 09:01:06,045 - INFO - 
+Solution 91-------
+	KS Statistic Weights: 0.6187
+	KS Statistic Biases: 0.1150
+	Stats Score Weights: 0.5229
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 2.9938
+2025-10-07 09:01:06,153 - INFO - Fitness    = 3.0090508460998535
+2025-10-07 09:01:21,161 - INFO - 
+Solution 91-------
+	KS Statistic Weights: 0.6187
+	KS Statistic Biases: 0.1150
+	Stats Score Weights: 0.5229
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 2.9938

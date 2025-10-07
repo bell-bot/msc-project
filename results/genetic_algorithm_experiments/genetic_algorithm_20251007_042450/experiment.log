@@ -1,0 +1,52 @@
+2025-10-07 04:25:11,690 - INFO - 
+Solution 0-------
+	KS Statistic Weights: 0.4996
+	KS Statistic Biases: 0.0313
+	Stats Score Weights: 0.6281
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 2.5982
+2025-10-07 04:25:48,616 - INFO - Generation = 1
+2025-10-07 04:25:53,855 - INFO - Fitness    = 2.5981686115264893
+2025-10-07 04:26:27,969 - INFO - Generation = 2
+2025-10-07 04:26:33,129 - INFO - Fitness    = 2.5981686115264893
+2025-10-07 04:27:07,317 - INFO - Generation = 3
+2025-10-07 04:27:12,494 - INFO - Fitness    = 2.5981686115264893
+2025-10-07 04:27:46,615 - INFO - Generation = 4
+2025-10-07 04:27:51,820 - INFO - Fitness    = 2.5981686115264893
+2025-10-07 04:28:26,034 - INFO - Generation = 5
+2025-10-07 04:28:31,258 - INFO - Fitness    = 2.5981686115264893
+2025-10-07 04:29:05,535 - INFO - Generation = 6
+2025-10-07 04:29:10,735 - INFO - Fitness    = 2.5981686115264893
+2025-10-07 04:29:45,039 - INFO - Generation = 7
+2025-10-07 04:29:50,261 - INFO - Fitness    = 2.5981686115264893
+2025-10-07 04:30:24,174 - INFO - Generation = 8
+2025-10-07 04:30:29,358 - INFO - Fitness    = 2.5981686115264893
+2025-10-07 04:31:03,576 - INFO - Generation = 9
+2025-10-07 04:31:08,752 - INFO - Fitness    = 2.5981686115264893
+2025-10-07 04:31:50,817 - INFO - 
+Solution 37-------
+	KS Statistic Weights: 0.6227
+	KS Statistic Biases: 0.1198
+	Stats Score Weights: 0.5192
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 3.0104
+2025-10-07 04:31:52,830 - INFO - Generation = 10
+2025-10-07 04:32:05,971 - INFO - 
+Solution 37-------
+	KS Statistic Weights: 0.6227
+	KS Statistic Biases: 0.1198
+	Stats Score Weights: 0.5192
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 3.0104
+2025-10-07 04:32:07,982 - INFO - Fitness    = 3.010385751724243
+2025-10-07 04:32:22,025 - INFO - 
+Solution 37-------
+	KS Statistic Weights: 0.6227
+	KS Statistic Biases: 0.1198
+	Stats Score Weights: 0.5192
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 3.0104

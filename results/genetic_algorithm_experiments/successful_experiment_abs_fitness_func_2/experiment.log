@@ -1,0 +1,86 @@
+2025-10-06 17:28:44,320 - INFO - 
+Solution 0-------
+	KS Statistic Weights: 0.5004
+	KS Statistic Biases: 0.9687
+	Unique elements score = 0.0001
+		TOTAL SCORE = 1.5310
+2025-10-06 17:29:00,586 - INFO - 
+Solution 0-------
+	KS Statistic Weights: 0.5004
+	KS Statistic Biases: 0.9687
+	Unique elements score = 0.0001
+		TOTAL SCORE = 1.5310
+2025-10-06 17:29:39,498 - INFO - 
+Solution 9-------
+	KS Statistic Weights: 0.3788
+	KS Statistic Biases: 0.9030
+	Unique elements score = 1.0000
+		TOTAL SCORE = 2.7182
+2025-10-06 17:29:50,414 - INFO - 
+Solution 59-------
+	KS Statistic Weights: 0.3786
+	KS Statistic Biases: 0.9003
+	Unique elements score = 1.0000
+		TOTAL SCORE = 2.7211
+2025-10-06 17:29:51,622 - INFO - Generation = 1
+2025-10-06 17:30:02,158 - INFO - 
+Solution 9-------
+	KS Statistic Weights: 0.3788
+	KS Statistic Biases: 0.9030
+	Unique elements score = 1.0000
+		TOTAL SCORE = 2.7182
+2025-10-06 17:30:13,189 - INFO - 
+Solution 59-------
+	KS Statistic Weights: 0.3786
+	KS Statistic Biases: 0.9003
+	Unique elements score = 1.0000
+		TOTAL SCORE = 2.7211
+2025-10-06 17:30:14,254 - INFO - Fitness    = 2.7211106682668125
+2025-10-06 17:30:24,468 - INFO - 
+Solution 9-------
+	KS Statistic Weights: 0.3788
+	KS Statistic Biases: 0.9030
+	Unique elements score = 1.0000
+		TOTAL SCORE = 2.7182
+2025-10-06 17:30:35,466 - INFO - 
+Solution 59-------
+	KS Statistic Weights: 0.3786
+	KS Statistic Biases: 0.9003
+	Unique elements score = 1.0000
+		TOTAL SCORE = 2.7211
+2025-10-06 17:31:07,952 - INFO - Generation = 2
+2025-10-06 17:31:10,527 - INFO - Fitness    = 2.7211106682668125
+2025-10-06 17:31:44,267 - INFO - Generation = 3
+2025-10-06 17:31:46,781 - INFO - Fitness    = 2.7211106682668125
+2025-10-06 17:32:20,792 - INFO - Generation = 4
+2025-10-06 17:32:23,337 - INFO - Fitness    = 2.7211106682668125
+2025-10-06 17:33:05,985 - INFO - 
+Solution 58-------
+	KS Statistic Weights: 0.3804
+	KS Statistic Biases: 0.8924
+	Unique elements score = 1.0000
+		TOTAL SCORE = 2.7272
+2025-10-06 17:33:07,011 - INFO - Generation = 5
+2025-10-06 17:33:18,409 - INFO - 
+Solution 58-------
+	KS Statistic Weights: 0.3804
+	KS Statistic Biases: 0.8924
+	Unique elements score = 1.0000
+		TOTAL SCORE = 2.7272
+2025-10-06 17:33:19,415 - INFO - Fitness    = 2.727225732192744
+2025-10-06 17:33:30,777 - INFO - 
+Solution 58-------
+	KS Statistic Weights: 0.3804
+	KS Statistic Biases: 0.8924
+	Unique elements score = 1.0000
+		TOTAL SCORE = 2.7272
+2025-10-06 17:34:03,120 - INFO - Generation = 6
+2025-10-06 17:34:05,637 - INFO - Fitness    = 2.727225732192744
+2025-10-06 17:34:39,324 - INFO - Generation = 7
+2025-10-06 17:34:41,899 - INFO - Fitness    = 2.727225732192744
+2025-10-06 17:35:15,902 - INFO - Generation = 8
+2025-10-06 17:35:18,449 - INFO - Fitness    = 2.727225732192744
+2025-10-06 17:35:51,975 - INFO - Generation = 9
+2025-10-06 17:35:54,493 - INFO - Fitness    = 2.727225732192744
+2025-10-06 17:36:28,166 - INFO - Generation = 10
+2025-10-06 17:36:30,724 - INFO - Fitness    = 2.727225732192744

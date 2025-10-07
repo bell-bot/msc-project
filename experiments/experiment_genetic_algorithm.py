@@ -1,4 +1,6 @@
 import logging
+import random
+from typing import cast
 import torch
 import numpy as np
 import pygad
@@ -7,17 +9,21 @@ import argparse
 from scipy import stats
 import copy
 from pathlib import Path
+from transformers import AutoModelForCausalLM
 
 from circuits.examples.keccak import Keccak
 from circuits.utils.format import Bits, format_msg
 from msc_project.algorithms.genetic_algorithm.objectives import (
     evaluate_correctness,
     evaluate_distribution_stats,
+    evaluate_emd_to_target_dist,
+    evaluate_ks_statistic,
     evaluate_normal_distribution,
     evaluate_unique_params,
 )
 
 from msc_project.circuits_custom.custom_stepmlp import GACompatibleStepMLP
+from msc_project.evaluation.metrics import earth_movers_distance
 from msc_project.utils.experiment_utils import generate_experiment_id, save_experiment_info
 from msc_project.utils.experiment_utils import plot_fitness_over_generations
 from msc_project.analysis.analysis_utils import (
@@ -26,12 +32,58 @@ from msc_project.analysis.analysis_utils import (
     plot_category_histograms,
     stepmlp_histogram_format,
 )
+from msc_project.utils.logging_utils import TimedLogger
+from msc_project.utils.model_utils import get_mlp_layers, process_mlp_layers, unfold_stepmlp_parameters
 
 EXPERIMENT_RESULTS_DIR = "results/genetic_algorithm_experiments"
 EXPERIMENT_TYPE = "genetic_algorithm"
 
+logging.setLoggerClass(TimedLogger)
+LOG: TimedLogger = cast(TimedLogger, logging.getLogger(__name__))
 
-def create_fitness_func(mlp_template, input_bits, output_bits):
+def create_batch_fitness_func(mlp_template, input_bits, output_bits, target_weights, target_biases):
+
+    def fitness_func(ga_instance, solutions, solution_indices) -> list[float]:
+
+        local_model = copy.deepcopy(mlp_template)
+        target_mean_weights = target_weights.mean()
+        target_std_weights = target_weights.std()
+        target_kurtosis_weights = stats.kurtosis(target_weights)
+        target_mean_biases = target_biases.mean()
+        target_std_biases = target_biases.std()
+        target_kurtosis_biases = stats.kurtosis(target_biases)
+
+        batch_fitness : list[float] = []
+
+        for (solution, solution_idx) in zip(solutions, solution_indices):
+            solution_weights = pygad.torchga.model_weights_as_dict(
+                model=local_model, weights_vector=solution
+            )
+            local_model.load_state_dict(solution_weights)
+            local_model_weights, local_model_biases = unfold_stepmlp_parameters(local_model)
+            with torch.no_grad():
+
+                correctness_score = evaluate_correctness(local_model, input_bits, output_bits)
+
+                if correctness_score == 0:
+                    batch_fitness.append(0.0)
+                    continue
+                correctness_score = 6.0
+                dist_stats_weights = evaluate_distribution_stats(local_model_weights, target_mean_weights, target_std_weights, target_kurtosis_weights)
+                dist_stats_biases = evaluate_distribution_stats(local_model_biases, target_mean_biases, target_std_biases, target_kurtosis_biases)
+                #unique_elems_score = evaluate_unique_params(solution)
+                unique_elems_score = 0.0
+                weights_ks_statistic = evaluate_ks_statistic(target_weights, local_model_weights)
+                biases_ks_statistic = evaluate_ks_statistic(target_biases, local_model_biases)
+                final_score = correctness_score - ( weights_ks_statistic + 2*biases_ks_statistic + dist_stats_weights + 2*dist_stats_biases + unique_elems_score)
+
+                LOG.info(f"\nSolution {solution_idx}-------\n\tKS Statistic Weights: {1.0-weights_ks_statistic:.4f}\n\tKS Statistic Biases: {1.0-biases_ks_statistic:.4f}\n\tStats Score Weights: {dist_stats_weights:.4f}\n\tStats Score Biases: {dist_stats_biases:.2f}\n\tUnique Elems Score: {unique_elems_score:.2f}\n\t\tTOTAL SCORE = {final_score:.4f}")
+                batch_fitness.append(final_score.item())
+        return batch_fitness
+
+    return fitness_func
+
+def create_fitness_func(mlp_template, input_bits, output_bits, target_weights, target_biases):
 
     def fitness_func(ga_instance, solution, solution_idx):
 
@@ -40,17 +92,22 @@ def create_fitness_func(mlp_template, input_bits, output_bits):
             model=local_model, weights_vector=solution
         )
         local_model.load_state_dict(solution_weights)
+        local_model_weights, local_model_biases = unfold_stepmlp_parameters(local_model)
         with torch.no_grad():
 
             correctness_score = evaluate_correctness(local_model, input_bits, output_bits)
 
             if correctness_score == 0:
                 return 0.0
-
-            distribution_stats_score = evaluate_distribution_stats(solution)
+            
+            #distribution_stats_score = evaluate_distribution_stats(solution)
             unique_elems_score = evaluate_unique_params(solution)
+            weights_ks_statistic = evaluate_ks_statistic(target_weights, local_model_weights)
+            biases_ks_statistic = evaluate_ks_statistic(target_biases, local_model_biases)
+            
+            final_score = correctness_score + weights_ks_statistic + biases_ks_statistic + unique_elems_score
 
-            final_score = correctness_score + distribution_stats_score + unique_elems_score
+            LOG.info(f"\nSolution {solution_idx}-------\n\tKS Statistic Weights: {1.0-weights_ks_statistic:.4f}\n\tKS Statistic Biases: {1.0-biases_ks_statistic:.4f}\n\tUnique elements score = {unique_elems_score:.4f}\n\t\tTOTAL SCORE = {final_score:.4f}")
 
             return final_score
 
@@ -61,8 +118,8 @@ def on_gen(ga_instance):
     """
     Callback function to print progress at each generation.
     """
-    print(f"Generation = {ga_instance.generations_completed}")
-    print(f"Fitness    = {ga_instance.best_solution()[1]}")
+    LOG.info(f"Generation = {ga_instance.generations_completed}")
+    LOG.info(f"Fitness    = {ga_instance.best_solution()[1]}")
 
 
 def on_fitness(ga_instance, population_fitness):
@@ -76,31 +133,49 @@ def run_ga_optimisation(
     num_solutions=10,
     num_generations=250,
     num_parents_mating=5,
-    mean=0.0,
-    std_dev=0.1,
-    kurtosis=12.5,
+    target_model: str = "gpt2",
     save_path: str | None = "results/genetic_algorithm_experiments",
+    seed: int = 1
 ):
-
+    gpt2 = AutoModelForCausalLM.from_pretrained(target_model)
+    mlp_layers = get_mlp_layers(gpt2)
+    gpt2_weights, gpt2_biases = process_mlp_layers(mlp_layers, 1.0)
+    
+    
     print("Initializing genetic algorithm population...")
     torch_ga = pygad.torchga.TorchGA(model=mlp_template, num_solutions=num_solutions)
+    #model_weights = np.array(torch_ga.population_weights).flatten()
+    # print(f"Initial population num params: {model_weights.shape}")
+    # print(
+    #     f"Initial population stats: min={model_weights.min()}, "
+    #     f"max={model_weights.max()}, "
+    #     f"mean={model_weights.mean()}, "
+    # )
 
-    model_weights = torch.tensor(np.array(torch_ga.population_weights))
-    print(f"Initial population num params: {model_weights.shape}")
-    print(
-        f"Initial population stats: min={model_weights.min()}, "
-        f"max={model_weights.max()}, "
-        f"mean={model_weights.mean()}, "
-    )
+    # initial_population = []
+    # # diversify initial population
+    # for i in range(0, num_solutions):
+    #     print(f"Generated solution candidate {i+1}.")
+    #     population_weights = np.random.random(model_weights.shape)
+    #     initial_population.append(population_weights)
 
-    model_weights = model_weights.flatten().numpy()
-    initial_population = [model_weights]
-    # diversify initial population
-    for i in range(1, num_solutions):
-        population_weights = model_weights + np.random.random(model_weights.shape) * 0.001
-        initial_population.append(population_weights)
+    # print("Initializing genetic algorithm population...")
+    # torch_ga = pygad.torchga.TorchGA(model=mlp_template, num_solutions=num_solutions)
+    
+    # model_weights = torch.tensor(np.array(torch_ga.population_weights))
+    # print(f"Initial population num params: {model_weights.shape}")
+    # print(f"Initial population stats: min={model_weights.min()}, "
+    #       f"max={model_weights.max()}, "
+    #       f"mean={model_weights.mean()}, ")
+    
+    # initial_weights = pygad.torchga.model_weights_as_vector(model=mlp_template).copy()
+    # print(f"Weights before GA: {initial_weights[:10]}...")
+    
+    fitness_func = create_batch_fitness_func(mlp_template, input_bits, output_bits, gpt2_weights, gpt2_biases)
+    # initial_fitness = fitness_func(None, torch_ga.population_weights[0], 0)
+    # print(f"Initial solution fitness: {initial_fitness}")
 
-    fitness_func = create_fitness_func(mlp_template, input_bits, output_bits)
+    initial_population = torch_ga.population_weights
 
     ga_instance = pygad.GA(
         num_generations=num_generations,
@@ -109,6 +184,10 @@ def run_ga_optimisation(
         fitness_func=fitness_func,
         on_generation=on_gen,
         save_solutions=False,
+        random_seed=seed,
+        crossover_probability=0.1,
+        fitness_batch_size=10,
+        parent_selection_type="tournament",
     )
 
     print("Starting PyGAD optimization...")
@@ -131,7 +210,7 @@ def run_ga_optimisation(
 
     if save_path:
         torch.save(mlp_template.state_dict(), f"{save_path}/ga_optimised_stepml_model.pth")
-        weights, biases = get_stepml_parameters(mlp_template)
+        weights, biases = unfold_stepmlp_parameters(mlp_template)
         weights_data, biases_data = get_param_stats(weights), get_param_stats(biases)
 
         ga_optimised_histogram_save_path = f"{save_path}/ga_optimised_stepml_histograms.pdf"
@@ -161,15 +240,15 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Run GA optimisation on StepMLP")
     parser.add_argument(
-        "--test_phrase", type=str, default="Shht! I am a secret message.", help="Test phrase to hash"
+        "--test_phrase", type=str, default="Test", help="Test phrase to hash"
     )
     parser.add_argument(
-        "--payload", type=str, default="Consider yourself BACKDOORED", help="Payload for the backdoor"
+        "--payload", type=str, default="tseT", help="Payload for the backdoor"
     )
     parser.add_argument("--num_solutions", type=int, default=100, help="Number of solutions for GA")
     parser.add_argument("--num_generations", type=int, default=10, help="Number of generations for GA")
     parser.add_argument(
-        "--num_parents_mating", type=int, default=10, help="Number of parents mating for GA"
+        "--num_parents_mating", type=int, default=50, help="Number of parents mating for GA"
     )
     parser.add_argument("--save", type=bool, default=True, help="Save experiment results")
     args = parser.parse_args()
@@ -178,14 +257,18 @@ if __name__ == "__main__":
 
     experiment_id = generate_experiment_id(EXPERIMENT_TYPE)
     save_path = f"{EXPERIMENT_RESULTS_DIR}/{experiment_id}" if args.save else None
-
+    seed = random.randint(0,1000)
+    
     if save_path:
         Path(save_path).mkdir(parents=True, exist_ok=True)
-
-        save_experiment_info(experiment_id, vars(args), save_path)
-        logging.basicConfig(
-            filename=f"{save_path}/experiment.log", format="%(asctime)s - %(levelname)s - %(message)s"
-        )
+        info = vars(args)
+        info["seed"] = seed
+        save_experiment_info(experiment_id, info, save_path)
+        LOG.setLevel(logging.INFO)
+        file_handler = logging.FileHandler(f"{save_path}/experiment.log", mode="w")
+        file_handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
+        file_handler.setLevel(logging.INFO)
+        LOG.handlers = [file_handler]
 
     keccak = Keccak(c=20, log_w=1, n=3)
     trigger_bits = format_msg(args.test_phrase, keccak.msg_len)
@@ -204,4 +287,5 @@ if __name__ == "__main__":
         num_generations=args.num_generations,
         num_parents_mating=args.num_parents_mating,
         save_path=save_path,
+        seed = seed
     )

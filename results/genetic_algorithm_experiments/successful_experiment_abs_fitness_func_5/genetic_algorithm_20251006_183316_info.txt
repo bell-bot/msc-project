@@ -1,0 +1,8 @@
+test_phrase: Test
+payload: tseT
+num_solutions: 100
+num_generations: 10
+num_parents_mating: 50
+save: True
+seed: 1
+crossover: 0.2

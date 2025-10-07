@@ -95,10 +95,6 @@ class RandomisedStepMLP(CustomStepMLP):
         mlp = cls(matrices.sizes)
         mlp.load_params(matrices.mlist)
         return mlp
-    
-    def insert_balanced_identity_layers(self):
-        for i, layer in enumerate(self.net):
-            identity_layer = BalancedIdentityLayer(layer.out_features, self.dtype)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = x.type(self.dtype)

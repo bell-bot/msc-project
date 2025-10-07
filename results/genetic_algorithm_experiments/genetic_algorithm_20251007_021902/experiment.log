@@ -1,0 +1,60 @@
+2025-10-07 02:19:24,174 - INFO - 
+Solution 0-------
+	KS Statistic Weights: 0.4996
+	KS Statistic Biases: 0.0313
+	Stats Score Weights: 0.6281
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 2.5982
+2025-10-07 02:20:01,412 - INFO - Generation = 1
+2025-10-07 02:20:06,604 - INFO - Fitness    = 2.5981686115264893
+2025-10-07 02:20:49,742 - INFO - 
+Solution 65-------
+	KS Statistic Weights: 0.6230
+	KS Statistic Biases: 0.1054
+	Stats Score Weights: 0.5401
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 2.9601
+2025-10-07 02:20:50,771 - INFO - Generation = 2
+2025-10-07 02:21:04,689 - INFO - 
+Solution 65-------
+	KS Statistic Weights: 0.6230
+	KS Statistic Biases: 0.1054
+	Stats Score Weights: 0.5401
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 2.9601
+2025-10-07 02:21:05,720 - INFO - Fitness    = 2.9601266384124756
+2025-10-07 02:21:40,183 - INFO - Generation = 3
+2025-10-07 02:21:45,363 - INFO - Fitness    = 2.9601266384124756
+2025-10-07 02:22:19,741 - INFO - Generation = 4
+2025-10-07 02:22:24,940 - INFO - Fitness    = 2.9601266384124756
+2025-10-07 02:22:59,088 - INFO - Generation = 5
+2025-10-07 02:23:04,263 - INFO - Fitness    = 2.9601266384124756
+2025-10-07 02:23:47,189 - INFO - 
+Solution 66-------
+	KS Statistic Weights: 0.6208
+	KS Statistic Biases: 0.1104
+	Stats Score Weights: 0.5287
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 2.9800
+2025-10-07 02:23:48,226 - INFO - Generation = 6
+2025-10-07 02:24:02,099 - INFO - 
+Solution 66-------
+	KS Statistic Weights: 0.6208
+	KS Statistic Biases: 0.1104
+	Stats Score Weights: 0.5287
+	Stats Score Biases: 0.17
+	Unique Elems Score: 0.00
+		TOTAL SCORE = 2.9800
+2025-10-07 02:24:03,127 - INFO - Fitness    = 2.979980707168579
+2025-10-07 02:24:37,318 - INFO - Generation = 7
+2025-10-07 02:24:42,464 - INFO - Fitness    = 2.979980707168579
+2025-10-07 02:25:16,904 - INFO - Generation = 8
+2025-10-07 02:25:22,095 - INFO - Fitness    = 2.979980707168579
+2025-10-07 02:25:56,636 - INFO - Generation = 9
+2025-10-07 02:26:01,792 - INFO - Fitness    = 2.979980707168579
+2025-10-07 02:26:36,243 - INFO - Generation = 10
+2025-10-07 02:26:41,508 - INFO - Fitness    = 2.979980707168579

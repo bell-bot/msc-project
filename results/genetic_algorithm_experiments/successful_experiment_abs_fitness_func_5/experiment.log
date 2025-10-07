@@ -1,0 +1,56 @@
+2025-10-06 18:33:31,146 - INFO - 
+Solution 0-------
+	KS Statistic Weights: 0.5004
+	KS Statistic Biases: 0.9687
+	Unique elements score = 0.0001
+		TOTAL SCORE = 1.5310
+2025-10-06 18:33:47,487 - INFO - 
+Solution 0-------
+	KS Statistic Weights: 0.5004
+	KS Statistic Biases: 0.9687
+	Unique elements score = 0.0001
+		TOTAL SCORE = 1.5310
+2025-10-06 18:34:18,732 - INFO - Generation = 1
+2025-10-06 18:34:21,476 - INFO - Fitness    = 1.5309838401173241
+2025-10-06 18:34:52,368 - INFO - Generation = 2
+2025-10-06 18:34:55,113 - INFO - Fitness    = 1.5309838401173241
+2025-10-06 18:35:26,386 - INFO - Generation = 3
+2025-10-06 18:35:29,126 - INFO - Fitness    = 1.5309838401173241
+2025-10-06 18:36:09,813 - INFO - 
+Solution 84-------
+	KS Statistic Weights: 0.3776
+	KS Statistic Biases: 0.8828
+	Unique elements score = 1.0000
+		TOTAL SCORE = 2.7396
+2025-10-06 18:36:09,910 - INFO - Generation = 4
+2025-10-06 18:36:22,388 - INFO - 
+Solution 84-------
+	KS Statistic Weights: 0.3776
+	KS Statistic Biases: 0.8828
+	Unique elements score = 1.0000
+		TOTAL SCORE = 2.7396
+2025-10-06 18:36:22,485 - INFO - Fitness    = 2.7395929361144162
+2025-10-06 18:36:53,349 - INFO - Generation = 5
+2025-10-06 18:36:56,108 - INFO - Fitness    = 2.7395929361144162
+2025-10-06 18:37:27,034 - INFO - Generation = 6
+2025-10-06 18:37:29,818 - INFO - Fitness    = 2.7395929361144162
+2025-10-06 18:38:01,172 - INFO - Generation = 7
+2025-10-06 18:38:03,970 - INFO - Fitness    = 2.7395929361144162
+2025-10-06 18:38:34,980 - INFO - Generation = 8
+2025-10-06 18:38:37,756 - INFO - Fitness    = 2.7395929361144162
+2025-10-06 18:39:18,291 - INFO - 
+Solution 27-------
+	KS Statistic Weights: 0.3796
+	KS Statistic Biases: 0.8827
+	Unique elements score = 1.0000
+		TOTAL SCORE = 2.7378
+2025-10-06 18:39:18,388 - INFO - Generation = 9
+2025-10-06 18:39:30,499 - INFO - 
+Solution 27-------
+	KS Statistic Weights: 0.3796
+	KS Statistic Biases: 0.8827
+	Unique elements score = 1.0000
+		TOTAL SCORE = 2.7378
+2025-10-06 18:39:30,596 - INFO - Fitness    = 2.7395929361144162
+2025-10-06 18:40:01,808 - INFO - Generation = 10
+2025-10-06 18:40:04,535 - INFO - Fitness    = 2.7395929361144162
