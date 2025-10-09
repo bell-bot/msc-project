@@ -4,6 +4,7 @@ from circuits.examples.keccak import Keccak
 from circuits.neurons.core import Bit
 from circuits.sparse.compile import Graph, compiled
 from circuits.tensors.mlp import InitlessLinear, StepMLP
+from msc_project.algorithms.majority_voting_backdoor import get_majority_voting_backdoor
 from msc_project.circuits_custom.custom_backdoors import (
     custom_get_backdoor, custom_get_backdoor_from_nand, custom_get_balanced_backdoor
 )
@@ -106,39 +107,11 @@ class RandomisedStepMLP(CustomStepMLP):
         # Honestly not sure why we need this threshold value but it works
         return (x > 0.0).type(x.dtype)
 
-class BalancedIdentityLayer(nn.Module):
+class MajorityVotingStepMLP(CustomStepMLP):
+    
+    @classmethod
+    def create_with_backdoor(cls, trigger: list[Bit], payload: list[Bit], k: Keccak):
 
-    def __init__(self, dim: int, dtype = torch.float64):
-        super().__init__()
-
-        W1 = torch.zeros((2*dim, dim), dtype=dtype)
-        B1 = torch.zeros(2 * dim, dtype=dtype)
-
-        W1[:dim, :] = torch.eye(dim, dtype=dtype) * 1.0
-        B1[:dim] = -0.25
-
-        W1[dim:, :] = torch.eye(dim, dtype=dtype) * (-1.0)
-        B1[dim: ] = 0.25
-
-        W2 = torch.zeros((dim, 2 * dim), dtype=dtype)
-        B2 = torch.zeros(dim, dtype=dtype)
-
-        for i in range(dim):
-            W2[i, i] = 1.0      
-            W2[i, i + dim] = -1.0 
-        
-        B2[:] = 0.0
-
-        layer1 = nn.Linear(dim, 2*dim, dtype=dtype)
-        layer2 = nn.Linear(2*dim, dim, dtype=dtype)
-
-        with torch.no_grad():
-            layer1.weight.copy_(W1)
-            layer1.bias.copy_(B1)
-            layer2.weight.copy_(W2)
-            layer2.bias.copy_(B2)
-
-        self.layers = nn.Sequential(layer1, layer2)
-
-    def forward(self, x: torch.Tensor):
-        return self.layers(x)
+        backdoor_fun = get_majority_voting_backdoor(trigger=trigger, payload=payload, k=k)
+        graph = compiled(backdoor_fun, k.msg_len)
+        return cls.from_graph(graph)

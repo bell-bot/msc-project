@@ -1,8 +1,9 @@
 from collections.abc import Callable
-from circuits.neurons.core import Bit, Neuron, const, step
+from circuits.neurons.core import Bit, Neuron, const, gate, step
 from scipy import stats
 from numpy.random import uniform, RandomState
 
+from circuits.neurons.operations import bitwise
 from msc_project.utils.sampling import WeightSampler
 
 
@@ -10,6 +11,10 @@ def custom_gate(incoming: list[Bit], weights: list[float], threshold: float) -> 
     """Create a linear threshold gate as a boolean neuron with a step function"""
     return Neuron(tuple(incoming), tuple(weights), -threshold, step).outgoing
 
+def majority_voting_gate(x: list[Bit]) -> Bit:
+    threshold = len(x) // 2
+    out =  gate(x, [1] * len(x), (threshold+1))
+    return out
 
 def custom_not_(x: Bit, sampler: WeightSampler) -> Bit:
     weight = sampler.sample(num_samples=1, sign="negative").tolist()[0]
@@ -124,6 +129,7 @@ def xor_from_nand(x: list[Bit], sampler: WeightSampler) -> Bit:
 bitwise_xors_from_nand = custom_bitwise(xor_from_nand)
 custom_xors = custom_bitwise(custom_xor)
 bitwise_ands = custom_bitwise(custom_and_)
+bitwise_majority_vote = bitwise(majority_voting_gate)
 
 
 def custom_inhib(x: list[Bit], sampler: WeightSampler) -> Bit:
