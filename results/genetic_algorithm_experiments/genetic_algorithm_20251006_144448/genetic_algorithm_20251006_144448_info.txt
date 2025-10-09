@@ -1,6 +1,0 @@
-test_phrase: Test
-payload: Tset
-num_solutions: 100
-num_generations: 10
-num_parents_mating: 10
-save: True

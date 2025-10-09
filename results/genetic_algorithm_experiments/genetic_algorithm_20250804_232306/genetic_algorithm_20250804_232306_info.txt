@@ -1,7 +1,0 @@
-n_rounds: 3
-test_phrase: catsy
-num_solutions: 50
-num_generations: 10
-num_parents_mating: 5
-simplified_model: False
-save: True

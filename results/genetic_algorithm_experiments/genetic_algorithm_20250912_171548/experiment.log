@@ -1,5 +1,0 @@
-2025-09-12 17:15:49,885 - ERROR - The values in the initial population can be integers or floats but the value (1.0) of type <class 'torch.Tensor'> found.
-Traceback (most recent call last):
-  File "/homes/55/bella/miniconda3/envs/msc-project-env/lib/python3.12/site-packages/pygad/pygad.py", line 451, in __init__
-    raise TypeError(f"The values in the initial population can be integers or floats but the value ({initial_population[row_idx][col_idx]}) of type {type(initial_population[row_idx][col_idx])} found.")
-TypeError: The values in the initial population can be integers or floats but the value (1.0) of type <class 'torch.Tensor'> found.

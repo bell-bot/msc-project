@@ -30,7 +30,7 @@ def evaluate_emd_to_target_dist(target_dist, candidate_solution):
 
 def evaluate_ks_statistic(target_dist, candidate_solution):
     result = ks_2samp(target_dist, candidate_solution)
-    return result.statistic
+    return 1.0 - result.statistic
 
 def evaluate_distribution_stats(solution: torch.Tensor, target_mean=0.0, target_std=0.1, target_kurtosis=29.0) -> float:
     """

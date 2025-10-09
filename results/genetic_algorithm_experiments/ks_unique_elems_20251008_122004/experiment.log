@@ -1,0 +1,14 @@
+2025-10-08 12:20:25,421 - INFO - 
+Solution 0-------
+	KS Statistic Weights: 0.5004
+	KS Statistic Biases: 0.9687
+	Stats Score Weights: 0.0000
+	Stats Score Biases: 0.0000
+	Unique Elems Score: 0.0001
+		TOTAL SCORE = 1.5310
+2025-10-08 12:21:02,105 - INFO - Generation = 1
+2025-10-08 12:21:07,364 - INFO - Fitness    = 1.5309838401173241
+2025-10-08 12:21:40,831 - INFO - Generation = 2
+2025-10-08 12:21:46,366 - INFO - Fitness    = 1.5309838401173241
+2025-10-08 12:22:20,034 - INFO - Generation = 3
+2025-10-08 12:22:25,220 - INFO - Fitness    = 1.5309838401173241

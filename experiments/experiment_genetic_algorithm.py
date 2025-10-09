@@ -1,3 +1,4 @@
+from dataclasses import asdict
 import logging
 import random
 from typing import cast
@@ -22,6 +23,7 @@ from msc_project.algorithms.genetic_algorithm.objectives import (
     evaluate_unique_params,
 )
 
+from msc_project.algorithms.genetic_algorithm.utils import GARunConfig
 from msc_project.circuits_custom.custom_stepmlp import GACompatibleStepMLP
 from msc_project.evaluation.metrics import earth_movers_distance
 from msc_project.utils.experiment_utils import generate_experiment_id, save_experiment_info
@@ -47,13 +49,6 @@ def create_batch_fitness_func(mlp_template, input_bits, output_bits, target_weig
     def fitness_func(ga_instance, solutions, solution_indices) -> list[float]:
 
         local_model = copy.deepcopy(mlp_template)
-        target_mean_weights = target_weights.mean()
-        target_std_weights = target_weights.std()
-        target_kurtosis_weights = stats.kurtosis(target_weights)
-        target_mean_biases = target_biases.mean()
-        target_std_biases = target_biases.std()
-        target_kurtosis_biases = stats.kurtosis(target_biases)
-
         batch_fitness : list[float] = []
 
         for (solution, solution_idx) in zip(solutions, solution_indices):
@@ -69,21 +64,23 @@ def create_batch_fitness_func(mlp_template, input_bits, output_bits, target_weig
                 if correctness_score == 0:
                     batch_fitness.append(0.0)
                     continue
-                correctness_score = 6.0
-                dist_stats_weights = evaluate_distribution_stats(local_model_weights, target_mean_weights, target_std_weights, target_kurtosis_weights)
-                dist_stats_biases = evaluate_distribution_stats(local_model_biases, target_mean_biases, target_std_biases, target_kurtosis_biases)
-                #unique_elems_score = evaluate_unique_params(solution)
-                unique_elems_score = 0.0
+
+                #dist_stats_weights = evaluate_distribution_stats(local_model_weights, target_mean_weights, target_std_weights, target_kurtosis_weights)
+                #dist_stats_biases = evaluate_distribution_stats(local_model_biases, target_mean_biases, target_std_biases, target_kurtosis_biases)
+                dist_stats_weights = 0.0
+                dist_stats_biases = 0.0
+                unique_elems_score = evaluate_unique_params(solution)
+                #unique_elems_score = 0.0
                 weights_ks_statistic = evaluate_ks_statistic(target_weights, local_model_weights)
                 biases_ks_statistic = evaluate_ks_statistic(target_biases, local_model_biases)
-                final_score = correctness_score - ( weights_ks_statistic + 2*biases_ks_statistic + dist_stats_weights + 2*dist_stats_biases + unique_elems_score)
+                final_score = correctness_score + ( (weights_ks_statistic/2.0) + biases_ks_statistic + dist_stats_weights + dist_stats_biases + unique_elems_score)
 
-                LOG.info(f"\nSolution {solution_idx}-------\n\tKS Statistic Weights: {1.0-weights_ks_statistic:.4f}\n\tKS Statistic Biases: {1.0-biases_ks_statistic:.4f}\n\tStats Score Weights: {dist_stats_weights:.4f}\n\tStats Score Biases: {dist_stats_biases:.2f}\n\tUnique Elems Score: {unique_elems_score:.2f}\n\t\tTOTAL SCORE = {final_score:.4f}")
+                #LOG.info(f"\nSolution {solution_idx}-------\n\tKS Statistic Weights: {1.0-weights_ks_statistic:.4f}\n\tKS Statistic Biases: {1.0-biases_ks_statistic:.4f}\n\tStats Score Weights: {dist_stats_weights:.4f}\n\tStats Score Biases: {dist_stats_biases:.4f}\n\tUnique Elems Score: {unique_elems_score:.4f}\n\t\tTOTAL SCORE = {final_score:.4f}")
                 batch_fitness.append(final_score.item())
         return batch_fitness
 
     return fitness_func
-
+    
 def create_fitness_func(mlp_template, input_bits, output_bits, target_weights, target_biases):
 
     def fitness_func(ga_instance, solution, solution_idx):
@@ -108,23 +105,17 @@ def create_fitness_func(mlp_template, input_bits, output_bits, target_weights, t
             
             final_score = correctness_score + weights_ks_statistic + biases_ks_statistic + unique_elems_score
 
-            LOG.info(f"\nSolution {solution_idx}-------\n\tKS Statistic Weights: {1.0-weights_ks_statistic:.4f}\n\tKS Statistic Biases: {1.0-biases_ks_statistic:.4f}\n\tUnique elements score = {unique_elems_score:.4f}\n\t\tTOTAL SCORE = {final_score:.4f}")
+            #LOG.info(f"\nSolution {solution_idx}-------\n\tKS Statistic Weights: {1.0-weights_ks_statistic:.4f}\n\tKS Statistic Biases: {1.0-biases_ks_statistic:.4f}\n\tUnique elements score = {unique_elems_score:.4f}\n\t\tTOTAL SCORE = {final_score:.4f}")
 
             return final_score
 
     return fitness_func
 
-
 def on_gen(ga_instance):
     """
     Callback function to print progress at each generation.
     """
-    LOG.info(f"Generation = {ga_instance.generations_completed}")
-    LOG.info(f"Fitness    = {ga_instance.best_solution()[1]}")
-
-
-def on_fitness(ga_instance, population_fitness):
-    print(f"Fitness values: {population_fitness}")
+    LOG.info(f"Generation = {ga_instance.generations_completed}; Fitness    = {ga_instance.best_solution()[1]}")
 
 def initialise_population_from_target(mlp_template: GACompatibleStepMLP, num_solutions: int, target_weights: torch.Tensor, target_biases: torch.Tensor) -> pygad.torchga.TorchGA:
     weight_sampler = WeightSampler(target_weights)
@@ -143,28 +134,22 @@ def initialise_population_from_target(mlp_template: GACompatibleStepMLP, num_sol
     mlp_template.load_params(params)
     return pygad.torchga.TorchGA(model=mlp_template, num_solutions=num_solutions)
 
-    
-
 def run_ga_optimisation(
     mlp_template,
-    input_bits,
-    output_bits,
-    num_solutions=10,
-    num_generations=250,
-    num_parents_mating=5,
-    target_model: str = "gpt2",
-    save_path: str | None = "results/genetic_algorithm_experiments",
+    ga_run_config: GARunConfig,
+    input_bits: Bits,
+    output_bits: Bits,
+    save_path: str = "results/genetic_algorithm_experiments",
     seed: int = 1
 ):
-    gpt2 = AutoModelForCausalLM.from_pretrained(target_model)
-    mlp_layers = get_mlp_layers(gpt2)
+    target_model = AutoModelForCausalLM.from_pretrained(ga_run_config.target_model_name)
+    mlp_layers = get_mlp_layers(target_model)
     gpt2_weights, gpt2_biases = process_mlp_layers(mlp_layers, 1.0)
     
-    
+    ga_config = ga_run_config.ga_config
     print("Initializing genetic algorithm population...")
-    torch_ga = initialise_population_from_target(mlp_template, num_solutions, gpt2_weights, gpt2_biases)
-    #torch_ga = pygad.torchga.TorchGA(model=mlp_template, num_solutions=num_solutions)
-    #model_weights = np.array(torch_ga.population_weights).flatten()
+    torch_ga = pygad.torchga.TorchGA(model=mlp_template, num_solutions=ga_config.sol_per_pop)
+    # model_weights = np.array(torch_ga.population_weights).flatten()
     # print(f"Initial population num params: {model_weights.shape}")
     # print(
     #     f"Initial population stats: min={model_weights.min()}, "
@@ -191,31 +176,38 @@ def run_ga_optimisation(
     # initial_weights = pygad.torchga.model_weights_as_vector(model=mlp_template).copy()
     # print(f"Weights before GA: {initial_weights[:10]}...")
     
-    fitness_func = create_batch_fitness_func(mlp_template, input_bits, output_bits, gpt2_weights, gpt2_biases)
+    fitness_func = ga_run_config.create_fitness_func(mlp_template, input_bits, output_bits, gpt2_weights, gpt2_biases)
+    ga_config.fitness_func = fitness_func
     # initial_fitness = fitness_func(None, torch_ga.population_weights[0], 0)
     # print(f"Initial solution fitness: {initial_fitness}")
 
-    initial_population = torch_ga.population_weights
+    ga_config.initial_population = torch_ga.population_weights
+    ga_config.random_seed = seed
+    ga_config.on_generation = on_gen
+    ga_config.logger = LOG
+    # ga_instance = pygad.GA(
+    #     num_generations=num_generations,
+    #     num_parents_mating=num_parents_mating,
+    #     initial_population=initial_population,
+    #     fitness_func=fitness_func,
+    #     on_generation=on_gen,
+    #     save_solutions=False,
+    #     random_seed=seed,
+    #     fitness_batch_size=10,
+    #     parent_selection_type="tournament",
+    # )
 
-    ga_instance = pygad.GA(
-        num_generations=num_generations,
-        num_parents_mating=num_parents_mating,
-        initial_population=initial_population,
-        fitness_func=fitness_func,
-        on_generation=on_gen,
-        save_solutions=False,
-        random_seed=seed,
-        crossover_probability=0.1,
-        fitness_batch_size=10,
-        parent_selection_type="tournament",
-    )
+
+    ga_instance = pygad.GA(**asdict(ga_config))
+    summary_file = open(f"{save_path}/summary.txt", "w")
+    
 
     print("Starting PyGAD optimization...")
     ga_instance.run()
     print("\nPyGAD optimization finished.")
-
-    if save_path:
-        plot_fitness_over_generations(ga_instance, save_path)
+    summary_file.write(ga_instance.summary())
+    summary_file.close()
+    plot_fitness_over_generations(ga_instance, save_path)
 
     # Returning the details of the best solution.
     solution, solution_fitness, solution_idx = ga_instance.best_solution()
@@ -254,61 +246,88 @@ def verify_ga_optimised_stepml(mlp_template, formatted_message: Bits, expected_o
         print("GA-optimised StepMLP does NOT produce the expected output.")
         raise ValueError("Output mismatch after GA optimisation.")
 
+def run_ga(ga_run_config: GARunConfig):
 
-if __name__ == "__main__":
+    experiment_save_path = f"{EXPERIMENT_RESULTS_DIR}/{ga_run_config.experiment_name}"
+    Path(experiment_save_path).mkdir(parents=True, exist_ok=True)
 
-    parser = argparse.ArgumentParser(description="Run GA optimisation on StepMLP")
-    parser.add_argument(
-        "--test_phrase", type=str, default="Test", help="Test phrase to hash"
-    )
-    parser.add_argument(
-<<<<<<< HEAD
-        "--payload", type=str, default="tseT", help="Payload for the backdoor"
-=======
-        "--payload", type=str, default="Tset", help="Payload for the backdoor"
->>>>>>> 9d3951a (randomised circuits results)
-    )
-    parser.add_argument("--num_solutions", type=int, default=100, help="Number of solutions for GA")
-    parser.add_argument("--num_generations", type=int, default=10, help="Number of generations for GA")
-    parser.add_argument(
-        "--num_parents_mating", type=int, default=50, help="Number of parents mating for GA"
-    )
-    parser.add_argument("--save", type=bool, default=True, help="Save experiment results")
-    args = parser.parse_args()
+    LOG.setLevel(logging.INFO)
+    file_handler = logging.FileHandler(f"{experiment_save_path}/experiment.log", mode="w")
+    file_handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
+    file_handler.setLevel(logging.INFO)
+    LOG.handlers = [file_handler]
+    with open(f"{experiment_save_path}/info.txt", "w") as f:
+        f.write(str(ga_run_config))
+        f.close()
 
-    print(f"Creating StepMLP from message: {args.test_phrase}")
-    EXPERIMENT_TYPE = "init_from_target_dist"
-    experiment_id = generate_experiment_id(EXPERIMENT_TYPE)
-    save_path = f"{EXPERIMENT_RESULTS_DIR}/{experiment_id}" if args.save else None
-    seed = random.randint(0,1000)
-    
-    if save_path:
+    for i in range(ga_run_config.num_experiments):
+        LOG.info(f"Experiment {i+1} ---------------- ")
+        
+        save_path = f"{EXPERIMENT_RESULTS_DIR}/{ga_run_config.experiment_name}/run_{i+1}"
         Path(save_path).mkdir(parents=True, exist_ok=True)
-        info = vars(args)
-        info["seed"] = seed
-        save_experiment_info(experiment_id, info, save_path)
-        LOG.setLevel(logging.INFO)
-        file_handler = logging.FileHandler(f"{save_path}/experiment.log", mode="w")
-        file_handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
-        file_handler.setLevel(logging.INFO)
-        LOG.handlers = [file_handler]
 
-    keccak = Keccak(c=20, log_w=1, n=3)
-    trigger_bits = format_msg(args.test_phrase, keccak.msg_len)
-    payload_bits = format_msg(args.payload, keccak.d)
+        seed = i
+        keccak = Keccak(c=20, log_w=1, n=3)
+        trigger_bits = format_msg(ga_run_config.test_trigger, keccak.msg_len)
+        payload_bits = format_msg(ga_run_config.test_payload, keccak.d)
 
-    mlp_template = GACompatibleStepMLP.create_with_backdoor(
-        trigger=trigger_bits.bitlist, payload=payload_bits.bitlist, k=keccak
-    )
-    print(f"Created StepMLP with {mlp_template.n_params} parameters.")
+        mlp_template = GACompatibleStepMLP.create_with_backdoor(
+            trigger=trigger_bits.bitlist, payload=payload_bits.bitlist, k=keccak
+        )
 
-    run_ga_optimisation(
-        mlp_template=mlp_template,
-        input_bits=trigger_bits,
-        output_bits=payload_bits,
-        num_solutions=args.num_solutions,
-        num_generations=args.num_generations,
-        num_parents_mating=args.num_parents_mating,
-        save_path=save_path,
-        seed = seed
-    )
+        run_ga_optimisation(mlp_template, ga_run_config, trigger_bits, payload_bits, save_path, seed)
+        LOG.info(f" DONE \n")
+
+# if __name__ == "__main__":
+
+#     parser = argparse.ArgumentParser(description="Run GA optimisation on StepMLP")
+#     parser.add_argument(
+#         "--test_phrase", type=str, default="Test", help="Test phrase to hash"
+#     )
+#     parser.add_argument(
+#         "--payload", type=str, default="tseT", help="Payload for the backdoor"
+#     )
+#     parser.add_argument("--num_solutions", type=int, default=100, help="Number of solutions for GA")
+#     parser.add_argument("--num_generations", type=int, default=50, help="Number of generations for GA")
+#     parser.add_argument(
+#         "--num_parents_mating", type=int, default=50, help="Number of parents mating for GA"
+#     )
+#     parser.add_argument("--save", type=bool, default=True, help="Save experiment results")
+#     args = parser.parse_args()
+
+#     print(f"Creating StepMLP from message: {args.test_phrase}")
+#     EXPERIMENT_TYPE = "ks_unique_elems"
+#     experiment_id = generate_experiment_id(EXPERIMENT_TYPE)
+#     save_path = f"{EXPERIMENT_RESULTS_DIR}/{experiment_id}" if args.save else None
+#     seed = random.randint(0,1000)
+   
+#     if save_path:
+#         Path(save_path).mkdir(parents=True, exist_ok=True)
+#         info = vars(args)
+#         info["seed"] = seed
+#         save_experiment_info(experiment_id, info, save_path)
+#         LOG.setLevel(logging.INFO)
+#         file_handler = logging.FileHandler(f"{save_path}/experiment.log", mode="w")
+#         file_handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
+#         file_handler.setLevel(logging.INFO)
+#         LOG.handlers = [file_handler]
+
+#     keccak = Keccak(c=20, log_w=1, n=3)
+#     trigger_bits = format_msg(args.test_phrase, keccak.msg_len)
+#     payload_bits = format_msg(args.payload, keccak.d)
+
+#     mlp_template = GACompatibleStepMLP.create_with_backdoor(
+#         trigger=trigger_bits.bitlist, payload=payload_bits.bitlist, k=keccak
+#     )
+#     print(f"Created StepMLP with {mlp_template.n_params} parameters.")
+
+#     run_ga_optimisation(
+#         mlp_template=mlp_template,
+#         input_bits=trigger_bits,
+#         output_bits=payload_bits,
+#         num_solutions=args.num_solutions,
+#         num_generations=args.num_generations,
+#         num_parents_mating=args.num_parents_mating,
+#         save_path=save_path,
+#         seed = seed
+#     )

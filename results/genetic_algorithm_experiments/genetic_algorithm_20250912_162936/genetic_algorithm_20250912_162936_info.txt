@@ -1,6 +1,0 @@
-test_phrase: Shht! I am a secret message.
-payload: Consider yourself BACKDOORED
-num_solutions: 100
-num_generations: 20
-num_parents_mating: 10
-save: True
