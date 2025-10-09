@@ -1,6 +1,6 @@
 from collections.abc import Callable
 import copy
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from typing import Any
 
 import numpy as np
@@ -71,11 +71,18 @@ class GAConfig:
     random_seed: int = None
     logger : TimedLogger =None
 
+    def __str__(self):
+        s = ""
+        for field in fields(self):
+            s += f"{field.name}: {getattr(self, field.name)}\n"
+    
+        return s
+
 @dataclass
 class GARunConfig:
     ga_config: GAConfig
     num_experiments: int
-    create_fitness_func: Callable[[StepMLP, Bits, Bits, torch.Tensor, torch.Tensor], Callable[[pygad.GA, list[Any], int | list[Any]], Any]]
+    create_fitness_func: Callable[[StepMLP, Bits, Bits, torch.Tensor, torch.Tensor, float, float], Callable[[pygad.GA, list[Any], int | list[Any]], Any]]
     target_model_name: str
     experiment_name: str
     factor_w: float = 1.0
@@ -83,6 +90,14 @@ class GARunConfig:
     test_trigger : str = "Test"
     test_payload : str = "tseT"
     logger : TimedLogger = None
+    run_start_idx : int = 0
+
+    def __str__(self):
+        s = ""
+        for field in fields(self):
+            s += f"{field.name}: {getattr(self, field.name)}\n"
+    
+        return s
 
 def create_simple_fitness_func(mlp_template, input_bits, output_bits, target_weights, target_biases, factor_w = 1.0, factor_b = 1.0):
     

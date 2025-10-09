@@ -252,15 +252,17 @@ def run_ga(ga_run_config: GARunConfig):
     Path(experiment_save_path).mkdir(parents=True, exist_ok=True)
 
     LOG.setLevel(logging.INFO)
-    file_handler = logging.FileHandler(f"{experiment_save_path}/experiment.log", mode="w")
+    file_handler = logging.FileHandler(f"{experiment_save_path}/experiment.log", mode="a")
     file_handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
     file_handler.setLevel(logging.INFO)
     LOG.handlers = [file_handler]
-    with open(f"{experiment_save_path}/info.txt", "w") as f:
+    with open(f"{experiment_save_path}/info.txt", "a") as f:
         f.write(str(ga_run_config))
         f.close()
 
-    for i in range(ga_run_config.num_experiments):
+    start_i = ga_run_config.run_start_idx
+
+    for i in range(start_i, ga_run_config.num_experiments + start_i):
         LOG.info(f"Experiment {i+1} ---------------- ")
         
         save_path = f"{EXPERIMENT_RESULTS_DIR}/{ga_run_config.experiment_name}/run_{i+1}"
@@ -277,57 +279,3 @@ def run_ga(ga_run_config: GARunConfig):
 
         run_ga_optimisation(mlp_template, ga_run_config, trigger_bits, payload_bits, save_path, seed)
         LOG.info(f" DONE \n")
-
-# if __name__ == "__main__":
-
-#     parser = argparse.ArgumentParser(description="Run GA optimisation on StepMLP")
-#     parser.add_argument(
-#         "--test_phrase", type=str, default="Test", help="Test phrase to hash"
-#     )
-#     parser.add_argument(
-#         "--payload", type=str, default="tseT", help="Payload for the backdoor"
-#     )
-#     parser.add_argument("--num_solutions", type=int, default=100, help="Number of solutions for GA")
-#     parser.add_argument("--num_generations", type=int, default=50, help="Number of generations for GA")
-#     parser.add_argument(
-#         "--num_parents_mating", type=int, default=50, help="Number of parents mating for GA"
-#     )
-#     parser.add_argument("--save", type=bool, default=True, help="Save experiment results")
-#     args = parser.parse_args()
-
-#     print(f"Creating StepMLP from message: {args.test_phrase}")
-#     EXPERIMENT_TYPE = "ks_unique_elems"
-#     experiment_id = generate_experiment_id(EXPERIMENT_TYPE)
-#     save_path = f"{EXPERIMENT_RESULTS_DIR}/{experiment_id}" if args.save else None
-#     seed = random.randint(0,1000)
-   
-#     if save_path:
-#         Path(save_path).mkdir(parents=True, exist_ok=True)
-#         info = vars(args)
-#         info["seed"] = seed
-#         save_experiment_info(experiment_id, info, save_path)
-#         LOG.setLevel(logging.INFO)
-#         file_handler = logging.FileHandler(f"{save_path}/experiment.log", mode="w")
-#         file_handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
-#         file_handler.setLevel(logging.INFO)
-#         LOG.handlers = [file_handler]
-
-#     keccak = Keccak(c=20, log_w=1, n=3)
-#     trigger_bits = format_msg(args.test_phrase, keccak.msg_len)
-#     payload_bits = format_msg(args.payload, keccak.d)
-
-#     mlp_template = GACompatibleStepMLP.create_with_backdoor(
-#         trigger=trigger_bits.bitlist, payload=payload_bits.bitlist, k=keccak
-#     )
-#     print(f"Created StepMLP with {mlp_template.n_params} parameters.")
-
-#     run_ga_optimisation(
-#         mlp_template=mlp_template,
-#         input_bits=trigger_bits,
-#         output_bits=payload_bits,
-#         num_solutions=args.num_solutions,
-#         num_generations=args.num_generations,
-#         num_parents_mating=args.num_parents_mating,
-#         save_path=save_path,
-#         seed = seed
-#     )

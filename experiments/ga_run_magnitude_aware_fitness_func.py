@@ -23,6 +23,7 @@ ga_run_config = GARunConfig(
     create_fitness_func = create_magnitude_aware_fitness_func,
     target_model_name="gpt2",
     experiment_name="magnitude_aware_fitness_func",
+    run_start_idx = 5
 )
 
 run_ga(ga_run_config)

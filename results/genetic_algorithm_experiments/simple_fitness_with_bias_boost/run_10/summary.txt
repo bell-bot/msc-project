@@ -1,0 +1,33 @@
+----------------------------------------------------------------------
+                           PyGAD Lifecycle                           
+======================================================================
+Step                 Handler                         Output Shape    
+======================================================================
+Fitness Function     fitness_func()                  (1)             
+Fitness batch size: 10
+----------------------------------------------------------------------
+Parent Selection     tournament_selection()          (10, 203940)    
+Number of Parents: 10
+K Tournament: 3
+----------------------------------------------------------------------
+Crossover            single_point_crossover()        (10, 203940)    
+----------------------------------------------------------------------
+Mutation             random_mutation()               (10, 203940)    
+Mutation Genes: 20394
+Random Mutation Range: (-1.0, 1.0)
+Mutation by Replacement: False
+Allow Duplicated Genes: True
+----------------------------------------------------------------------
+On Generation        on_gen()                        None            
+----------------------------------------------------------------------
+======================================================================
+Population Size: (100, 203940)
+Number of Generations: 50
+Initial Population Range: (-4, 4)
+Keep Elitism: 1
+Gene DType: [<class 'float'>, None]
+Parallel Processing: ['thread', 2]
+Random Seed: 9
+Save Best Solutions: False
+Save Solutions: False
+======================================================================
