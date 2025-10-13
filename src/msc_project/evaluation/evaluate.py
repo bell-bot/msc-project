@@ -3,7 +3,7 @@ import pandas as pd
 import torch
 from tqdm import tqdm
 from msc_project.evaluation.metrics import earth_movers_distance, kl_divergence, ks_test
-from msc_project.utils.experiment_utils import ExperimentSpecs
+from msc_project.utils.experiment_utils import ObscurityExperimentSpecs
 from msc_project.utils.logging_utils import TimedLogger
 from msc_project.utils.model_utils import unfold_stepmlp_parameters
 from scipy.stats import kurtosis
@@ -97,7 +97,7 @@ def evaluate_model(
 
     return metrics
 
-def save_evaluation_report(specs: ExperimentSpecs, filepath: str):
+def save_evaluation_report(specs: ObscurityExperimentSpecs, filepath: str):
 
     with open(f"{filepath}/specs.txt", "w") as f:
         for key, value in specs.dict().items():

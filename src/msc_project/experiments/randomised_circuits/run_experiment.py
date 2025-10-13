@@ -14,7 +14,7 @@ from msc_project.circuits_custom.custom_stepmlp import RandomisedStepMLP
 from msc_project.evaluation.evaluate import evaluate_model, save_evaluation_report
 from numpy.random import RandomState
 
-from msc_project.utils.experiment_utils import ExperimentSpecs
+from msc_project.utils.experiment_utils import ObscurityExperimentSpecs
 from msc_project.utils.logging_utils import TimedLogger, TqdmLoggingHandler
 from msc_project.utils.model_utils import get_mlp_layers, process_mlp_layers, unfold_stepmlp_parameters
 from msc_project.utils.plot import plot_histograms, plot_separate_histograms
@@ -27,7 +27,7 @@ logging.setLoggerClass(TimedLogger)
 LOG: TimedLogger = cast(TimedLogger, logging.getLogger(__name__))
 
 
-def dryrun(specs: ExperimentSpecs) -> WeightCounter:
+def dryrun(specs: ObscurityExperimentSpecs) -> WeightCounter:
     weight_counter = WeightCounter(torch.tensor([]))
     counting_keccak = CustomKeccak(n=specs.n, c=specs.c, log_w=specs.log_w, sampler=weight_counter)
     trigger_message = format_msg(
@@ -43,7 +43,7 @@ def format_results(results: dict) -> str:
     return f"{results['KL Weights']:.4f}, {results['KL Biases']:.4f}, {results['EMD Weights']:.4f}, {results['EMD Biases']:.4f}, {results['KS Weights Statistic']:.4f}, {results['KS Weights P-value']:.4f}, {results['KS Biases Statistic']:.4f}, {results['KS Biases P-value']:.4f}, {results['Mean Weights']:.4f}, {results['Mean Biases']:.4f}, {results['Std Weights']:.4f}, {results['Std Biases']:.4f}, {results['Kurtosis Weights']:.4f}, {results['Kurtosis Biases']:.4f}\n"
 
 def evaluate_randomised(
-    specs: ExperimentSpecs, target_model: tuple[torch.Tensor, torch.Tensor], result_file
+    specs: ObscurityExperimentSpecs, target_model: tuple[torch.Tensor, torch.Tensor], result_file
 ):
 
     torch.manual_seed(specs.random_seed)
@@ -87,7 +87,7 @@ def evaluate_randomised(
             result_file.write(format_results(metrics))
             result_file.flush()
 
-def run_experiment_with_target_model(specs: ExperimentSpecs):
+def run_experiment_with_target_model(specs: ObscurityExperimentSpecs):
 
     save_path = f"results/random_circuit/{specs.experiment_name}"
     os.makedirs(os.path.dirname(f"{save_path}/experiment.log"), exist_ok=True)
@@ -125,7 +125,7 @@ def run_experiment_with_target_model(specs: ExperimentSpecs):
 
     evaluate_randomised(specs, (model_weights, model_biases), result_file)
 
-def run_experiment_with_target_dist(specs: ExperimentSpecs):
+def run_experiment_with_target_dist(specs: ObscurityExperimentSpecs):
 
     save_path = f"results/random_circuit/{specs.experiment_name}"
     os.makedirs(os.path.dirname(f"{save_path}/experiment.log"), exist_ok=True)
@@ -163,4 +163,4 @@ def run_experiment_with_target_dist(specs: ExperimentSpecs):
 # target_biases = normal_dist_biases.sample((sample_size,))
 # run_experiment_with_target_dist(ExperimentSpecs("normal", "experiment_normal_small_hist", num_samples=1, n=3, c=20, log_w=1, sample_size=sample_size, target_weights=target_weights, target_biases=target_biases))
 
-run_experiment_with_target_model(ExperimentSpecs("gpt2", "experiment_gpt2_small", num_samples=20, log_w=1, n=3, c=20))
+run_experiment_with_target_model(ObscurityExperimentSpecs("gpt2", "experiment_gpt2_small", num_samples=20, log_w=1, n=3, c=20))

@@ -1,14 +1,19 @@
+from collections.abc import Sequence
 from dataclasses import asdict, dataclass
 from datetime import datetime
-from typing import Literal
+from typing import Any, Literal
 
 import matplotlib.pyplot as plt
 
+from numpy import floating, ndarray
 import torch
+from torch.distributions.distribution import Distribution
+
+from msc_project.circuits_custom.custom_stepmlp import CustomStepMLP
 
 
 @dataclass
-class ExperimentSpecs:
+class ObscurityExperimentSpecs:
 
     target_model: str
     experiment_name: str
@@ -23,6 +28,24 @@ class ExperimentSpecs:
     trigger_length: int = 16
     payload_length: int = 16
     sample_size: int = 1000000
+
+    def dict(self):
+        return {k: str(v) for k, v in asdict(self).items()}
+    
+@dataclass
+class RobustnessExperimentSpecs:
+
+    experiment_name: str
+    noise_stds : ndarray
+    redundancy : int = 1
+
+    num_samples: int = 50
+    c: int | None = 448
+    n: int = 24
+    log_w: Literal[0, 1, 2, 3, 4, 5, 6] = 6
+    random_seed: int = 95
+    trigger_str: str = "Test"
+    payload_str: str = "tseT"
 
     def dict(self):
         return {k: str(v) for k, v in asdict(self).items()}

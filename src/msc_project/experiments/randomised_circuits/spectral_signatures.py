@@ -4,7 +4,7 @@ from circuits.examples.keccak import Keccak
 from circuits.sparse.compile import compiled
 from circuits.utils.format import format_msg
 from msc_project.circuits_custom.custom_keccak import CustomKeccak
-from msc_project.circuits_custom.custom_stepmlp import GACompatibleStepMLP, RandomisedStepMLP
+from msc_project.circuits_custom.custom_stepmlp import NPCompatibleStepMLP, RandomisedStepMLP
 from msc_project.evaluation.metrics import find_outliers, get_spectral_signatures
 from msc_project.utils.sampling import WeightBankSampler, WeightCounter
 import matplotlib

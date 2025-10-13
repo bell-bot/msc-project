@@ -42,9 +42,12 @@ class CustomStepMLP(StepMLP):
         backdoor_fun = get_backdoor(trigger=trigger, payload=payload, k=k)
         graph = compiled(backdoor_fun, k.msg_len)
         return cls.from_graph(graph)
+    
+    def get_param_sample(self):
+        return list(self.net[1].named_parameters())[0]
 
 
-class GACompatibleStepMLP(CustomStepMLP):
+class NPCompatibleStepMLP(CustomStepMLP):
     """
     A StepMLP that has a backdoor capability and is compatible with PyGAD
     since it uses float32 instead of bfloat16 (PyGAD does NOT mess around with
@@ -52,7 +55,8 @@ class GACompatibleStepMLP(CustomStepMLP):
     """
 
     def __init__(self, sizes: list[int], dtype: torch.dtype = torch.float64):
-        super(GACompatibleStepMLP, self).__init__(sizes, dtype)
+        super(NPCompatibleStepMLP, self).__init__(sizes, dtype)
+
 
 
 class RandomisedStepMLP(CustomStepMLP):
@@ -110,8 +114,8 @@ class RandomisedStepMLP(CustomStepMLP):
 class MajorityVotingStepMLP(CustomStepMLP):
     
     @classmethod
-    def create_with_backdoor(cls, trigger: list[Bit], payload: list[Bit], k: Keccak):
+    def create_with_backdoor(cls, trigger: list[Bit], payload: list[Bit], k: Keccak, redundancy: int):
 
-        backdoor_fun = get_majority_voting_backdoor(trigger=trigger, payload=payload, k=k)
+        backdoor_fun = get_majority_voting_backdoor(trigger=trigger, payload=payload, k=k, redundancy=redundancy)
         graph = compiled(backdoor_fun, k.msg_len)
         return cls.from_graph(graph)

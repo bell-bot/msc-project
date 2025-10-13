@@ -16,7 +16,7 @@ from msc_project.utils.run_utils import get_random_alphanum_string
 
 logger = logging.getLogger(__name__)
 
-EXPERIMENT_DIR = "results/noise_robustness"
+EXPERIMENT_DIR = "results/noise_robustness_2"
 EXPERIMENT_RESULTS = "results.csv"
 EXPERIMENT_INFO = "experiment_info.txt"
 RESULTS_HEADER = "std, preserve rate\n"

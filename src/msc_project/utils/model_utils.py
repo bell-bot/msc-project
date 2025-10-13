@@ -117,3 +117,8 @@ def get_target_model_params(
         log_details["biases"] = f"{model_biases.numel():,}"
 
     return model_weights, model_biases
+
+def verify_stepmlp(stepmlp, input_bits, expected_output_bits):
+    predicted_output = stepmlp.infer_bits(input_bits)
+
+    return predicted_output.bitstr == expected_output_bits.bitstr

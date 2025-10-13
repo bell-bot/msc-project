@@ -10,7 +10,7 @@ import torch
 import logging
 import pygad
 
-from msc_project.circuits_custom.custom_stepmlp import GACompatibleStepMLP
+from msc_project.circuits_custom.custom_stepmlp import NPCompatibleStepMLP
 from ..src.msc_project.utils.experiment_utils import generate_experiment_id, save_experiment_info
 from ..src.msc_project.utils.experiment_utils import plot_fitness_over_generations
 from msc_project.algorithms.genetic_algorithm.objectives import evaluate_normal_distribution
@@ -194,7 +194,7 @@ if __name__ == "__main__":
     trigger_bits = format_msg(args.test_phrase, keccak.msg_len)
     payload_bits = format_msg(args.payload, keccak.d)
 
-    mlp_template = GACompatibleStepMLP.create_with_backdoor(
+    mlp_template = NPCompatibleStepMLP.create_with_backdoor(
         trigger=trigger_bits.bitlist, payload=payload_bits.bitlist, k=keccak
     )
     print(f"Created StepMLP with {mlp_template.n_params} parameters.")

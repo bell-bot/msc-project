@@ -24,7 +24,7 @@ from msc_project.algorithms.genetic_algorithm.objectives import (
 )
 
 from msc_project.algorithms.genetic_algorithm.utils import GARunConfig
-from msc_project.circuits_custom.custom_stepmlp import GACompatibleStepMLP
+from msc_project.circuits_custom.custom_stepmlp import NPCompatibleStepMLP
 from msc_project.evaluation.metrics import earth_movers_distance
 from msc_project.utils.experiment_utils import generate_experiment_id, save_experiment_info
 from msc_project.utils.experiment_utils import plot_fitness_over_generations
@@ -117,7 +117,7 @@ def on_gen(ga_instance):
     """
     LOG.info(f"Generation = {ga_instance.generations_completed}; Fitness    = {ga_instance.best_solution()[1]}")
 
-def initialise_population_from_target(mlp_template: GACompatibleStepMLP, num_solutions: int, target_weights: torch.Tensor, target_biases: torch.Tensor) -> pygad.torchga.TorchGA:
+def initialise_population_from_target(mlp_template: NPCompatibleStepMLP, num_solutions: int, target_weights: torch.Tensor, target_biases: torch.Tensor) -> pygad.torchga.TorchGA:
     weight_sampler = WeightSampler(target_weights)
     bias_sampler = WeightSampler(target_biases)
 
@@ -273,7 +273,7 @@ def run_ga(ga_run_config: GARunConfig):
         trigger_bits = format_msg(ga_run_config.test_trigger, keccak.msg_len)
         payload_bits = format_msg(ga_run_config.test_payload, keccak.d)
 
-        mlp_template = GACompatibleStepMLP.create_with_backdoor(
+        mlp_template = NPCompatibleStepMLP.create_with_backdoor(
             trigger=trigger_bits.bitlist, payload=payload_bits.bitlist, k=keccak
         )
 
