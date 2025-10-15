@@ -55,6 +55,7 @@ class Monitor:
 
     def get_layer_data(self, layer_idx: int, sample_idx: int) -> tuple[torch.Tensor , torch.Tensor]:
 
+        assert len(self.pre_activations[layer_idx]) > sample_idx, f"Cannot retrieve sample {sample_idx}. Only {len(self.pre_activations[layer_idx])} samples available."
         pre = self.pre_activations[layer_idx][sample_idx]
         post = self.post_activations[layer_idx][sample_idx]
 
@@ -65,7 +66,7 @@ class Monitor:
         rows = []
 
         for layer_idx in sorted(self.pre_activations.keys()):
-            for sample_idx in range(len(self.pre_activations)):
+            for sample_idx in range(len(self.pre_activations[layer_idx])):
                 pre, post = self.get_layer_data(layer_idx, sample_idx)
 
                 pre_np = pre.cpu().numpy()
