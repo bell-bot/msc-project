@@ -11,12 +11,12 @@ def get_majority_voting_backdoor(
     """Creates a backdoor function with a payload and k baked in."""
     assert len(trigger) == k.msg_len and len(payload) == k.d
     hashed_t_extended = xof(trigger, redundancy, k)
-    keys = [robust_xors([h, payload]) for h in hashed_t_extended]
+    keys = [xors([h, payload]) for h in hashed_t_extended]
     keys = [const([int(b.activation) for b in key]) for key in keys]
     
     def backdoor(x: list[Bit]) -> list[Bit]:
         hashed_extended = xof(x, redundancy, k)
-        ambivalents = [robust_xors([h, key]) for h, key in zip(hashed_extended, keys)]
+        ambivalents = [xors([h, key]) for h, key in zip(hashed_extended, keys)]
         return bitwise_majority_vote(ambivalents)
 
     return backdoor

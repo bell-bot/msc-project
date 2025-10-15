@@ -1,6 +1,8 @@
 from collections.abc import Sequence
 from dataclasses import asdict, dataclass
 from datetime import datetime
+import logging
+import os
 from typing import Any, Literal
 
 import matplotlib.pyplot as plt
@@ -88,3 +90,14 @@ def plot_fitness_over_generations(ga_instance, save_path):
     plt.tight_layout()
     plt.savefig(f"{save_path}/fitness_plot.pdf", bbox_inches="tight")
     plt.close()
+
+def setup_logging(LOG: logging.Logger, experiment_dir: str):
+    os.makedirs(os.path.dirname(f"{experiment_dir}/experiment.log"), exist_ok=True)
+
+    # Set up logging
+    LOG.setLevel(logging.INFO)
+    file_handler = logging.FileHandler(f"{experiment_dir}/experiment.log", mode="w")
+    file_handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
+    file_handler.setLevel(logging.INFO)
+
+    LOG.handlers = [file_handler]

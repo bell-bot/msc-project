@@ -59,7 +59,7 @@ class Monitor:
 
         return pre, post
     
-    def to_dataframe(self, id: str):
+    def to_dataframe(self, **kwargs):
         
         rows = []
 
@@ -70,12 +70,13 @@ class Monitor:
                 pre_np = pre.cpu().numpy()
                 post_np = post.cpu().numpy()
 
-                rows.append({
+                sample_data = {
                     "layer_idx": layer_idx,
                     "sample_idx": sample_idx,
                     "pre_activations": pre_np,
                     "post_activations": post_np,
-                    "model": id
-                })
+                }
+                sample_data.update(**kwargs)
+                rows.append(sample_data)
 
         return pd.DataFrame(rows)
