@@ -4,7 +4,6 @@ from circuits.tensors.mlp import StepMLP
 from msc_project.experiments.fault_tolerant_boolean_circuits.robust_keccak import RobustKeccak
 from msc_project.experiments.fault_tolerant_boolean_circuits.fault_tolerant_backdoor import get_backdoor, get_fault_tolerant_backdoor
 
-
 class RobustXorStepMLP(StepMLP):
 
     @classmethod
