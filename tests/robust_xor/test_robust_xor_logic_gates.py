@@ -2,7 +2,7 @@ import unittest
 
 from circuits.neurons.core import Signal
 from circuits.utils.format import Bits
-from msc_project.experiments.robust_xor.robust_xor_logic_gates import robust_xor, robust_xors
+from msc_project.experiments.fault_tolerant_boolean_circuits.fault_tolerant_logic_gates import robust_xor, robust_xors
 
 class RobustXorTestcase(unittest.TestCase):
 

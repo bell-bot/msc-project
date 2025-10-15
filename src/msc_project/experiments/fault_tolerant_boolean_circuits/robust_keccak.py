@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from functools import partial
 from circuits.examples.keccak import Keccak, Lanes, get_empty_lanes, iota, rho_pi
 from circuits.neurons.operations import inhib
-from msc_project.experiments.robust_xor.robust_xor_logic_gates import robust_xor
+from msc_project.experiments.fault_tolerant_boolean_circuits.fault_tolerant_logic_gates import robust_xor
 
 
 def robust_theta(lanes: Lanes) -> Lanes:
