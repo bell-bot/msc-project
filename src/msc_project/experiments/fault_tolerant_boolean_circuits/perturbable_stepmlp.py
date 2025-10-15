@@ -12,7 +12,7 @@ from msc_project.experiments.fault_tolerant_boolean_circuits.backdoors import ge
 
 class PerturbableStepMLP(StepMLP):
 
-    def __init__(self, sizes: list[int], dtype: torch.dtype = torch.bfloat16):
+    def __init__(self, sizes: list[int], dtype: torch.dtype = torch.float64):
         super().__init__(sizes=sizes, dtype=dtype)
         self.init_net = copy.deepcopy(self.net)
 
