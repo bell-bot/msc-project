@@ -23,6 +23,7 @@ class Monitor:
 
             self.pre_activations[layer_idx] = []
             self.post_activations[layer_idx] = []
+            self.layer_inputs[layer_idx] = []
 
     def _create_hook(self, layer_idx: int):
 
