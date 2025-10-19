@@ -39,9 +39,13 @@ class CircuitVisualiser:
         self.graph.attr(rankdir="TB")  # top to bottom layout to match load_nodes()-method
 
     def visualise_method(
-        self, fn: Callable[..., list[Signal]], input_len: int, filename: str, **kwargs: Any
+        self, fn: Callable[..., list[Signal]], input_len: int, filename: str, input: str | None = None, **kwargs: Any
     ):
-        inp = const("0" * input_len)
+        if input:
+            inp = const(input)
+        else:
+            inp = const("0" * input_len)
+
         out = fn(inp, **kwargs)
 
         return self.load_nodes_and_visualise(inp, out, filename)

@@ -3,6 +3,7 @@ import json
 import logging
 import os
 from typing import cast
+import pandas as pd
 import torch
 from tqdm import tqdm
 from circuits.examples.keccak import Keccak
@@ -15,6 +16,7 @@ from msc_project.experiments.fault_tolerant_boolean_circuits.robust_xor_stepmlp 
 from msc_project.utils.experiment_utils import RobustnessExperimentSpecs, setup_logging
 from msc_project.utils.logging_utils import TimedLogger
 from msc_project.utils.model_utils import verify_stepmlp
+import numpy as np
 
 logging.setLoggerClass(TimedLogger)
 LOG: TimedLogger = cast(TimedLogger, logging.getLogger(__name__))
@@ -44,9 +46,10 @@ def run_iteration(mlp_template, trigger_bits, payload_bits, n_samples, std, i):
     
     return (n_correct/n_samples)
 
-def run_iteration_with_logging(mlp: PerturbableStepMLP, trigger_bits, payload_bits, n_samples, std, i):
+def run_iteration_with_logging(mlp: PerturbableStepMLP, trigger_bits, payload_bits, n_samples, std, i, model_path : str | None = None):
 
     n_correct = 0
+    model_file = lambda x: f"{model_path}/models/model_{x}"
 
     for j in tqdm(range(n_samples), f"{i}. Std = {std:.4f}"):
 
@@ -65,6 +68,10 @@ def run_iteration_with_logging(mlp: PerturbableStepMLP, trigger_bits, payload_bi
             payload_bits.bitstr,
             predicted_output.bitstr,
         )
+
+        if model_path != None:
+            p = model_file(j)
+            torch.save(mlp.state_dict(), p)
 
         mlp.reset()
     
@@ -142,6 +149,60 @@ def run_majority_voting(config: RobustnessExperimentSpecs):
     results_file = open(f"{experiment_dir}/results.json", "w")
     results_file.write(json.dumps(results))
 
+def run_robust_xor_with_logging(config: RobustnessExperimentSpecs):
+
+    torch.manual_seed(config.random_seed)
+    
+    experiment_dir = f"results/experiment_noise_tolerance/{config.experiment_name}"
+    setup_logging(LOG, experiment_dir)
+
+    # Save experiment info
+    experiment_info_file = open(f"{experiment_dir}/info.txt", "w")
+    experiment_info_file.write(json.dumps(config.dict()))
+
+    # Setup the backdoored model. We will initialise it once and then create a copy
+    # in each experiment iteration
+    with LOG.time("Creating backdoored model template", show_pbar=False):
+        keccak = RobustKeccak(c=config.c, log_w=config.log_w, n=config.n)
+        trigger_bits = format_msg(config.trigger_str, keccak.msg_len)
+        payload_bits = format_msg(config.payload_str, keccak.d)
+        mlp_template = PerturbableStepMLP.create_with_backdoor(
+            trigger=trigger_bits.bitlist, 
+            payload=payload_bits.bitlist, 
+            k=keccak, 
+            backdoor_type = config.backdoor_type,
+            redundancy = config.redundancy
+        )
+    
+    activations = []
+
+    with LOG.time("Saving baseline activations", show_pbar=False):
+        monitor = Monitor()
+        monitor.register_hooks(mlp_template)
+        mlp_template.infer_bits(trigger_bits)
+        baseline_activations = monitor.to_dataframe(std = 0.0)
+        activations.append(baseline_activations)
+        monitor.clear_data()
+
+    results = {}
+    os.makedirs(os.path.dirname(f"{experiment_dir}/models/"), exist_ok=True)
+    for i, standard_deviation in enumerate(config.noise_stds):
+        LOG.info(f"\nExperiment {i+1} - Standard deviation: {standard_deviation} ---------------------------------\n")
+
+        preserve_rate = run_iteration_with_logging(mlp_template, trigger_bits, payload_bits, config.num_samples, standard_deviation, i)
+        result_activations = monitor.to_dataframe(std = standard_deviation)
+
+        activations.append(result_activations)
+      
+        monitor.clear_data()
+        results[standard_deviation] = preserve_rate
+
+    activations_df = pd.concat(activations, axis=0)
+    activations_df.to_pickle(f"{experiment_dir}/activations.pkl")
+
+    results_file = open(f"{experiment_dir}/results.json", "w")
+    results_file.write(json.dumps(results))
+
 def run_baseline_with_logging(config: RobustnessExperimentSpecs):
 
     torch.manual_seed(config.random_seed)
@@ -163,28 +224,35 @@ def run_baseline_with_logging(config: RobustnessExperimentSpecs):
             trigger=trigger_bits.bitlist, 
             payload=payload_bits.bitlist, 
             k=keccak, 
-            backdoor_type = "baseline"
+            backdoor_type = config.backdoor_type,
+            redundancy = config.redundancy
         )
+    
+    activations = []
 
     with LOG.time("Saving baseline activations", show_pbar=False):
         monitor = Monitor()
         monitor.register_hooks(mlp_template)
         mlp_template.infer_bits(trigger_bits)
-
         baseline_activations = monitor.to_dataframe(std = 0.0)
-        baseline_activations.to_csv(f"{experiment_dir}/baseline_activations.py")
+        activations.append(baseline_activations)
         monitor.clear_data()
 
     results = {}
-
+    os.makedirs(os.path.dirname(f"{experiment_dir}/models/"), exist_ok=True)
     for i, standard_deviation in enumerate(config.noise_stds):
         LOG.info(f"\nExperiment {i+1} - Standard deviation: {standard_deviation} ---------------------------------\n")
 
         preserve_rate = run_iteration_with_logging(mlp_template, trigger_bits, payload_bits, config.num_samples, standard_deviation, i)
         result_activations = monitor.to_dataframe(std = standard_deviation)
-        result_activations.to_csv(f"{experiment_dir}/std_{str(standard_deviation)}.csv")
+
+        activations.append(result_activations)
+      
         monitor.clear_data()
         results[standard_deviation] = preserve_rate
+
+    activations_df = pd.concat(activations, axis=0)
+    activations_df.to_pickle(f"{experiment_dir}/activations.pkl")
 
     results_file = open(f"{experiment_dir}/results.json", "w")
     results_file.write(json.dumps(results))

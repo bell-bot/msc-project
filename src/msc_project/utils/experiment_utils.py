@@ -39,6 +39,7 @@ class RobustnessExperimentSpecs:
 
     experiment_name: str
     noise_stds : ndarray
+    backdoor_type : Literal["baseline", "robust_xor", "baseline_majority_vote", "robust_xor_majority_vote"]
     redundancy : int = 1
 
     num_samples: int = 50
