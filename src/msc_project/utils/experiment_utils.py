@@ -11,7 +11,15 @@ from numpy import floating, ndarray
 import torch
 from torch.distributions.distribution import Distribution
 
-from msc_project.circuits_custom.custom_stepmlp import CustomStepMLP
+ModelType = Literal[
+    "baseline",
+    "robust_xor",
+    "baseline_majority_vote",
+    "baseline_full_majority_vote",
+    "robust_xor_majority_vote",
+    "robust_xor_full_majority_vote",
+    "multiplexed",
+]
 
 
 @dataclass
@@ -33,16 +41,41 @@ class ObscurityExperimentSpecs:
 
     def dict(self):
         return {k: str(v) for k, v in asdict(self).items()}
-    
+
+
 @dataclass
 class RobustnessExperimentSpecs:
 
     experiment_name: str
-    noise_stds : ndarray
-    backdoor_type : Literal["baseline", "robust_xor", "baseline_majority_vote", "robust_xor_majority_vote"]
-    redundancy : int = 1
+    noise_stds: ndarray
+    backdoor_type: Literal[
+        "baseline",
+        "robust_xor",
+        "baseline_majority_vote",
+        "baseline_full_majority_vote",
+        "robust_xor_majority_vote",
+        "robust_xor_full_majority_vote",
+        "multiplexed",
+    ]
+    redundancy: int = 1
 
     num_samples: int = 50
+    c: int | None = 448
+    n: int = 24
+    log_w: Literal[0, 1, 2, 3, 4, 5, 6] = 6
+    random_seed: int = 95
+    trigger_str: str = "Test"
+    payload_str: str = "tseT"
+
+    def dict(self):
+        return {k: str(v) for k, v in asdict(self).items()}
+
+
+@dataclass
+class ModelSpecs:
+
+    backdoor_type: ModelType
+    redundancy: int = 1
     c: int | None = 448
     n: int = 24
     log_w: Literal[0, 1, 2, 3, 4, 5, 6] = 6
@@ -91,6 +124,7 @@ def plot_fitness_over_generations(ga_instance, save_path):
     plt.tight_layout()
     plt.savefig(f"{save_path}/fitness_plot.pdf", bbox_inches="tight")
     plt.close()
+
 
 def setup_logging(LOG: logging.Logger, experiment_dir: str):
     os.makedirs(os.path.dirname(f"{experiment_dir}/experiment.log"), exist_ok=True)
