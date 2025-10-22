@@ -34,6 +34,7 @@ classifiers = [
 [project.optional-dependencies]
 dev = [
     "black",
+    "pre-commit",
 ]
 
 [tool.setuptools.packages.find]
@@ -43,6 +44,12 @@ where = ["src"]
 line-length = 104
 target-version = ['py38']
 include = '\.pyi?$'
+exclude = '''
+circuits
+'''
+
+[tool.autoflake]
+check = true
 exclude = '''
 circuits
 '''
