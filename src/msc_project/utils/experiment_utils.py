@@ -1,15 +1,18 @@
 from collections.abc import Sequence
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
 import logging
 import os
-from typing import Any, Literal
+from typing import Any, Literal, Type
 
 import matplotlib.pyplot as plt
 
 from numpy import floating, ndarray
 import torch
 from torch.distributions.distribution import Distribution
+
+from circuits.examples.keccak import Keccak
+from circuits.utils.format import Bits, format_msg
 
 ModelType = Literal[
     "baseline",
@@ -48,15 +51,7 @@ class RobustnessExperimentSpecs:
 
     experiment_name: str
     noise_stds: ndarray
-    backdoor_type: Literal[
-        "baseline",
-        "robust_xor",
-        "baseline_majority_vote",
-        "baseline_full_majority_vote",
-        "robust_xor_majority_vote",
-        "robust_xor_full_majority_vote",
-        "multiplexed",
-    ]
+    backdoor_type: ModelType
     redundancy: int = 1
 
     num_samples: int = 50
@@ -75,6 +70,7 @@ class RobustnessExperimentSpecs:
 class ModelSpecs:
 
     backdoor_type: ModelType
+    keccak_cls: Type[Keccak]
     redundancy: int = 1
     c: int | None = 448
     n: int = 24
@@ -82,6 +78,15 @@ class ModelSpecs:
     random_seed: int = 95
     trigger_str: str = "Test"
     payload_str: str = "tseT"
+
+    keccak: Keccak = field(init=False)
+    trigger_bits: Bits = field(init=False)
+    payload_bits: Bits = field(init=False)
+
+    def __post_init__(self):
+        self.keccak = self.keccak_cls(log_w=self.log_w, c=self.c, n=self.n)
+        self.trigger_bits = format_msg(self.trigger_str, self.keccak.msg_len)
+        self.payload_bits = format_msg(self.payload_str, self.keccak.d)
 
     def dict(self):
         return {k: str(v) for k, v in asdict(self).items()}
