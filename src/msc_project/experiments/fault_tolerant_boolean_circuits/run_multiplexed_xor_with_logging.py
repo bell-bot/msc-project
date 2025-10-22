@@ -2,7 +2,6 @@ import numpy as np
 
 from msc_project.experiments.fault_tolerant_boolean_circuits.experiment import (
     run_multiplexed_xor_with_logging,
-    run_robust_xor_with_logging,
 )
 from msc_project.utils.experiment_utils import RobustnessExperimentSpecs
 
