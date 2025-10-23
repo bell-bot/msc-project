@@ -80,6 +80,7 @@ class PerturbableStepMLP(StepMLP):
         layer_n_params = [
             self.sizes[i] * self.sizes[i + 1] for i in range(len(self.sizes) - 1)
         ]
+        print(self.layer_stats)
         param_stats = {
             "n_layers": n_layers,
             "w_output": w_output,

@@ -100,12 +100,16 @@ def run_model_comparison():
         )
         print(f"Creating model")
         mlp = create_model(model_specs)
+        # print(mlp.layer_stats)
         print(f"Evaluating model")
         results = evaluate_model(mlp, model_specs.trigger_bits)
 
         result_dict = {"model_specs": model_specs.to_dataframe(), "results": results}
 
-        model_comparison_results[str(model_type)] = result_dict
+        experiment_name = str(model_type)
+        if redundancy > 1:
+            experiment_name += f"_{redundancy}"
+        model_comparison_results[experiment_name] = result_dict
 
     with open(f"results/experiment_noise_tolerance/model_comparison.json", "w") as f:
         f.write(json.dumps(model_comparison_results))

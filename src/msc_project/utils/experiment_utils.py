@@ -14,6 +14,7 @@ from torch.distributions.distribution import Distribution
 
 from circuits.examples.keccak import Keccak
 from circuits.utils.format import Bits, format_msg
+from msc_project.experiments.fault_tolerant_boolean_circuits.robust_keccak import MultiplexedKeccak
 
 ModelType = Literal[
     "baseline",
@@ -86,7 +87,12 @@ class ModelSpecs:
     payload_bits: Bits = field(init=False)
 
     def __post_init__(self):
-        self.keccak = self.keccak_cls(log_w=self.log_w, c=self.c, n=self.n)
+        if self.keccak_cls == MultiplexedKeccak:
+            self.keccak = MultiplexedKeccak(
+                log_w=self.log_w, c=self.c, n=self.n, redundancy=self.redundancy
+            )
+        else:
+            self.keccak = self.keccak_cls(log_w=self.log_w, c=self.c, n=self.n)
         self.trigger_bits = format_msg(self.trigger_str, self.keccak.msg_len)
         self.payload_bits = format_msg(self.payload_str, self.keccak.d)
 
