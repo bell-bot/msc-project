@@ -10,6 +10,7 @@ from circuits.examples.keccak import Keccak
 from circuits.utils.format import format_msg
 from msc_project.experiments.fault_tolerant_boolean_circuits.monitor import Monitor
 from msc_project.experiments.fault_tolerant_boolean_circuits.perturbable_stepmlp import (
+    ParallelMajorityVotingStepMLP,
     PerturbableStepMLP,
 )
 from msc_project.experiments.majority_voting_backdoor.utils import noise_stepmlp
@@ -316,6 +317,65 @@ def run_baseline_with_logging(config: RobustnessExperimentSpecs):
         trigger_bits = format_msg(config.trigger_str, keccak.msg_len)
         payload_bits = format_msg(config.payload_str, keccak.d)
         mlp_template = PerturbableStepMLP.create_with_backdoor(
+            trigger=trigger_bits.bitlist,
+            payload=payload_bits.bitlist,
+            k=keccak,
+            backdoor_type=config.backdoor_type,
+            redundancy=config.redundancy,
+        )
+
+    activations = []
+
+    with LOG.time("Saving baseline activations", show_pbar=False):
+        monitor = Monitor()
+        monitor.register_hooks(mlp_template)
+        mlp_template.infer_bits(trigger_bits)
+        baseline_activations = monitor.to_dataframe(std=0.0)
+        activations.append(baseline_activations)
+        monitor.clear_data()
+
+    results = {}
+    os.makedirs(os.path.dirname(f"{experiment_dir}/models/"), exist_ok=True)
+    for i, standard_deviation in enumerate(config.noise_stds):
+        LOG.info(
+            f"\nExperiment {i+1} - Standard deviation: {standard_deviation} ---------------------------------\n"
+        )
+
+        preserve_rate = run_iteration_with_logging(
+            mlp_template, trigger_bits, payload_bits, config.num_samples, standard_deviation, i
+        )
+        result_activations = monitor.to_dataframe(std=standard_deviation)
+
+        activations.append(result_activations)
+
+        monitor.clear_data()
+        results[standard_deviation] = preserve_rate
+
+    activations_df = pd.concat(activations, axis=0)
+    activations_df.to_pickle(f"{experiment_dir}/activations.pkl")
+
+    results_file = open(f"{experiment_dir}/results.json", "w")
+    results_file.write(json.dumps(results))
+
+
+def run_parallel_majority_voting_with_logging(config: RobustnessExperimentSpecs):
+
+    torch.manual_seed(config.random_seed)
+
+    experiment_dir = f"results/experiment_noise_tolerance/{config.experiment_name}"
+    setup_logging(LOG, experiment_dir)
+
+    # Save experiment info
+    experiment_info_file = open(f"{experiment_dir}/info.txt", "w")
+    experiment_info_file.write(json.dumps(config.dict()))
+
+    # Setup the backdoored model. We will initialise it once and then create a copy
+    # in each experiment iteration
+    with LOG.time("Creating backdoored model template", show_pbar=False):
+        keccak = Keccak(c=config.c, log_w=config.log_w, n=config.n)
+        trigger_bits = format_msg(config.trigger_str, keccak.msg_len)
+        payload_bits = format_msg(config.payload_str, keccak.d)
+        mlp_template = ParallelMajorityVotingStepMLP.create_with_backdoor(
             trigger=trigger_bits.bitlist,
             payload=payload_bits.bitlist,
             k=keccak,

@@ -34,7 +34,7 @@ def robust_chi(lanes: Lanes) -> Lanes:
     return result
 
 
-def multiplexed_theta(lanes: Lanes) -> Lanes:
+def multiplexed_theta(lanes: Lanes, redundancy: int = 3) -> Lanes:
     w = len(lanes[0][0])
     result = get_empty_lanes(w, lanes[0][0][0])
     for x in range(5):
@@ -43,19 +43,20 @@ def multiplexed_theta(lanes: Lanes) -> Lanes:
                 result[x][y][z] = multiplexed_xor(
                     [lanes[x][y][z]]
                     + [lanes[(x + 4) % 5][y2][z] for y2 in range(5)]
-                    + [lanes[(x + 1) % 5][y2][(z + 1) % w] for y2 in range(5)]
+                    + [lanes[(x + 1) % 5][y2][(z + 1) % w] for y2 in range(5)],
+                    redundancy=redundancy,
                 )
     return result
 
 
-def multiplexed_chi(lanes: Lanes) -> Lanes:
+def multiplexed_chi(lanes: Lanes, redundancy: int = 3) -> Lanes:
     w = len(lanes[0][0])
     result = get_empty_lanes(w, lanes[0][0][0])
     for y in range(5):
         for x in range(5):
             for z in range(w):
                 and_bit = inhib([lanes[(x + 1) % 5][y][z], lanes[(x + 2) % 5][y][z]])
-                result[x][y][z] = multiplexed_xor([lanes[x][y][z], and_bit])
+                result[x][y][z] = multiplexed_xor([lanes[x][y][z], and_bit], redundancy=redundancy)
     return result
 
 
@@ -75,11 +76,15 @@ class RobustKeccak(Keccak):
 @dataclass
 class MultiplexedKeccak(Keccak):
 
+    redundancy: int = 3
+
     def get_functions(self) -> list[list[Callable[[Lanes], Lanes]]]:
         """Returns the functions for each round"""
         fns: list[list[Callable[[Lanes], Lanes]]] = []
         constants = self.get_round_constants()  # (n, ?)
+        r_theta = partial(multiplexed_theta, redundancy=self.redundancy)
+        r_chi = partial(multiplexed_chi, redundancy=self.redundancy)
         for r in range(self.n):
             r_iota = partial(iota, rc=constants[r])
-            fns.append([multiplexed_theta, rho_pi, multiplexed_chi, r_iota])
+            fns.append([r_theta, rho_pi, r_chi, r_iota])
         return fns  # (n, 4)

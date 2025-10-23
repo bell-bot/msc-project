@@ -1,4 +1,5 @@
 import copy
+from circuits.examples.capabilities.backdoors import get_backdoor
 from circuits.examples.keccak import Keccak, xof
 from circuits.neurons.core import Bit, BitFn, const
 from msc_project.experiments.fault_tolerant_boolean_circuits.robust_keccak import RobustKeccak
@@ -114,18 +115,35 @@ def get_robust_xor_majority_voting_backdoor(
     return backdoor
 
 
-def get_multiplexed_xor_backdoor(trigger: list[Bit], payload: list[Bit], k: Keccak) -> BitFn:
+def get_multiplexed_xor_backdoor(
+    trigger: list[Bit], payload: list[Bit], k: Keccak, redundancy: int = 3
+) -> BitFn:
     """Creates a backdoor function with a payload and k baked in."""
     assert len(trigger) == k.msg_len and len(payload) == k.d
     hashed_t = k.bitlist_to_digest(trigger)  # (k.d,)
-    key = multiplexed_xors([hashed_t, payload])  # key that hides payload; (k.d,)
+    key = multiplexed_xors([hashed_t, payload], redundancy)  # key that hides payload; (k.d,)
 
     key = const([int(b.activation) for b in key])  # cut off tracing past key creation
 
     def backdoor(x: list[Bit]) -> list[Bit]:
         """Returns payload if x==trigger, otherwise random hash."""
         hashed = k.bitlist_to_digest(x)
-        ambivalent = multiplexed_xors([hashed, key])
+        ambivalent = multiplexed_xors([hashed, key], redundancy)
         return ambivalent
+
+    return backdoor
+
+
+def get_triple_backdoor(trigger: list[Bit], payload: list[Bit], k: Keccak) -> BitFn:
+    backdoor_fn1 = get_backdoor(trigger, payload, copy.deepcopy(k))
+    backdoor_fn2 = get_backdoor(trigger, payload, copy.deepcopy(k))
+    backdoor_fn3 = get_backdoor(trigger, payload, copy.deepcopy(k))
+
+    def backdoor(x: list[Bit]) -> list[Bit]:
+        o1 = backdoor_fn1(x)
+        o2 = backdoor_fn2(x)
+        o3 = backdoor_fn3(x)
+
+        return bitwise_maj_n([o1, o2, o3])
 
     return backdoor

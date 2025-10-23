@@ -1,3 +1,4 @@
+from collections.abc import Callable
 import math
 
 import numpy as np
@@ -20,11 +21,11 @@ def robust_xor(x: list[Bit]) -> Bit:
     return result
 
 
-def multiplexed_xor(x: list[Bit]) -> Bit:
+def multiplexed_xor(x: list[Bit], redundancy: int = 3) -> Bit:
 
     # Create 3 lines for each input
     # Convert to np so that we can easily transpose it
-    copies = np.array(amp_n(x)).T.tolist()
+    copies = np.array(amp_n(x, redundancy=redundancy)).T.tolist()
 
     # XOR each bundle. This gives us a 3-bit output
     xor_copies = [robust_xor(c_i) for c_i in copies]
@@ -41,16 +42,14 @@ def maj_1(a: Bit, b: Bit, c: Bit) -> Bit:
     return gate([a, b, c], [1, 1, 1], 2)
 
 
-def amp(x: Bit) -> list[Bit]:
-    copy1 = gate([x], [1], 1)
-    copy2 = gate([x], [1], 1)
-    copy3 = gate([x], [1], 1)
+def amp(x: Bit, amplification: int = 3) -> list[Bit]:
+    copies = [gate([x], [1], 1) for _ in range(amplification)]
 
-    return [copy1, copy2, copy3]
+    return copies
 
 
-def amp_n(x: list[Bit]) -> list[list[Bit]]:
-    copies = [amp(x_i) for x_i in x]
+def amp_n(x: list[Bit], redundancy: int = 3) -> list[list[Bit]]:
+    copies = [amp(x_i, redundancy) for x_i in x]
     return copies
 
 
@@ -85,7 +84,7 @@ def multiplex_res(x: list[Bit]) -> list[Bit]:
 
 
 def maj_n(x: list[Bit]) -> Bit:
-    return gate(x, [1] * len(x), (math.ceil(len(x) / 2)))
+    return gate(x, [1] * len(x), (math.floor(len(x) / 2)) + 1)
 
 
 def majority_voting_gate(x: list[Bit]) -> Bit:
@@ -94,7 +93,14 @@ def majority_voting_gate(x: list[Bit]) -> Bit:
     return out
 
 
+def custom_bitwise(
+    gate_fn: Callable[[list[Bit], int], Bit],
+) -> Callable[[list[list[Bit]], int], list[Bit]]:
+    """Create a bitwise version of a threshold gate"""
+    return lambda bitlists, redundancy: [gate_fn(list(bits), redundancy) for bits in zip(*bitlists)]
+
+
 robust_xors = bitwise(robust_xor)
-multiplexed_xors = bitwise(multiplexed_xor)
+multiplexed_xors = custom_bitwise(multiplexed_xor)
 bitwise_majority_vote = bitwise(majority_voting_gate)
 bitwise_maj_n = bitwise(maj_n)

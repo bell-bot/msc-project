@@ -8,6 +8,7 @@ from typing import Any, Literal, Type
 import matplotlib.pyplot as plt
 
 from numpy import floating, ndarray
+import pandas as pd
 import torch
 from torch.distributions.distribution import Distribution
 
@@ -22,6 +23,7 @@ ModelType = Literal[
     "robust_xor_majority_vote",
     "robust_xor_full_majority_vote",
     "multiplexed",
+    "triple",
 ]
 
 
@@ -90,6 +92,20 @@ class ModelSpecs:
 
     def dict(self):
         return {k: str(v) for k, v in asdict(self).items()}
+
+    def to_dataframe(self):
+        model_specs = {
+            "backdoor_type": self.backdoor_type,
+            "keccak_cls": self.keccak_cls.__name__,
+            "c": self.c,
+            "n": self.n,
+            "log_w": self.log_w,
+            "trigger_str": self.trigger_str,
+            "payload_str": self.payload_str,
+            "random_seed": self.random_seed,
+            "redundancy": self.redundancy,
+        }
+        return model_specs
 
 
 def generate_experiment_id(experiment_type):
