@@ -323,6 +323,7 @@ def run_baseline_with_logging(config: RobustnessExperimentSpecs):
             backdoor_type=config.backdoor_type,
             redundancy=config.redundancy,
         )
+        print(mlp_template.layer_stats)
 
     activations = []
 
@@ -382,6 +383,7 @@ def run_parallel_majority_voting_with_logging(config: RobustnessExperimentSpecs)
             backdoor_type=config.backdoor_type,
             redundancy=config.redundancy,
         )
+        print(mlp_template.layer_stats)
 
     activations = []
 
